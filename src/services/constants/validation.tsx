@@ -4,6 +4,12 @@ const isValidPassword = (password: string) => {
     return regex.test(password);
 }
 
+const isValidEmail = (email: string) => {
+    // Biểu thức chính quy để kiểm tra địa chỉ email
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
 const isValidPhone = (phone: string) => {
     // Biểu thức chính quy kiểm tra số điện thoại VN
     const regex = /^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/;
@@ -12,5 +18,6 @@ const isValidPhone = (phone: string) => {
 
 export {
     isValidPassword,
-    isValidPhone
+    isValidPhone,
+    isValidEmail
 }

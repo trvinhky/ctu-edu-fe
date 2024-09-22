@@ -8,6 +8,6 @@ export interface QuestionExam {
 }
 
 export interface QuestionExamInfo extends QuestionExam {
-    exams: Exam
-    questions: Question
+    exam: Exam
+    question: Question
 }

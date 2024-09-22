@@ -1,16 +1,26 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { Button, Col, DatePicker, Flex, Form, Image, Input, Row } from "antd"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import styled from "styled-components"
 import { BoxTitle } from "~/services/constants/styled";
+import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { isValidPhone } from "~/services/constants/validation";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { PATH } from "~/services/constants/navbarList";
+import AccountAPI from '~/services/actions/account'
+import ProfileAPI from '~/services/actions/profile'
+import { AccountInfo } from "~/services/types/account";
+import { useGlobalDataContext } from "~/hooks/globalData";
+import type { FormProps } from 'antd';
+import dayjs, { Dayjs } from "dayjs";
 
 type FieldType = {
     profile_name: string;
     profile_address?: string;
     profile_phone?: string;
     profile_avatar?: string;
-    profile_birthday?: string;
+    profile_birthday?: Dayjs;
     profile_info?: string;
 };
 
@@ -47,16 +57,95 @@ const LabelAvatar = styled.label`
 
 const Info = () => {
     const title = 'Thông tin cá nhân'
+    const dispatch = useDispatch();
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [account, setAccount] = useState<AccountInfo>()
+    const navigate = useNavigate();
+    const [form] = Form.useForm<FieldType>();
+
+    const getInfoAccount = async () => {
+        setIsLoading(true)
+        try {
+            const { data } = await AccountAPI.getOne()
+            setIsLoading(false)
+            if (data && !Array.isArray(data)) {
+                dispatch(actionsAccount.setInfo(data))
+                setAccount(data)
+
+                const birthday = data.profile.profile_birthday ?
+                    dayjs(data.profile.profile_birthday) : undefined
+                form.setFieldsValue({
+                    profile_name: data.profile.profile_name,
+                    profile_address: data.profile.profile_address,
+                    profile_phone: data.profile.profile_phone,
+                    profile_avatar: data.profile.profile_avatar,
+                    profile_birthday: birthday,
+                    profile_info: data.profile.profile_info
+                })
+            } else {
+                navigate(PATH.LOGIN)
+            }
+        } catch (e) {
+            setIsLoading(false)
+            navigate(PATH.LOGIN)
+        }
+    }
+
+    const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+        setIsLoading(true)
+        try {
+            const res = await ProfileAPI.update({
+                profile_Id: account?.profile.profile_Id as string,
+                profile_name: values.profile_name,
+                profile_address: values.profile_address,
+                profile_birthday: values.profile_birthday?.toDate(),
+                profile_info: values.profile_info,
+                profile_phone: values.profile_phone,
+                profile_avatar: values.profile_avatar
+            })
+
+            if (res.status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: res.message,
+                    duration: 3,
+                });
+                setIsLoading(false)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: res.message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+
+        setIsLoading(false)
+    };
+
     useEffect(() => {
         document.title = title
+        getInfoAccount()
     }, [])
 
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
             <Form
+                form={form}
                 style={{ padding: '0 20px' }}
                 layout="vertical"
+                initialValues={{
+                    profile_name: ''
+                }}
+                onFinish={onFinish}
+                autoComplete="off"
             >
                 <Row gutter={[16, 16]}>
                     <Col span={7}>
@@ -101,7 +190,9 @@ const Info = () => {
                                     ]}
                                     style={{ width: '100%' }}
                                 >
-                                    <Input placeholder="Jack" />
+                                    <Input
+                                        placeholder="Tên tài khoản"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -122,7 +213,9 @@ const Info = () => {
                                         }),
                                     ]}
                                 >
-                                    <Input placeholder="Số điện thoại" />
+                                    <Input
+                                        placeholder="Số điện thoại"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -130,7 +223,10 @@ const Info = () => {
                                     name="profile_birthday"
                                     label="Ngày sinh"
                                 >
-                                    <DatePicker style={{ width: '100%' }} placeholder="Chọn ngày" />
+                                    <DatePicker
+                                        style={{ width: '100%' }}
+                                        placeholder="Chọn ngày"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
@@ -138,7 +234,9 @@ const Info = () => {
                                     name="profile_address"
                                     label="Địa chỉ"
                                 >
-                                    <Input placeholder="Địa chỉ" />
+                                    <Input
+                                        placeholder="Địa chỉ"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
@@ -146,7 +244,10 @@ const Info = () => {
                                     name="profile_info"
                                     label="Giới thiệu"
                                 >
-                                    <Input.TextArea rows={4} placeholder="Giới thiệu bản thân" />
+                                    <Input.TextArea
+                                        rows={4}
+                                        placeholder="Giới thiệu bản thân"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={24}>

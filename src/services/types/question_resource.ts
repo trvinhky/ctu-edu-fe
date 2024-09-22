@@ -1,12 +1,12 @@
-import { Type } from "~/services/types/type"
+import { Category } from "~/services/types/category"
 
 export interface QuestionResource {
     question_resource_Id: string
     question_resource_url: string
-    resource_type: string
+    category_Id: string
     question_Id: string
 }
 
 export interface QuestionResourceInfo extends QuestionResource {
-    type: Type
+    category: Category
 }

@@ -1,18 +1,16 @@
 import { AccountInfo } from "~/services/types/account"
-import { Field } from "~/services/types/field"
+import { Subject } from "~/services/types/subject"
 
 export interface Course {
     course_Id: string
     course_name: string
     course_image?: string
     course_content: string
-    course_total?: number
-    course_required?: string
     teacher_Id: string
-    field_Id: string
+    subject_Id: string
 }
 
 export interface CourseInfo extends Course {
     teacher: AccountInfo
-    field: Field
+    subject: Subject
 }

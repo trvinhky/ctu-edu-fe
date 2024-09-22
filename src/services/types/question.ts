@@ -1,17 +1,17 @@
 import { Account } from "~/services/types/account"
-import { Category } from "~/services/types/category"
 import { Option } from "~/services/types/option"
 import { Resource } from "~/services/types/resource"
+import { Type } from "~/services/types/type"
 
 export interface Question {
     question_Id: string
     question_content: string
-    category_Id: string
+    type_Id: string
 }
 
 export interface QuestionInfo extends Question {
-    category: Category
+    type: Type
     resources?: Resource[]
     options?: Option[]
-    auth: Account
+    auth?: Account
 }

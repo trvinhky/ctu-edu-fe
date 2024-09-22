@@ -6,7 +6,8 @@ export interface Profile {
     profile_avatar?: string
     profile_birthday?: Date
     profile_info?: string
-    account_Id: string
+    account_Id?: string
+    profile_score?: number
 }
 
 

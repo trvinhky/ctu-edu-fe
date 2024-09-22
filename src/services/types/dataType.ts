@@ -1,22 +1,13 @@
-import type { MenuProps } from 'antd';
+import { MenuProps } from "antd";
 
 export interface APIType<T> {
     message: String
-    data?: T | Array<T>
+    data: T | Array<T>
+    status: number
 }
 
-export type MenuItem = Required<MenuProps>['items'][number];
 
-export interface Item {
-    key: string
-    label: string
-    href?: string
-}
-
-export interface NavBarItem extends Item {
-    icon?: JSX.Element
-    children?: Item[]
-}
+export type MenuItem = Required<MenuProps>['items'][number]
 
 
 export interface Option {

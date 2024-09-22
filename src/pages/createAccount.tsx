@@ -1,8 +1,13 @@
-import type { FormInstance } from 'antd';
+import type { FormInstance, FormProps } from 'antd';
 import { Button, Col, Form, Input, Row, Select, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useGlobalDataContext } from '~/hooks/globalData';
 import { Title } from '~/services/constants/styled';
 import { isValidPassword } from '~/services/constants/validation';
+import { AccountRegister } from '~/services/types/account';
+import AccountAPI from '~/services/actions/account'
+import RoleAPI from '~/services/actions/role';
+import { Option } from '~/services/types/dataType';
 
 interface SubmitButtonProps {
     form: FormInstance;
@@ -37,10 +42,78 @@ const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({ fo
 
 const CreateAccount = () => {
     const title = 'Tạo tài khoản'
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [roles, setRoles] = useState<Option[]>([])
+
+    const getAllRole = async () => {
+        setIsLoading(true)
+        try {
+            const { data, message } = await RoleAPI.getAll()
+            if (data && Array.isArray(data)) {
+                const result: Option[] = data.map((item) => ({
+                    label: item.role_name,
+                    value: item.role_Id as string
+                }))
+                setRoles(result)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const [form] = Form.useForm();
+
+    const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+        setIsLoading(true)
+        const data: AccountRegister = {
+            email: values.email as string,
+            password: values.password as string,
+            name: values.username as string,
+            role: values.role as string,
+            code: ''
+        }
+
+        try {
+            const check = await AccountAPI.register(data)
+            if (check.status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: check.message,
+                    duration: 3,
+                });
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: check.message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+
+        setIsLoading(false)
+    };
+
     useEffect(() => {
         document.title = title
+        getAllRole()
     }, [])
-    const [form] = Form.useForm();
 
     return (
         <section className="create-account">
@@ -50,7 +123,9 @@ const CreateAccount = () => {
                 name="validateOnly"
                 layout="vertical"
                 autoComplete="off"
+                onFinish={onFinish}
                 style={{ width: '80%' }}
+                initialValues={{}}
             >
                 <Row gutter={[16, 16]}>
                     <Col span={16}>
@@ -73,11 +148,7 @@ const CreateAccount = () => {
                             name="role"
                         >
                             <Select
-                                defaultValue="lucy"
-                                options={[
-                                    { value: 'jack', label: 'Jack' },
-                                    { value: 'lucy', label: 'Lucy' }
-                                ]}
+                                options={roles}
                             />
                         </Form.Item>
                     </Col>

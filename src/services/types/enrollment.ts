@@ -4,10 +4,10 @@ import { Course } from "~/services/types/course"
 export interface Enrollment {
     course_Id: string
     student_Id: string
-    enrollment_date: Date
+    enrollment_date?: Date
 }
 
 export interface EnrollmentInfo extends Enrollment {
-    courses: Course[]
-    students: AccountInfo[]
+    course: Course
+    student: AccountInfo
 }

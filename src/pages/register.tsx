@@ -1,9 +1,13 @@
 import type { FormProps } from 'antd';
-import { Button, Checkbox, Form, Input } from 'antd';
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Button, Checkbox, Col, Form, Input, Row } from 'antd';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FormLink, FormTitle } from '~/services/constants/styled';
 import { isValidPassword } from '~/services/constants/validation';
+import { AccountRegister } from '~/services/types/account';
+import AccountAPI from '~/services/actions/account'
+import { useGlobalDataContext } from '~/hooks/globalData';
+import { PATH } from '~/services/constants/navbarList';
 
 type FieldType = {
     email?: string;
@@ -11,19 +15,86 @@ type FieldType = {
     remember?: string;
     confirm?: string;
     username?: string;
+    code?: string;
 };
 
 const Register = () => {
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [emailSend, setEmailSend] = useState('')
+    const navigate = useNavigate();
+
     useEffect(() => {
         document.title = 'Đăng ký'
     }, [])
 
-    const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
-        console.log('Success:', values);
+    const getCode = async () => {
+        setIsLoading(true)
+        try {
+            const { status } = await AccountAPI.getCode(emailSend)
+            if (status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: 'Vui lòng kiểm tra gmail của bạn!',
+                    duration: 3,
+                });
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: 'Gửi email thất bại!',
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+        setIsLoading(true)
+        const data: AccountRegister = {
+            email: values.email as string,
+            password: values.password as string,
+            name: values.username as string,
+            code: values.code as string
+        }
+
+        try {
+            const check = await AccountAPI.register(data)
+            if (check.status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: check.message,
+                    duration: 3,
+                });
+                navigate(PATH.LOGIN)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: check.message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
     };
 
-    const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
-        console.log('Failed:', errorInfo);
+    const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = () => {
+        messageApi.open({
+            type: 'warning',
+            content: 'Vui lòng nhập đầy đủ dữ liệu!',
+            duration: 3,
+        });
     };
 
     return (
@@ -64,7 +135,7 @@ const Register = () => {
                     type: 'email'
                 }]}
             >
-                <Input />
+                <Input value={emailSend} onChange={(e) => setEmailSend(e.target.value)} />
             </Form.Item>
 
             <Form.Item<FieldType>
@@ -112,6 +183,22 @@ const Register = () => {
             >
                 <Input.Password />
             </Form.Item>
+            <Form.Item label="Mã xác thực">
+                <Row gutter={8}>
+                    <Col span={12}>
+                        <Form.Item<FieldType>
+                            name="code"
+                            noStyle
+                            rules={[{ required: true, message: 'Vui lòng nhập mã xác thực!' }]}
+                        >
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Button onClick={getCode}>Lấy mã</Button>
+                    </Col>
+                </Row>
+            </Form.Item>
 
             <Form.Item<FieldType>
                 name="remember"
@@ -128,7 +215,7 @@ const Register = () => {
             </Form.Item>
 
             <FormLink>
-                Đã có tài khoản? <Link to="/login">Đăng nhập ngay.</Link>
+                Đã có tài khoản? <Link to={PATH.LOGIN}>Đăng nhập ngay.</Link>
             </FormLink>
         </Form>
     )

@@ -2,56 +2,69 @@ import {
     AuditOutlined,
     BookOutlined,
     DesktopOutlined,
+    FileOutlined,
+    KeyOutlined,
     LikeOutlined,
     MessageOutlined,
     PieChartOutlined,
     QuestionOutlined,
-    TeamOutlined
+    TagOutlined,
+    TeamOutlined,
+    UnorderedListOutlined
 } from "@ant-design/icons"
-import { NavBarItem } from "~/services/types/dataType"
+import { Link } from "react-router-dom"
+import { MenuItem } from "~/services/types/dataType"
 
 const PATH = {
     HOME: '/',
     SEARCH: '/search',
-    FIELD: '/field/:id',
+    SUBJECT: '/subject/:id',
     LOGIN: '/login',
+    FORGOT: '/forgot',
+    NEW_PASSWORD: '/new-password',
     REGISTER: '/register',
     DETAIL: '/detail/:id',
-    /* admin */
     ADMIN: '/admin',
     LOGIN_ADMIN: '/login/admin',
-    CREATE_ACCOUNT: '/admin/create-account',
-    MANAGER_ACCOUNT: '/admin/manager-account',
-    MANAGER_COURSE: '/admin/manager-course',
-    MANAGER_FIELD: '/admin/manager-field',
-    CREATE_FIELD: '/admin/create-field',
-    /* student */
-    COURSE_REGISTER: '/info/course/:id',
-    MANAGER_REVIEW: '/info/review/:id',
-    /* teacher */
-    CREATE_COURSE: '/teacher/course-create/:id',
-    MANAGER_QUESTION: '/teacher/manager-question/:id',
-    UPDATE_COURSE: '/course-update/:id',
-    LIST_COURSE: '/teacher/list-course/:id',
-    MANAGER_LESSON: '/teacher/manager-lesson/:id',
-    MANAGER_EXAM: '/teacher/exam/:id',
+    INFO: '/info',
+    CREATE_ACCOUNT: 'create-account',
+    MANAGER_ACCOUNT: 'manager-account',
+    MANAGER_COURSE: 'manager-course',
+    MANAGER_SUBJECT: 'manager-subject',
+    COURSE_REGISTER: 'course-register',
+    MANAGER_REVIEW: 'manager-review',
+    CREATE_COURSE: 'create-course',
+    MANAGER_QUESTION: 'manager-question',
+    CREATE_QUESTION: 'create-question',
+    UPDATE_COURSE: 'course-update/:id',
+    LIST_COURSE: 'list-course',
+    MANAGER_LESSON: 'manager-lesson/:id',
+    MANAGER_EXAM: 'manager-exam/:id',
     DETAIL_EXAM: '/exam/:id',
-    CREATE_EXAM: '/exam-create/:id',
-    UPDATE_EXAM: '/exam-update/:id',
-    LIST_STUDENT: '/teacher/list-student/:id',
-    QUESTION_RESOURCE: '/question-resource/:id',
-    /* other */
-    INFO: '/info/:id',
-    LIST_COMMENT: '/info/comment/:id',
-    CONTENT_COURSE: '/course/:id'
+    CREATE_EXAM: 'create-exam/:id',
+    UPDATE_EXAM: 'update-exam/:id',
+    LIST_STUDENT: '/ist-student',
+    QUESTION_RESOURCE: 'question-resource/:id',
+    LIST_COMMENT: 'list-comment',
+    CONTENT_COURSE: '/course/:id',
+    LIST_STATUS: 'status',
+    MANAGER_CATEGORY: 'manager-category',
+    LIST_TYPE: 'list-type',
+    MANAGER_ROLE: 'manager-role'
 }
 
-const NAVBARADMIN: NavBarItem[] = [
+const pathAdmin = (path: string) => `${PATH.ADMIN}/${path}`
+
+const NAVBARADMIN: MenuItem[] = [
     {
-        key: '1',
+        key: PATH.ADMIN,
         icon: <PieChartOutlined />,
-        label: 'Trang chủ Admin',
-        href: PATH.ADMIN
+        label: <Link to={PATH.ADMIN}>Trang chủ Admin</Link>,
+    },
+    {
+        key: pathAdmin(PATH.MANAGER_ROLE),
+        icon: <KeyOutlined />,
+        label: <Link to={PATH.MANAGER_ROLE}>Quản lý quyền</Link>
     },
     {
         key: 'sub1',
@@ -59,37 +72,72 @@ const NAVBARADMIN: NavBarItem[] = [
         label: 'Quản lý tài khoản',
         children: [
             {
-                key: '2',
-                label: 'Danh sách tài khoản',
-                href: PATH.MANAGER_ACCOUNT
+                key: pathAdmin(PATH.MANAGER_ACCOUNT),
+                label: <Link to={PATH.MANAGER_ACCOUNT}>Danh sách tài khoản</Link>
             },
             {
-                key: '3',
-                label: 'Tạo tài khoản',
-                href: PATH.CREATE_ACCOUNT
+                key: pathAdmin(PATH.CREATE_ACCOUNT),
+                label: <Link to={PATH.CREATE_ACCOUNT}>Tạo tài khoản</Link>
             }
         ]
     },
     {
-        key: '4',
+        key: pathAdmin(PATH.MANAGER_SUBJECT),
         icon: <BookOutlined />,
-        label: 'Danh sách lĩnh vực',
-        href: PATH.MANAGER_FIELD
+        label: <Link to={PATH.MANAGER_SUBJECT}>Quản lý môn học</Link>
     },
     {
-        key: '5',
+        key: 'sub2',
         icon: <DesktopOutlined />,
-        label: 'Danh sách khóa học',
-        href: PATH.MANAGER_COURSE
+        label: 'Quản lý khóa học',
+        children: [
+            {
+                key: pathAdmin(PATH.MANAGER_COURSE),
+                label: <Link to={PATH.MANAGER_COURSE}>Danh sách khóa học</Link>
+            },
+            {
+                key: pathAdmin(PATH.CREATE_COURSE),
+                label: <Link to={PATH.CREATE_COURSE}>Tạo khóa học</Link>
+            }
+        ]
+    },
+    {
+        key: pathAdmin(PATH.LIST_STATUS),
+        icon: <UnorderedListOutlined />,
+        label: <Link to={PATH.LIST_STATUS}>Danh sách trạng thái</Link>
+    },
+    {
+        key: pathAdmin(PATH.LIST_TYPE),
+        icon: <TagOutlined />,
+        label: <Link to={PATH.LIST_TYPE}>Danh sách loại câu hỏi</Link>
+    },
+    {
+        key: 'sub3',
+        icon: <QuestionOutlined />,
+        label: 'Quản lý câu hỏi',
+        children: [
+            {
+                key: pathAdmin(PATH.MANAGER_QUESTION),
+                label: <Link to={PATH.MANAGER_QUESTION}>Danh sách câu hỏi</Link>
+            },
+            {
+                key: pathAdmin(PATH.CREATE_QUESTION),
+                label: <Link to={PATH.CREATE_QUESTION}>Tạo câu hỏic</Link>
+            }
+        ]
+    },
+    {
+        key: pathAdmin(PATH.MANAGER_CATEGORY),
+        icon: <FileOutlined />,
+        label: <Link to={PATH.MANAGER_CATEGORY}>Quản lý loại file</Link>
     }
 ]
 
-const NAVBARTEACHER: NavBarItem[] = [
+const NAVBARTEACHER: MenuItem[] = [
     {
-        key: '1',
+        key: PATH.INFO,
         icon: <AuditOutlined />,
-        label: 'Thông tin',
-        href: PATH.INFO
+        label: <Link to={PATH.INFO}>Thông tin</Link>,
     },
     {
         key: 'sub1',
@@ -97,80 +145,54 @@ const NAVBARTEACHER: NavBarItem[] = [
         label: 'Quản lý khóa học',
         children: [
             {
-                key: '2',
-                label: 'Danh sách khóa học',
-                href: PATH.LIST_COURSE
+                key: PATH.LIST_COURSE,
+                label: <Link to={PATH.INFO}>Danh sách khóa học</Link>
             },
             {
-                key: '3',
-                label: 'Tạo khóa học',
-                href: PATH.CREATE_COURSE
+                key: PATH.CREATE_COURSE,
+                label: <Link to={PATH.CREATE_COURSE}>Tạo khóa học</Link>
             }
         ]
     },
     {
-        key: '4',
+        key: PATH.MANAGER_QUESTION,
         icon: <QuestionOutlined />,
-        label: 'Câu hỏi',
-        href: PATH.MANAGER_QUESTION
+        label: <Link to={PATH.CREATE_COURSE}>Câu hỏi</Link>,
     },
     {
-        key: '5',
+        key: PATH.LIST_COMMENT,
         icon: <MessageOutlined />,
-        label: 'Thảo luận',
-        href: PATH.LIST_COMMENT
+        label: <Link to={PATH.CREATE_COURSE}>Thảo luận</Link>
     }
 
 ]
 
-const NAVBARSTUDENT: NavBarItem[] = [
+const NAVBARSTUDENT: MenuItem[] = [
     {
-        key: '1',
+        key: PATH.INFO,
         icon: <AuditOutlined />,
-        label: 'Thông tin',
-        href: PATH.INFO
+        label: <Link to={PATH.CREATE_COURSE}>Thông tin</Link>
     },
     {
-        key: '2',
+        key: PATH.COURSE_REGISTER,
         icon: <DesktopOutlined />,
-        label: 'Khóa học',
-        href: PATH.COURSE_REGISTER
+        label: <Link to={PATH.COURSE_REGISTER}>Khóa học</Link>
     },
     {
-        key: '3',
+        key: PATH.LIST_COMMENT,
         icon: <MessageOutlined />,
-        label: 'Thảo luận',
-        href: PATH.LIST_COMMENT
+        label: <Link to={PATH.LIST_COMMENT}>Thảo luận</Link>
     },
     {
-        key: '4',
+        key: PATH.MANAGER_REVIEW,
         icon: <LikeOutlined />,
-        label: 'Review',
-        href: PATH.MANAGER_REVIEW
+        label: <Link to={PATH.MANAGER_REVIEW}>Review</Link>
     },
 ]
-
-const getItemNavbarByKeyOrHref = (items: NavBarItem[], check: string, type: string) => {
-    let result = items.find(
-        (val) => (type === 'key' ? val.key : val.href) === check
-    )
-
-    if (result) return result
-
-    for (const item of items) {
-        const child = item.children?.find(
-            (val) => (type === 'key' ? val.key : val.href) === check
-        )
-        if (child) {
-            return child
-        }
-    }
-}
 
 export {
     PATH,
     NAVBARADMIN,
     NAVBARSTUDENT,
-    NAVBARTEACHER,
-    getItemNavbarByKeyOrHref
+    NAVBARTEACHER
 }

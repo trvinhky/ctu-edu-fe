@@ -27,9 +27,16 @@ const BoxTitle = styled.h3`
     padding-bottom: 15px;
 `
 
+const ImgCaptCha = styled.img`
+    height: 100%;
+    max-height: 40px;
+    object-fit: cover;
+`
+
 export {
     Title,
     FormTitle,
     FormLink,
-    BoxTitle
+    BoxTitle,
+    ImgCaptCha
 }

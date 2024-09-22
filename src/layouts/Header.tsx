@@ -5,6 +5,12 @@ import type { SearchProps } from 'antd/es/input/Search';
 import { useState } from "react";
 import styled from "styled-components";
 import { UserOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import { accountTokenSelector } from "~/services/reducers/selectors";
+import { actions as actionsAccount } from '~/services/reducers/accountSlice';
+import { PATH } from '~/services/constants/navbarList'
+import AccountAPI from '~/services/actions/account'
+import { useGlobalDataContext } from '~/hooks/globalData'
 
 const { Search } = Input;
 
@@ -37,18 +43,45 @@ const Item = styled.li<{ $color?: string }>`
 `
 
 const ListOptions = () => {
-    const confirm: PopconfirmProps['onConfirm'] = (e) => {
-        console.log(e);
-    };
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { setIsLoading, messageApi } = useGlobalDataContext();
 
-    const cancel: PopconfirmProps['onCancel'] = (e) => {
-        console.log(e);
+    const confirm: PopconfirmProps['onConfirm'] = async () => {
+        setIsLoading(true)
+        try {
+            const res = await AccountAPI.logOut()
+
+            if (res.status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: res.message,
+                    duration: 3,
+                });
+                setIsLoading(false)
+                dispatch(actionsAccount.LogOut())
+                navigate(PATH.LOGIN)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: res.message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
     };
 
     return (
         <ul>
             <Item>
-                <Link to={'/info/adadad'}>
+                <Link to={PATH.INFO}>
                     Trang cá nhân
                 </Link>
             </Item>
@@ -56,7 +89,6 @@ const ListOptions = () => {
                 title="Đăng xuất"
                 description="Bạn có chắc muốn đăng xuất?"
                 onConfirm={confirm}
-                onCancel={cancel}
                 okText="OK"
                 cancelText="Không"
             >
@@ -73,11 +105,11 @@ const ListOptions = () => {
 const Header = () => {
     const [searchValue, setSearchValue] = useState<string>()
     const navigate = useNavigate()
+    const token = useSelector(accountTokenSelector)
 
-    const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
-        console.log(info?.source, value);
+    const onSearch: SearchProps['onSearch'] = (value) => {
         setSearchValue(value)
-        navigate(`/search?title=${value}`)
+        navigate(`${PATH.SEARCH}?title=${value}`)
     }
 
     return (
@@ -101,19 +133,19 @@ const Header = () => {
                             value={searchValue}
                         />
                         {
-                            true ?
+                            token ?
                                 <Popover content={ListOptions} title="Peter">
                                     <Avatar size="large" icon={<UserOutlined />} />
                                 </Popover> :
                                 <>
                                     <Button
                                         type="primary"
-                                        onClick={() => navigate('/login')}
+                                        onClick={() => navigate(PATH.LOGIN)}
                                     >
                                         Đăng nhập
                                     </Button>
                                     <Button
-                                        onClick={() => navigate('/register')}
+                                        onClick={() => navigate(PATH.REGISTER)}
                                     >
                                         Đăng ký
                                     </Button>
