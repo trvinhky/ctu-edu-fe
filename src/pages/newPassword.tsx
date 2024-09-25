@@ -60,11 +60,11 @@ const NewPassword = () => {
         setIsLoading(true)
 
         try {
-            const { status, message } = await AccountAPI.forgotPassword(
-                values.password as string,
-                values.code as string,
-                emailSend as string
-            )
+            const { status, message } = await AccountAPI.forgotPassword({
+                email: emailSend as string,
+                password: values.password as string,
+                code: values.code as string
+            })
 
             if (status === 200) {
                 messageApi.open({

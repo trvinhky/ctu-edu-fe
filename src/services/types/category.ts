@@ -10,3 +10,8 @@ export interface CategoryInfo extends Category {
     resources: Resource[]
     questions: QuestionResource[]
 }
+
+export interface CategoryAll {
+    count: number
+    categories: CategoryInfo[]
+}

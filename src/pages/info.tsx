@@ -94,15 +94,19 @@ const Info = () => {
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         setIsLoading(true)
         try {
-            const res = await ProfileAPI.update({
-                profile_Id: account?.profile.profile_Id as string,
-                profile_name: values.profile_name,
-                profile_address: values.profile_address,
-                profile_birthday: values.profile_birthday?.toDate(),
-                profile_info: values.profile_info,
-                profile_phone: values.profile_phone,
-                profile_avatar: values.profile_avatar
-            })
+            const profile_birthday = values.profile_birthday?.toDate().toISOString().split('T')[0]
+            const data = new FormData()
+            data.append('profile_birthday', profile_birthday as string)
+            data.append('profile_name', values.profile_name as string)
+            data.append('profile_address', values.profile_address as string)
+            data.append('profile_info', values.profile_info as string)
+            data.append('profile_phone', values.profile_phone as string)
+            data.append('profile_avatar', values.profile_avatar as string)
+
+            const res = await ProfileAPI.update(
+                account?.profile.profile_Id as string,
+                data
+            )
 
             if (res.status === 200) {
                 messageApi.open({

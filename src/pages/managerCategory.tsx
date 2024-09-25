@@ -1,16 +1,17 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Flex, Table, TableProps, Button, Modal, Input } from "antd"
-import React, { useEffect, useState } from "react"
+import { Button, Flex, Input, Modal, Table, TableProps } from "antd";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useGlobalDataContext } from "~/hooks/globalData";
-import RoleAPI from "~/services/actions/role";
-import { Title } from "~/services/constants/styled"
+import CategoryAPI from "~/services/actions/category";
+import { Title } from "~/services/constants/styled";
 import ButtonEdit from "~/services/utils/buttonEdit";
 
 interface DataType {
     key: number;
     name: string;
-    total: number;
+    resources: number;
+    questions: number;
     id: string;
 }
 
@@ -20,32 +21,32 @@ const WrapperBtn = styled.span`
     padding-left: 10px;
 `
 
-const ManagerRole = () => {
-    const title = 'Danh sách quyền'
+const ManagerCategory = () => {
+    const title = 'Danh sách loại file'
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [roleName, setRoleName] = useState('');
-    const [idRole, setIdRole] = useState<string>()
+    const [CategoryName, setCategoryName] = useState('');
+    const [idCategory, setIdCategory] = useState<string>()
 
     useEffect(() => {
         document.title = title
-        getAllRole()
+        getAllCategory()
     }, [])
 
-    const getAllRole = async () => {
+    const getAllCategory = async () => {
         setIsLoading(true)
         try {
-            const { data, status, message } = await RoleAPI.getAllByAccount(1)
+            const { data, status, message } = await CategoryAPI.getAll(1)
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
-                    data.roles.map((role, i) => {
-                        const total = role.accounts?.length ?? 0
+                    data.categories.map((category, i) => {
                         const result: DataType = {
-                            total,
                             key: (i + 1),
-                            name: role.role_name,
-                            id: role.role_Id as string
+                            id: category.category_Id,
+                            name: category.category_name,
+                            questions: category.questions.length ?? 0,
+                            resources: category.resources.length ?? 0
                         }
 
                         return result
@@ -68,12 +69,13 @@ const ManagerRole = () => {
         setIsLoading(false)
     }
 
-    const editRole = async () => {
+    const editCategory = async () => {
         setIsLoading(true)
         try {
-            const { status, message } = await RoleAPI.update({
-                role_name: roleName,
-                role_Id: idRole
+            const { status, message } = await CategoryAPI.update({
+                category_Id: idCategory as string,
+                category_name: CategoryName
+
             })
             if (status === 200) {
                 messageApi.open({
@@ -81,7 +83,7 @@ const ManagerRole = () => {
                     content: message,
                     duration: 3,
                 });
-                await getAllRole()
+                await getAllCategory()
             } else {
                 messageApi.open({
                     type: 'error',
@@ -107,14 +109,19 @@ const ManagerRole = () => {
             render: (text) => <span className='list-account__stt'>{text}</span>
         },
         {
-            title: 'Tên quyền',
+            title: 'Tên loại file',
             dataIndex: 'name',
             key: 'name',
         },
         {
-            title: 'Số lượng tài khoản',
-            dataIndex: 'total',
-            key: 'total',
+            title: 'Số lượng câu hỏi',
+            dataIndex: 'questions',
+            key: 'questions',
+        },
+        {
+            title: 'Số lượng bài học',
+            dataIndex: 'resources',
+            key: 'resources',
         },
         {
             title: '',
@@ -127,13 +134,13 @@ const ManagerRole = () => {
         }
     ];
 
-    const getOneRole = async (id: string) => {
+    const getOneCategory = async (id: string) => {
         setIsLoading(true)
         try {
-            const { status, message, data } = await RoleAPI.getOneById(id)
+            const { status, message, data } = await CategoryAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
-                setRoleName(data.role_name)
-                setIdRole(data.role_Id)
+                setCategoryName(data.category_name)
+                setIdCategory(data.category_Id)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -153,34 +160,35 @@ const ManagerRole = () => {
 
     const showModal = async (id?: string) => {
         if (id) {
-            setIdRole(id)
-            await getOneRole(id)
+            setIdCategory(id)
+            await getOneCategory(id)
         } else {
-            setIdRole('')
+            setIdCategory('')
         }
         setIsModalOpen(true);
-    };
-
-    const handleOk = async () => {
-        if (roleName) {
-            if (idRole) {
-                await editRole()
-            } else {
-                await createNewRole()
-            }
-        }
-        setIsModalOpen(false);
     };
 
     const handleCancel = () => {
         setIsModalOpen(false);
     };
 
-    const createNewRole = async () => {
+    const handleOk = async () => {
+        if (CategoryName) {
+            if (idCategory) {
+                await editCategory()
+            } else {
+                await createNewCategory()
+            }
+        }
+        setIsModalOpen(false);
+    };
+
+    const createNewCategory = async () => {
         setIsLoading(true)
         try {
-            const { status, message } = await RoleAPI.create({
-                role_name: roleName
+            const { status, message } = await CategoryAPI.create({
+                category_Id: idCategory as string,
+                category_name: CategoryName
             })
             if (status === 200) {
                 messageApi.open({
@@ -188,8 +196,8 @@ const ManagerRole = () => {
                     content: message,
                     duration: 3,
                 });
-                setRoleName('')
-                await getAllRole()
+                setCategoryName('')
+                await getAllCategory()
             } else {
                 messageApi.open({
                     type: 'error',
@@ -228,7 +236,7 @@ const ManagerRole = () => {
             </Flex>
             <Table columns={columns} dataSource={dataTable} pagination={false} />
             <Modal
-                title={`${idRole ? 'Cập nhật' : 'Thêm'} quyền mới`}
+                title={`${idCategory ? 'Cập nhật' : 'Thêm'} loại file`}
                 open={isModalOpen}
                 onOk={handleOk}
                 onCancel={handleCancel}
@@ -238,7 +246,7 @@ const ManagerRole = () => {
                     </Button>,
                     <React.Fragment key="action">
                         {
-                            idRole ?
+                            idCategory ?
                                 <WrapperBtn onClick={handleOk}>
                                     <ButtonEdit text="Cập nhật" />
                                 </WrapperBtn>
@@ -251,13 +259,13 @@ const ManagerRole = () => {
                 ]}
             >
                 <Input
-                    placeholder="Tên quyền"
-                    value={roleName}
-                    onChange={(e) => setRoleName(e.target.value)}
+                    placeholder="Tên loại file"
+                    value={CategoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
                 />
             </Modal>
         </>
     )
 }
 
-export default ManagerRole
+export default ManagerCategory

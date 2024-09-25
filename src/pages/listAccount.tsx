@@ -3,15 +3,18 @@ import type { TableProps } from 'antd';
 import { FilterOutlined } from '@ant-design/icons';
 import { Title } from '~/services/constants/styled';
 import styled from 'styled-components';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Option } from '~/services/types/dataType';
+import { useGlobalDataContext } from '~/hooks/globalData';
+import AccountAPI from '~/services/actions/account';
+import RoleAPI from '~/services/actions/role';
 
 interface DataType {
-    key: string;
+    key: number;
     name: string;
-    age: number;
     email: string;
     role: string;
+    id: string;
 }
 
 const Wrapper = styled.section`
@@ -23,9 +26,83 @@ const Wrapper = styled.section`
 
 const ListAccount = () => {
     const title = 'Danh sách tài khoản'
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [dataTable, setDataTable] = useState<DataType[]>([])
+    const [roleOptions, setRoleOptions] = useState<Option[]>([])
+
     useEffect(() => {
         document.title = title
+        getAllAccount()
+        getAllRole()
     }, [])
+
+    const getAllRole = async () => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await RoleAPI.getAll()
+            if (status === 201 && !Array.isArray(data)) {
+                setRoleOptions(
+                    data.roles.map((role) => {
+                        const result: Option = {
+                            label: role.role_name,
+                            value: role.role_Id as string
+                        }
+
+                        return result
+                    })
+                )
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getAllAccount = async (page?: number, role?: string, limit: number = 6) => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await AccountAPI.getAll(page, role, limit)
+            if (status === 201 && !Array.isArray(data)) {
+                setDataTable(
+                    data.accounts?.map((account, i) => {
+                        const result: DataType = {
+                            key: (i + 1),
+                            name: account.profile.profile_name,
+                            id: account.account_Id,
+                            email: account.account_email,
+                            role: account.role?.role_name ?? 'Không biết'
+                        }
+
+                        return result
+                    }
+                    )
+                )
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
 
     const columns: TableProps<DataType>['columns'] = [
         {
@@ -51,39 +128,8 @@ const ListAccount = () => {
         }
     ];
 
-    const data: DataType[] = [
-        {
-            key: '1',
-            name: 'John Brown',
-            age: 32,
-            email: 'New York No. 1 Lake Park',
-            role: 'admin'
-        },
-        {
-            key: '2',
-            name: 'Jim Green',
-            age: 42,
-            email: 'London No. 1 Lake Park',
-            role: 'admin'
-        },
-        {
-            key: '3',
-            name: 'Joe Black',
-            age: 32,
-            email: 'Sydney No. 1 Lake Park',
-            role: 'admin'
-        },
-    ];
-
-    const options: Option[] = [
-        { value: 'jack', label: 'Jack' },
-        { value: 'lucy', label: 'Lucy' },
-        { value: 'Yiminghe', label: 'yiminghe' },
-        { value: 'disabled', label: 'Disabled' },
-    ]
-
-    const handleChange = (value: string) => {
-        console.log(`selected ${value}`);
+    const handleChange = async (value: string) => {
+        await getAllAccount(1, value)
     };
 
     return (
@@ -96,10 +142,10 @@ const ListAccount = () => {
                 style={{ marginBottom: '15px' }}
             >
                 <Select
-                    defaultValue={options[0].value}
                     style={{ width: 120 }}
                     onChange={handleChange}
-                    options={options}
+                    options={roleOptions}
+                    placeholder="Chọn role"
                 />
                 <Button
                     type="primary"
@@ -107,7 +153,7 @@ const ListAccount = () => {
                     <FilterOutlined />
                 </Button>
             </Flex>
-            <Table columns={columns} dataSource={data} />
+            <Table columns={columns} dataSource={dataTable} />
         </Wrapper>
     )
 }

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FormLink, FormTitle } from '~/services/constants/styled';
 import { isValidPassword } from '~/services/constants/validation';
-import { AccountRegister } from '~/services/types/account';
 import AccountAPI from '~/services/actions/account'
 import { useGlobalDataContext } from '~/hooks/globalData';
 import { PATH } from '~/services/constants/navbarList';
@@ -56,15 +55,14 @@ const Register = () => {
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         setIsLoading(true)
-        const data: AccountRegister = {
-            email: values.email as string,
-            password: values.password as string,
-            name: values.username as string,
-            code: values.code as string
-        }
 
         try {
-            const check = await AccountAPI.register(data)
+            const check = await AccountAPI.register({
+                email: values.email as string,
+                name: values.username as string,
+                password: values.password as string,
+                code: values.code as string
+            })
             if (check.status === 200) {
                 messageApi.open({
                     type: 'success',

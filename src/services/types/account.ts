@@ -27,3 +27,8 @@ export interface AccountInfo extends Account {
     role?: Role
     profile: Profile
 }
+
+export interface AccountAll {
+    count: number
+    accounts: AccountInfo[]
+}

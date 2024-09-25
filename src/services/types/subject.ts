@@ -10,3 +10,8 @@ export interface SubjectInfo extends Subject {
     courses: Course[]
     posts: Post[]
 }
+
+export interface SubjectAll {
+    count: number
+    subjects: SubjectInfo[]
+}

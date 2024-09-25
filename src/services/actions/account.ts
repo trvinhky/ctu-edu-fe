@@ -1,5 +1,5 @@
 import EduAPI from "~/services/actions";
-import { AccountInfo, AccountLogin, AccountRegister } from "~/services/types/account";
+import { AccountAll, AccountInfo, AccountLogin, AccountRegister } from "~/services/types/account";
 import { APIType } from "~/services/types/dataType";
 
 const url = (path: string = '') => `/account/${path}`
@@ -25,8 +25,8 @@ class AccountService extends EduAPI {
         return await this.putAPI(url('password'), { password, code })
     }
 
-    public async forgotPassword(password: string, code: string, email: string): Promise<APIType<undefined>> {
-        return await this.putAPI(url('forgot'), { password, code, email })
+    public async forgotPassword(data: { password: string, code: string, email: string }): Promise<APIType<undefined>> {
+        return await this.putAPI(url('forgot'), data)
     }
 
     public async logOut(): Promise<APIType<undefined>> {
@@ -43,6 +43,19 @@ class AccountService extends EduAPI {
 
     public async getOneByEmail(email: string): Promise<APIType<AccountInfo>> {
         return await this.postAPI(url('email'), { email })
+    }
+
+    public async getAll(page?: number, role?: string, limit: number = 6): Promise<APIType<AccountAll>> {
+        let params = url('all')
+        if (page) {
+            params += `?page=${page}&limit=${limit}`
+
+            if (role) {
+                params += `&role=${role}`
+            }
+        }
+
+        return await this.getAPI(params)
     }
 }
 

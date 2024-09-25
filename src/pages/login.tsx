@@ -31,8 +31,8 @@ const Login = () => {
         setIsLoading(true)
         try {
             const { data, message } = await AccountAPI.login({
-                password: values.password as string,
                 email: values.email as string,
+                password: values.password as string,
                 captcha: values.captcha as string
             })
 

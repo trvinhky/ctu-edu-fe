@@ -22,7 +22,7 @@ const InfoTemplate = () => {
     const [userName, setUserName] = useState('')
     const [items, setItems] = useState(NAVBARSTUDENT)
 
-    const getInfoAdmin = async () => {
+    const getInfo = async () => {
         try {
             setIsLoading(true)
             const { data } = await AccountAPI.getOne()
@@ -42,7 +42,7 @@ const InfoTemplate = () => {
     }
 
     useEffect(() => {
-        getInfoAdmin()
+        getInfo()
     }, [])
 
     return (

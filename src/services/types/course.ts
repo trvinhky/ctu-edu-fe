@@ -8,9 +8,16 @@ export interface Course {
     course_content: string
     teacher_Id: string
     subject_Id: string
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 export interface CourseInfo extends Course {
     teacher: AccountInfo
     subject: Subject
+}
+
+export interface CourseAll {
+    count: number
+    courses: CourseInfo[]
 }

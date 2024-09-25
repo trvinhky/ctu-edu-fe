@@ -6,11 +6,14 @@ export interface APIType<T> {
     status: number
 }
 
-
 export type MenuItem = Required<MenuProps>['items'][number]
-
 
 export interface Option {
     value: string;
     label: string;
+}
+
+export interface Error {
+    status: number;
+    data: { message: string }
 }

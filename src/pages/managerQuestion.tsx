@@ -1,9 +1,11 @@
-import { EyeOutlined, FilterOutlined, FolderOutlined, PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons"
-import { Button, Flex, Input, Select, Typography, Modal, Pagination, Form } from "antd"
+import { CheckCircleOutlined, CheckSquareOutlined, EyeOutlined, FilterOutlined, FolderOutlined, PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons"
+import { Button, Flex, Input, Select, Typography, Modal, Pagination, Form, Tooltip } from "antd"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Question from "~/components/question";
+import { useGlobalDataContext } from "~/hooks/globalData";
+import TypeAPI from "~/services/actions/type";
 import { BoxTitle } from "~/services/constants/styled"
 import { Option } from "~/services/types/dataType";
 import ButtonDelete from "~/services/utils/buttonDelete";
@@ -42,18 +44,41 @@ const ManagerQuestion = () => {
     const [titleModel, setTitleModel] = useState('')
     const [isEdit, setIsEdit] = useState(false)
     const [isModalDetailOpen, setIsModalDetailOpen] = useState(false);
-
+    const [optionType, setOptionType] = useState<Option[]>()
+    const { setIsLoading, messageApi } = useGlobalDataContext();
     const title = 'Danh sách câu hỏi'
+
     useEffect(() => {
         document.title = title
+        getAllType()
     }, [])
 
-    const options: Option[] = [
-        { value: 'jack', label: 'Jack' },
-        { value: 'lucy', label: 'Lucy' },
-        { value: 'Yiminghe', label: 'yiminghe' },
-        { value: 'disabled', label: 'Disabled' },
-    ]
+    const getAllType = async () => {
+        setIsLoading(true)
+        try {
+            const { data, message, status } = await TypeAPI.getAll()
+            if (status === 201 && !Array.isArray(data)) {
+                const result: Option[] = data.types.map((type) => ({
+                    label: type.type_name,
+                    value: type.type_Id as string
+                }))
+                setOptionType(result)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
 
     const handleChange = (value: string) => {
         console.log(`selected ${value}`);
@@ -99,10 +124,10 @@ const ManagerQuestion = () => {
                 style={{ marginBottom: '15px' }}
             >
                 <Select
-                    defaultValue={options[0].value}
                     style={{ width: 120 }}
                     onChange={handleChange}
-                    options={options}
+                    options={optionType}
+                    placeholder="Chọn loại"
                 />
                 <Button
                     type="primary"
@@ -169,22 +194,33 @@ const ManagerQuestion = () => {
                             Design, a design language for background applications, is refined by Ant UED Team. Ant
                             Design, a design language for background applications, is refined by Ant UED Team.
                         </Typography.Paragraph>
-                        <Flex justify="flex-end" gap={10} style={{ paddingTop: '10px' }}>
-                            <Button type="primary" onClick={showModalDetail}>
-                                <EyeOutlined />
-                            </Button>
-                            <WrapperBtn onClick={() => showModal('hbhjbj')}>
-                                <ButtonEdit />
-                            </WrapperBtn>
-                            <ButtonDelete />
-                            <Button
-                                type="primary"
-                                style={{ backgroundColor: '#4834d4' }}
-                            >
-                                <Link to="/question-resource/jgjjhgj">
-                                    <FolderOutlined />
-                                </Link>
-                            </Button>
+                        <Flex justify="space-between" gap={20} style={{ paddingTop: '10px' }}>
+                            <Tooltip placement="top" title={"Chọn 1"}>
+                                <span style={{ fontSize: 20, color: '#4cd137' }}>
+                                    {
+                                        true ?
+                                            <CheckCircleOutlined /> :
+                                            <CheckSquareOutlined />
+                                    }
+                                </span>
+                            </Tooltip>
+                            <Flex justify="flex-end" gap={10}>
+                                <Button type="primary" onClick={showModalDetail}>
+                                    <EyeOutlined />
+                                </Button>
+                                <WrapperBtn onClick={() => showModal('hbhjbj')}>
+                                    <ButtonEdit />
+                                </WrapperBtn>
+                                <ButtonDelete />
+                                <Button
+                                    type="primary"
+                                    style={{ backgroundColor: '#4834d4' }}
+                                >
+                                    <Link to="/question-resource/jgjjhgj">
+                                        <FolderOutlined />
+                                    </Link>
+                                </Button>
+                            </Flex>
                         </Flex>
                     </div>
                 </Box>
@@ -219,14 +255,11 @@ const ManagerQuestion = () => {
                             label="Chọn loại"
                         >
                             <Select
-                                defaultValue="lucy"
                                 style={{ width: '100%' }}
                                 onChange={handleChangeCategory}
                                 id="category_Id"
-                                options={[
-                                    { value: 'jack', label: 'Jack' },
-                                    { value: 'lucy', label: 'Lucy' }
-                                ]}
+                                options={optionType}
+                                placeholder="Chọn loại"
                             />
                         </Form.Item>
                         <Form.Item
@@ -282,7 +315,7 @@ const ManagerQuestion = () => {
                                             </Button>
                                         </Form.Item>
                                         <Note>
-                                            Check đê đánh dấu câu trả lời đúng.
+                                            Check để đánh dấu câu trả lời đúng.
                                         </Note>
                                     </>
                                 )}

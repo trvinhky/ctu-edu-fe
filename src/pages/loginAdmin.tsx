@@ -28,8 +28,8 @@ const LoginAdmin = () => {
         setIsLoading(true)
         try {
             const { data, message } = await AccountAPI.login({
-                password: values.password as string,
                 email: values.email as string,
+                password: values.password as string,
                 captcha: values.captcha as string
             })
 
@@ -37,7 +37,7 @@ const LoginAdmin = () => {
                 messageApi.open({
                     type: 'success',
                     content: message,
-                    duration: 10,
+                    duration: 3,
                 });
                 setIsLoading(false)
                 dispatch(actionsAccount.LoginAccount(data.token))
@@ -46,7 +46,7 @@ const LoginAdmin = () => {
                 messageApi.open({
                     type: 'error',
                     content: message,
-                    duration: 10,
+                    duration: 3,
                 });
             }
         } catch (e) {

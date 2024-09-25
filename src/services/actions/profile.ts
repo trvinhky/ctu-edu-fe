@@ -9,8 +9,8 @@ class ProfileService extends EduAPI {
         return await this.getAPI(url(id))
     }
 
-    public async update(data: Profile): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`edit/${data.profile_Id}`), data)
+    public async update(id: string, data: FormData): Promise<APIType<undefined>> {
+        return await this.putAPI(url(`edit/${id}`), data, true)
     }
 
     public async updateScore(id: string, score: number): Promise<APIType<undefined>> {

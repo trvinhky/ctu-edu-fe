@@ -1,4 +1,4 @@
-import { Button, Col, Flex, Form, Input, InputNumber, Row, Select } from "antd";
+import { Button, Col, Flex, Form, FormProps, Input, Row, Select } from "antd";
 import { useEffect, useState } from "react"
 import styled from "styled-components"
 import ReactQuill from 'react-quill';
@@ -6,14 +6,21 @@ import 'react-quill/dist/quill.snow.css';
 import { CloudUploadOutlined } from "@ant-design/icons";
 import { BoxTitle } from "~/services/constants/styled";
 import ButtonEdit from "~/services/utils/buttonEdit";
+import { useGlobalDataContext } from "~/hooks/globalData";
+import { Option } from "~/services/types/dataType";
+import SubjectAPI from "~/services/actions/subject";
+import CourseAPI from "~/services/actions/course";
+import { useDispatch, useSelector } from "react-redux";
+import { accountInfoSelector } from "~/services/reducers/selectors";
+import AccountAPI from "~/services/actions/account";
+import { actions as actionsAccount } from '~/services/reducers/accountSlice';
+import { convertUrl, ENV } from "~/services/constants";
+import { useNavigate, useParams } from "react-router-dom";
 
 type FieldType = {
     course_name: string
-    course_image?: string
-    course_total?: number
-    course_required?: string
     teacher_Id: string
-    field_Id: string
+    subject_Id: string
 };
 
 const UploadBox = styled.label`
@@ -24,47 +31,262 @@ const UploadBox = styled.label`
     font-size: 20px;
     cursor: pointer;
     display: inline-block;
-`
+    background-size: cover;
+    background-position: center;
+    `
 
 const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
+    const [form] = Form.useForm<FieldType>();
+    const [contentCourse, setContentCourse] = useState('');
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
     const title = `${isEdit ? 'Cập nhật' : 'Tạo'} khóa học`
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [subjectOption, setSubjectOption] = useState<Option[]>([])
+    const account = useSelector(accountInfoSelector)
+    const dispatch = useDispatch();
+    const [accountId, setAccountId] = useState<string>()
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const { id } = useParams();
+    const navigate = useNavigate()
+
     useEffect(() => {
         document.title = title
-    }, [])
+        getAllSubject()
+        if (account?.account_Id) {
+            setAccountId(account.account_Id)
+        } else {
+            getInfo()
+        }
 
-    const [contentCourse, setContentCourse] = useState('');
+        if (id) {
+            getOneCourse(id)
+        }
+    }, [account, id])
+
+    const getInfo = async () => {
+        try {
+            setIsLoading(true)
+            const { data, status } = await AccountAPI.getOne()
+            setIsLoading(false)
+            if (status === 201 && !Array.isArray(data)) {
+                dispatch(actionsAccount.setInfo(data))
+                setAccountId(data.account_Id)
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+    }
+
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            setSelectedFile(file)
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageSrc(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const getOneCourse = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await CourseAPI.getOne(id)
+            if (status === 201 && !Array.isArray(data)) {
+                setImageSrc(convertUrl(`${ENV.BE_HOST}\\${data?.course_image}`))
+                setContentCourse(data.course_content)
+                form.setFieldsValue({
+                    course_name: data.course_name,
+                    subject_Id: data.subject_Id,
+                    teacher_Id: data.teacher_Id
+                })
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getAllSubject = async (page?: number, limit: number = 6) => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await SubjectAPI.getAll(page, limit)
+            if (status === 201 && !Array.isArray(data)) {
+                setSubjectOption(
+                    data.subjects.map((subject) => {
+                        const result: Option = {
+                            value: subject.subject_Id as string,
+                            label: subject.subject_name
+                        }
+
+                        return result
+                    })
+                )
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const resetForm = () => {
+        form.resetFields()
+        setContentCourse('')
+    }
+
+    const createNewCourse = async (data: FormData) => {
+        setIsLoading(true)
+        try {
+
+            const { status, message } = await CourseAPI.create(data)
+            if (status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: message,
+                    duration: 3,
+                });
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const updateCourse = async (id: string, data: FormData) => {
+        setIsLoading(true)
+        try {
+
+            const { status, message } = await CourseAPI.update(id, data)
+            if (status === 200) {
+                messageApi.open({
+                    type: 'success',
+                    content: message,
+                    duration: 3,
+                });
+                setIsLoading(false)
+                navigate(-1)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+        const formData = new FormData()
+        formData.append('course_name', values.course_name as string)
+        if (selectedFile) {
+            formData.append('file', selectedFile)
+        }
+        formData.append('subject_Id', values.subject_Id as string)
+        formData.append('course_content', contentCourse as string)
+        if (accountId) {
+            formData.append('teacher_Id', accountId)
+        }
+
+        if (isEdit && id) {
+            await updateCourse(id, formData)
+        } else {
+            await createNewCourse(formData)
+            resetForm()
+        }
+    }
+
+    const handleActionBtn = () => {
+        if (isEdit && id) {
+            navigate(-1)
+        } else {
+            resetForm()
+        }
+    }
 
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
             <Form
                 layout="vertical"
+                initialValues={{}}
+                onFinish={onFinish}
+                form={form}
             >
                 <Row gutter={[16, 16]}>
                     <Col span={6}>
-                        <UploadBox htmlFor="image">
-                            <Form.Item<FieldType>
-                                name="course_image"
+                        <UploadBox
+                            htmlFor="image"
+                            style={{
+                                backgroundImage: `url(${imageSrc})`,
+                            }}
+                        >
+                            <Form.Item
                                 style={{ display: 'none' }}
                             >
                                 <Input
                                     type="file"
                                     hidden
                                     id="image"
-                                    accept="image/jpeg,image/png,image/gif"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
                                 />
                             </Form.Item>
-                            <Flex
-                                align="center"
-                                justify="center"
-                                style={{
-                                    flexDirection: 'column',
-                                    height: '100%'
-                                }}
-                            >
-                                <CloudUploadOutlined />
-                                <span>Chọn ảnh</span>
-                            </Flex>
+                            {
+                                imageSrc?.indexOf('null') !== -1 &&
+                                <Flex
+                                    align="center"
+                                    justify="center"
+                                    style={{
+                                        flexDirection: 'column',
+                                        height: '100%'
+                                    }}
+                                >
+                                    <CloudUploadOutlined />
+                                    <span>Chọn ảnh</span>
+                                </Flex>
+                            }
                         </UploadBox>
                     </Col>
                     <Col span={18}>
@@ -89,38 +311,15 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
                                     <Input />
                                 </Form.Item>
                             </Col>
-                            <Col span={15}>
-                                <Form.Item<FieldType>
-                                    label="Lĩnh vực"
-                                    name="field_Id"
-                                >
-                                    <Select
-                                        defaultValue="lucy"
-                                        options={[
-                                            { value: 'jack', label: 'Jack' },
-                                            { value: 'lucy', label: 'Lucy' }
-                                        ]}
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={9}>
-                                <Form.Item<FieldType>
-                                    label="Đơn giá"
-                                    name="course_total"
-                                >
-                                    <InputNumber
-                                        addonAfter="VNĐ"
-                                        defaultValue={0}
-                                        style={{ width: '100%' }}
-                                    />
-                                </Form.Item>
-                            </Col>
                             <Col span={24}>
                                 <Form.Item<FieldType>
-                                    label="Yêu cầu"
-                                    name="course_required"
+                                    label="Môn học"
+                                    name="subject_Id"
                                 >
-                                    <Input />
+                                    <Select
+                                        options={subjectOption}
+                                        placeholder="Chọn môn học"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={24}>
@@ -148,8 +347,8 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
                             }}
                             gap={10}
                         >
-                            <Button>
-                                Làm mới
+                            <Button onClick={handleActionBtn}>
+                                {isEdit ? 'Thoát' : 'Làm mới'}
                             </Button>
                             {
                                 isEdit ?

@@ -112,24 +112,14 @@ const NAVBARADMIN: MenuItem[] = [
         label: <Link to={PATH.LIST_TYPE}>Danh sách loại câu hỏi</Link>
     },
     {
-        key: 'sub3',
-        icon: <QuestionOutlined />,
-        label: 'Quản lý câu hỏi',
-        children: [
-            {
-                key: pathAdmin(PATH.MANAGER_QUESTION),
-                label: <Link to={PATH.MANAGER_QUESTION}>Danh sách câu hỏi</Link>
-            },
-            {
-                key: pathAdmin(PATH.CREATE_QUESTION),
-                label: <Link to={PATH.CREATE_QUESTION}>Tạo câu hỏic</Link>
-            }
-        ]
-    },
-    {
         key: pathAdmin(PATH.MANAGER_CATEGORY),
         icon: <FileOutlined />,
         label: <Link to={PATH.MANAGER_CATEGORY}>Quản lý loại file</Link>
+    },
+    {
+        key: pathAdmin(PATH.MANAGER_QUESTION),
+        icon: <QuestionOutlined />,
+        label: <Link to={PATH.MANAGER_QUESTION}>Danh sách câu hỏi</Link>
     }
 ]
 

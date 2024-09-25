@@ -1,6 +1,6 @@
 import EduAPI from "~/services/actions"
 import { APIType } from "~/services/types/dataType"
-import { Subject, SubjectInfo } from "~/services/types/subject"
+import { Subject, SubjectAll, SubjectInfo } from "~/services/types/subject"
 
 const url = (path: string = '') => `/subject/${path}`
 
@@ -17,7 +17,7 @@ class SubjectService extends EduAPI {
         return await this.getAPI(url(`info/${id}`))
     }
 
-    public async getAll(page?: number, limit: number = 6): Promise<APIType<Subject>> {
+    public async getAll(page?: number, limit: number = 6): Promise<APIType<SubjectAll>> {
         let params = url('all')
         if (page && !isNaN(+page)) {
             params += `?page=${page}&limit=${limit}`

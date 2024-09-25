@@ -1,23 +1,27 @@
 import { Button, Col, Flex, Form, Input, Modal, Rate, Row, Select, Table, Typography } from 'antd';
-import type { TableProps } from 'antd';
+import type { FormProps, TableProps } from 'antd';
 import { EyeOutlined, FileUnknownOutlined, FilterOutlined, OrderedListOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import React, { useEffect, useState } from 'react';
 import ButtonEdit from '~/services/utils/buttonEdit';
-import cardImg from '~/assets/images/work.jpeg'
 import { Link } from 'react-router-dom';
 import { Option } from '~/services/types/dataType';
+import { useGlobalDataContext } from '~/hooks/globalData';
+import CourseAPI from '~/services/actions/course';
+import SubjectAPI from '~/services/actions/subject';
+import { CourseInfo } from '~/services/types/course';
+import HtmlContent from '~/components/htmlContent';
+import { convertDate, convertUrl, ENV } from '~/services/constants';
 
 interface DataType {
     key: string;
     name: string;
-    category: string;
+    subject: string;
     teacher: string;
-    price: number;
 }
 
 type FieldType = {
-    role?: string;
+    subject?: string;
     title?: string;
 };
 
@@ -47,46 +51,125 @@ interface PropsType {
 
 const ListCourse = ({ children, title, isAction }: PropsType) => {
     const [open, setOpen] = useState(false);
+    const [dataTable, setDataTable] = useState<DataType[]>([])
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
+    const [course, setCourse] = useState<CourseInfo>()
 
     useEffect(() => {
         document.title = title
+        getAllCourse()
+        getAllSubject()
     }, [])
+
+    const getAllSubject = async () => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await SubjectAPI.getAll()
+            if (status === 201 && !Array.isArray(data)) {
+                setSubjectOptions(
+                    data.subjects.map((subject) => {
+                        const result: Option = {
+                            value: subject.subject_Id as string,
+                            label: subject.subject_name
+                        }
+
+                        return result
+                    })
+                )
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getAllCourse = async (page?: number, title?: string, subject?: string, limit: number = 6) => {
+        setIsLoading(true)
+        try {
+            const { data, status, message } = await CourseAPI.getAll(page, title, subject, limit)
+            if (status === 201 && !Array.isArray(data)) {
+                setDataTable(
+                    data.courses.map((course) => {
+                        const result: DataType = {
+                            key: course.course_Id,
+                            name: course.course_name,
+                            subject: course.subject.subject_name,
+                            teacher: course.teacher.profile.profile_name
+                        }
+
+                        return result
+                    })
+                )
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getOneCourse = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { data, status, message } = await CourseAPI.getOne(id)
+            if (status === 201 && !Array.isArray(data)) {
+                setCourse(data)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
 
     const columns: TableProps<DataType>['columns'] = [
         {
             title: 'Tên khóa học',
             dataIndex: 'name',
             key: 'name',
-            width: '20%',
         },
         {
-            title: 'Lĩnh vực',
-            dataIndex: 'category',
-            key: 'category',
-            width: '30%',
-            render: (_, data) => (
-                <Typography.Paragraph
-                    ellipsis={{ rows: 4, expandable: false }}
-                >
-                    {data.category}
-                </Typography.Paragraph>
-            ),
+            title: 'Môn học',
+            dataIndex: 'subject',
+            key: 'subject',
         },
         {
             title: 'Người dạy',
             dataIndex: 'teacher',
             key: 'teacher',
-            width: '20%',
-        },
-        {
-            title: 'Giá',
-            dataIndex: 'price',
-            key: 'price',
         },
         {
             title: '',
             key: 'action',
-            width: '20%',
             render: (_, record) => (
                 <Flex
                     align='center'
@@ -103,7 +186,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                     {
                         isAction &&
                         <>
-                            <Link to={'/course-update/d'}>
+                            <Link to={`/course-update/${record.key}`}>
                                 <ButtonEdit />
                             </Link>
                             <Link to={'/teacher/manager-lesson/ddd'}>
@@ -129,99 +212,61 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
         },
     ];
 
-    const data: DataType[] = [
-        {
-            key: '1',
-            name: 'John Brown',
-            category: 'Ant Design, a design language for background applications, is refined by Ant UED Team. Ant Design, a design language for background applications, is refined by Ant UED Team. Ant Design, a design language for background applications, is refined by Ant UED Team. Ant Design, a design language for background applications, is refined by Ant UED Team. Ant Design, a design language for background applications, is refined by Ant UED Team. Ant Design, a design language for background applications, is refined by Ant UED Team.',
-            teacher: 'New York No. 1 Lake Park',
-            price: 32,
-        },
-        {
-            key: '2',
-            name: 'John Brown',
-            category: 'New York No. 1 Lake Park',
-            teacher: 'New York No. 1 Lake Park',
-            price: 32,
-        },
-        {
-            key: '3',
-            name: 'John Brown',
-            category: 'New York No. 1 Lake Park',
-            teacher: 'New York No. 1 Lake Park',
-            price: 32,
-        },
-    ];
-
-    const options: Option[] = [
-        { value: 'jack', label: 'Jack' },
-        { value: 'lucy', label: 'Lucy' },
-        { value: 'Yiminghe', label: 'yiminghe' },
-        { value: 'disabled', label: 'Disabled' },
-    ]
-
-    const handleClickWatch = (key: string) => {
-        console.log(key)
+    const handleClickWatch = async (key: string) => {
         setOpen(true);
+        await getOneCourse(key)
     }
 
-    const handleChange = (value: string) => {
-        console.log(`selected ${value}`);
-    };
-
-    const handleOk = () => {
-        setOpen(false);
-    };
-
-    const handleCancel = () => {
-        console.log('Clicked cancel button');
-        setOpen(false);
-    };
+    const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+        await getAllCourse(1, values.title, values.subject)
+    }
 
     return (
         <>
             {children}
-            <Form>
+            <Form
+                initialValues={{}}
+                onFinish={onFinish}
+            >
                 <Flex
                     align='center'
                     justify='flex-end'
                     gap={10}
-                    style={{ marginBottom: '15px' }}
+                    style={{ marginBottom: '15px', width: '100%' }}
                 >
                     <Form.Item<FieldType>
                         name="title"
                         style={{
                             marginBottom: 0,
-                            width: '40%'
+                            flex: 1
                         }}
                     >
                         <Input placeholder='Tên khóa học...' />
                     </Form.Item>
                     <Form.Item<FieldType>
-                        name="role"
-                        style={{ marginBottom: 0 }}
+                        name="subject"
+                        style={{ marginBottom: 0, width: '30%' }}
                     >
                         <Select
-                            defaultValue={options[0].value}
-                            style={{ width: 120 }}
-                            onChange={handleChange}
-                            options={options}
+                            options={subjectOptions}
+                            placeholder="Chọn môn học"
                         />
                     </Form.Item>
                     <Button
                         type="primary"
+                        htmlType="submit"
                     >
                         <FilterOutlined />
                     </Button>
                 </Flex>
             </Form>
-            <Table columns={columns} dataSource={data} />
+            <Table columns={columns} dataSource={dataTable} />
             <Modal
                 title="Thông tin khóa học"
                 open={open}
-                onCancel={handleCancel}
+                onCancel={() => setOpen(false)}
                 footer={
-                    <Button type="primary" onClick={handleOk}>
+                    <Button type="primary" onClick={() => setOpen(false)}>
                         OK
                     </Button>
                 }
@@ -230,7 +275,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                     level={4}
                     style={{ textAlign: 'center', marginBottom: '10px' }}
                 >
-                    Lập trinh Website với ReactJS
+                    {course?.course_name}
                 </Typography.Title>
                 <Flex
                     align='center'
@@ -242,39 +287,28 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                 <Row gutter={[10, 10]}>
                     <Col span={8}>
                         <Image>
-                            <img src={cardImg} alt="" />
+                            {course?.course_image && <img src={convertUrl(`${ENV.BE_HOST}\\${course?.course_image}`)} alt="" />}
                         </Image>
                     </Col>
                     <Col span={16}>
                         <BoxText>
-                            <span>Lĩnh vực: </span> công nghệ thông tin
+                            <span>Môn học: </span> {course?.subject.subject_name}
                         </BoxText>
                         <BoxText>
-                            <span>Người dạy: </span> Peter
+                            <span>Người dạy: </span> {course?.teacher.profile.profile_name}
                         </BoxText>
                         <BoxText>
-                            <span>Yêu cầu: </span>Không
+                            <span>Ngày tạo: </span> {course?.createdAt && convertDate(course?.createdAt.toString())}
                         </BoxText>
                         <BoxText>
-                            <span>Giá: </span> Không
-                        </BoxText>
-                        <BoxText>
-                            <span>Ngày tạo: </span>06/09/2024
-                        </BoxText>
-                        <BoxText>
-                            <span>Cập nhật gần nhất: </span>06/09/2024
+                            <span>Cập nhật gần nhất: </span> {course?.updatedAt && convertDate(course?.updatedAt.toString())}
                         </BoxText>
                     </Col>
                 </Row>
                 <BoxText>
                     <span>Nội dung: </span>
                     <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
-                        Ant Design, a design language for background applications, is refined by Ant UED Team. Ant
-                        Design, a design language for background applications, is refined by Ant UED Team. Ant
-                        Design, a design language for background applications, is refined by Ant UED Team. Ant
-                        Design, a design language for background applications, is refined by Ant UED Team. Ant
-                        Design, a design language for background applications, is refined by Ant UED Team. Ant
-                        Design, a design language for background applications, is refined by Ant UED Team.
+                        {course?.course_content && <HtmlContent htmlContent={course?.course_content} />}
                     </Typography.Paragraph>
                 </BoxText>
             </Modal>

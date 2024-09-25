@@ -9,9 +9,8 @@ import {
     Admin,
     ListAccount,
     CreateAccount,
-    ListCourseAdmin,
     Login,
-    ListField,
+    ManagerSubject,
     Search,
     Field,
     Detail,
@@ -32,7 +31,10 @@ import {
     ForgotPassword,
     NewPassword,
     NotFound,
-    ManagerRole
+    ManagerRole,
+    ListStatus,
+    ListType,
+    ManagerCategory
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -57,6 +59,7 @@ const AppRouter = () => {
                     <Route path={PATH.REGISTER} element={<Register />} />
                     <Route path={PATH.FORGOT} element={<ForgotPassword />} />
                     <Route path={PATH.NEW_PASSWORD} element={<NewPassword />} />
+                    <Route path={PATH.UPDATE_COURSE} element={<FormCourse isEdit={true} />} />
                 </Route>
                 <Route path='/' element={<InfoTemplate />}>
                     <Route path={PATH.INFO} element={<Info />} />
@@ -64,7 +67,6 @@ const AppRouter = () => {
                     <Route path={PATH.MANAGER_REVIEW} element={<ListReview />} />
                     <Route path={PATH.LIST_COMMENT} element={<ListComment />} />
                     <Route path={PATH.CREATE_COURSE} element={<FormCourse />} />
-                    <Route path={PATH.UPDATE_COURSE} element={<FormCourse isEdit={true} />} />
                     <Route path={PATH.LIST_COURSE} element={<ManagerCourse />} />
                     <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
                     <Route path={PATH.QUESTION_RESOURCE} element={<QuestionResource />} />
@@ -78,9 +80,14 @@ const AppRouter = () => {
                     <Route index element={<Admin />} />
                     <Route path={PATH.MANAGER_ACCOUNT} element={<ListAccount />} />
                     <Route path={PATH.CREATE_ACCOUNT} element={<CreateAccount />} />
-                    <Route path={PATH.MANAGER_COURSE} element={<ListCourseAdmin />} />
-                    <Route path={PATH.MANAGER_SUBJECT} element={<ListField />} />
+                    <Route path={PATH.MANAGER_COURSE} element={<ManagerCourse />} />
+                    <Route path={PATH.MANAGER_SUBJECT} element={<ManagerSubject />} />
                     <Route path={PATH.MANAGER_ROLE} element={<ManagerRole />} />
+                    <Route path={PATH.CREATE_COURSE} element={<FormCourse />} />
+                    <Route path={PATH.LIST_STATUS} element={<ListStatus />} />
+                    <Route path={PATH.MANAGER_CATEGORY} element={<ManagerCategory />} />
+                    <Route path={PATH.LIST_TYPE} element={<ListType />} />
+                    <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
             </Routes>
