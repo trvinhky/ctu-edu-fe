@@ -1,7 +1,9 @@
-import { ClockCircleOutlined, DollarOutlined, TagOutlined } from '@ant-design/icons'
+import { ClockCircleOutlined } from '@ant-design/icons'
 import cardImg from '~/assets/images/work.jpeg'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
+import { Tag } from 'antd'
+import { PATH } from '~/services/constants/navbarList'
 
 const Wrapper = styled(Link)`
     width: 100%;
@@ -27,6 +29,7 @@ const Image = styled.span`
     height: 180px;
     border-radius: 5px;
     overflow: hidden;
+    position: relative;
 
     img {
         width: 100%;
@@ -57,47 +60,31 @@ const Footer = styled.div`
     border-top: 1px solid #ccc;
 `
 
-const Time = styled.span`
+const Time = styled(Tag)`
     font-weight: 700;
-    color: #555;
-`
-
-const Price = styled.span`
-    display: block;
-    font-weight: 600;
-    color: #ee8306;
-`
-
-const Old = styled(Price)`
-    color: #000;
-    text-decoration: line-through;
-    padding-bottom: 6px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 99;
 `
 
 const Card = () => {
     return (
-        <Wrapper to='/detail/jkjnknbbk' className='card'>
+        <Wrapper to={`${PATH.DETAIL.replace(':id', 'khbjhbb')}`} className='card'>
             <Image>
                 <img
                     src={cardImg}
                     alt="card img"
                 />
+                <Time color="green">
+                    <ClockCircleOutlined /> 12 tháng
+                </Time>
             </Image>
             <Title className="card-title">
                 Chuyên viên Thiết kế Đồ hoạ & Web
             </Title>
-            <Footer>
-                <Time>
-                    <ClockCircleOutlined /> 12 tháng
-                </Time>
-                <div>
-                    <Old>
-                        <DollarOutlined /> 28.200.000đ
-                    </Old>
-                    <Price>
-                        <TagOutlined /> 21.700.000đ
-                    </Price>
-                </div>
+            <Footer style={{ justifyContent: 'center' }}>
+                <Tag color="blue">Máy học ứng dụng</Tag>
             </Footer>
         </Wrapper>
     )

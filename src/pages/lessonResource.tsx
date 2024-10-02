@@ -5,16 +5,16 @@ import { useNavigate, useParams } from "react-router-dom"
 import FormResource from "~/components/formResource"
 import Resource from "~/components/resource"
 import { useGlobalDataContext } from "~/hooks/globalData"
-import QuestionResourceAPI from "~/services/actions/question_resource"
+import ResourceAPI from "~/services/actions/resource"
 import { BoxTitle } from "~/services/constants/styled"
-import { QuestionResourceInfo } from "~/services/types/question_resource"
+import { ResourceInfo } from "~/services/types/resource"
 import ButtonBack from "~/services/utils/buttonBack"
 
-const QuestionResource = () => {
+const LessonResource = () => {
     const title = 'Danh sách file đính kèm'
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const [resources, setResources] = useState<QuestionResourceInfo[]>()
+    const [resources, setResources] = useState<ResourceInfo[]>()
     const { id } = useParams();
     const navigate = useNavigate()
 
@@ -32,9 +32,9 @@ const QuestionResource = () => {
     const getAllResources = async (idFind: string) => {
         setIsLoading(true)
         try {
-            const { data, status, message } = await QuestionResourceAPI.getAll(1, idFind)
+            const { data, status, message } = await ResourceAPI.getAll(1, idFind)
             if (status === 201 && !Array.isArray(data)) {
-                setResources(data.questionResources)
+                setResources(data.resources)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -77,11 +77,12 @@ const QuestionResource = () => {
                 setIsModalOpen={setIsModalOpen}
                 getAllResources={getAllResources}
                 id={id as string}
+                isLesson={true}
             />
             <Row gutter={[16, 16]}>
                 {
                     resources?.map((resource) => (
-                        <Col span={6} key={resource.question_resource_Id}>
+                        <Col span={6} key={resource.resource_Id}>
                             <Resource
                                 dataResource={resource}
                                 getAllResources={getAllResources}
@@ -95,4 +96,4 @@ const QuestionResource = () => {
     )
 }
 
-export default QuestionResource
+export default LessonResource

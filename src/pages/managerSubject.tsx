@@ -29,7 +29,7 @@ const WrapperBtn = styled.span`
 `
 
 const ManagerSubject = () => {
-    const title = 'Danh sách khóa học'
+    const title = 'Danh sách môn học'
     const [open, setOpen] = useState(false);
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [idSubject, setIdSubject] = useState<string>()
@@ -82,12 +82,6 @@ const ManagerSubject = () => {
             const { status, message, data } = await SubjectAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
                 setNameSubject(data.subject_name)
-                messageApi.open({
-                    type: 'success',
-                    content: message,
-                    duration: 3,
-                });
-                await getAllSubject()
             } else {
                 messageApi.open({
                     type: 'error',

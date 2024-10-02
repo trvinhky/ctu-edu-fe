@@ -1,5 +1,5 @@
-import { UploadOutlined } from "@ant-design/icons";
-import { Button, Col, DatePicker, Flex, Form, Image, Input, Row } from "antd"
+import { DollarOutlined, UploadOutlined } from "@ant-design/icons";
+import { Button, Col, DatePicker, Flex, Form, Image, Input, Row, Tag } from "antd"
 import { useEffect, useState } from "react"
 import styled from "styled-components"
 import { BoxTitle } from "~/services/constants/styled";
@@ -14,12 +14,13 @@ import { AccountInfo } from "~/services/types/account";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import type { FormProps } from 'antd';
 import dayjs, { Dayjs } from "dayjs";
+import { convertUrl } from "~/services/constants";
+import avatarImage from '~/assets/images/avatar.jpg'
 
 type FieldType = {
     profile_name: string;
     profile_address?: string;
     profile_phone?: string;
-    profile_avatar?: string;
     profile_birthday?: Dayjs;
     profile_info?: string;
 };
@@ -30,10 +31,10 @@ const Wrapper = styled.div`
 `
 
 const BoxAvatar = styled.div`
-width: 200px;
-height: 200px;
-border-radius: 50%;
-overflow: hidden;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
 `
 
 const Avatar = styled(Image)`
@@ -46,7 +47,7 @@ const LabelAvatar = styled.label`
     display: block;
     position: absolute;
     left: 0;
-    bottom: 0;
+    bottom: 10%;
     padding: 2px 8px;
     background-color: #f1c40f;
     color: #fff;
@@ -62,13 +63,15 @@ const Info = () => {
     const [account, setAccount] = useState<AccountInfo>()
     const navigate = useNavigate();
     const [form] = Form.useForm<FieldType>();
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const getInfoAccount = async () => {
         setIsLoading(true)
         try {
-            const { data } = await AccountAPI.getOne()
+            const { data, status } = await AccountAPI.getOne()
             setIsLoading(false)
-            if (data && !Array.isArray(data)) {
+            if (status === 201 && !Array.isArray(data)) {
                 dispatch(actionsAccount.setInfo(data))
                 setAccount(data)
 
@@ -78,10 +81,10 @@ const Info = () => {
                     profile_name: data.profile.profile_name,
                     profile_address: data.profile.profile_address,
                     profile_phone: data.profile.profile_phone,
-                    profile_avatar: data.profile.profile_avatar,
                     profile_birthday: birthday,
                     profile_info: data.profile.profile_info
                 })
+                setImageSrc(convertUrl(data?.profile.profile_avatar as string))
             } else {
                 navigate(PATH.LOGIN)
             }
@@ -101,7 +104,9 @@ const Info = () => {
             data.append('profile_address', values.profile_address as string)
             data.append('profile_info', values.profile_info as string)
             data.append('profile_phone', values.profile_phone as string)
-            data.append('profile_avatar', values.profile_avatar as string)
+            if (selectedFile) {
+                data.append('file', selectedFile)
+            }
 
             const res = await ProfileAPI.update(
                 account?.profile.profile_Id as string,
@@ -115,6 +120,7 @@ const Info = () => {
                     duration: 3,
                 });
                 setIsLoading(false)
+                await getInfoAccount()
             } else {
                 messageApi.open({
                     type: 'error',
@@ -138,6 +144,18 @@ const Info = () => {
         getInfoAccount()
     }, [])
 
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            setSelectedFile(file)
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageSrc(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
@@ -156,10 +174,10 @@ const Info = () => {
                         <Wrapper>
                             <BoxAvatar>
                                 <Avatar
-                                    src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
+                                    src={imageSrc?.includes('null') ? avatarImage : imageSrc as string}
                                 />
                             </BoxAvatar>
-                            <Form.Item<FieldType>
+                            <Form.Item
                                 name="profile_avatar"
                                 style={{ display: 'none' }}
                             >
@@ -168,11 +186,23 @@ const Info = () => {
                                     hidden
                                     id="avatar"
                                     accept="image/jpeg,image/png,image/gif"
+                                    onChange={handleImageUpload}
                                 />
                             </Form.Item>
                             <LabelAvatar htmlFor="avatar">
                                 <UploadOutlined />
                             </LabelAvatar>
+                            <Flex
+                                align="center"
+                                justify="center"
+                                style={{
+                                    marginTop: 20
+                                }}
+                            >
+                                <Tag icon={<DollarOutlined />} color="gold" >
+                                    0
+                                </Tag>
+                            </Flex>
                         </Wrapper>
                     </Col>
                     <Col span={17}>

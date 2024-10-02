@@ -10,3 +10,8 @@ export interface Resource {
 export interface ResourceInfo extends Resource {
     category: Category
 }
+
+export interface ResourceAll {
+    count: number
+    resources: ResourceInfo[]
+}

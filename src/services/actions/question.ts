@@ -4,6 +4,13 @@ import { Question, QuestionAll, QuestionInfo } from "~/services/types/question"
 
 const url = (path: string = '') => `/question/${path}`
 
+export interface QuestionParams {
+    page?: number
+    type?: string
+    id?: string
+    limit?: number
+}
+
 class QuestionService extends EduAPI {
     public async create(data: Question): Promise<APIType<undefined>> {
         return await this.postAPI(url('create'), data)
@@ -14,13 +21,17 @@ class QuestionService extends EduAPI {
     }
 
     public async update(data: Question): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`${data.auth_Id}`), data)
+        return await this.putAPI(url(`${data.question_Id}`), data)
     }
 
-    public async getAll(page?: number, limit: number = 6): Promise<APIType<QuestionAll>> {
-        let params = url('all')
-        if (page && !isNaN(+page)) {
-            params += `?page=${page}&limit=${limit}`
+    public async getAll({ page = 1, type, id, limit = 6 }: QuestionParams): Promise<APIType<QuestionAll>> {
+        let params = url(`all?page=${page}&limit=${limit}`)
+        if (type) {
+            params += `&type=${type}`
+        }
+
+        if (id) {
+            params += `&id=${id}`
         }
 
         return await this.getAPI(params)

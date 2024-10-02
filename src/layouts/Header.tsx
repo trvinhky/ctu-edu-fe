@@ -2,11 +2,11 @@ import Logo from "~/components/logo"
 import { Link, useNavigate } from "react-router-dom"
 import { Avatar, Button, Flex, Input, Popconfirm, PopconfirmProps, Popover } from 'antd';
 import type { SearchProps } from 'antd/es/input/Search';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { UserOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { accountTokenSelector } from "~/services/reducers/selectors";
+import { accountInfoSelector } from "~/services/reducers/selectors";
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { PATH } from '~/services/constants/navbarList'
 import AccountAPI from '~/services/actions/account'
@@ -81,7 +81,7 @@ const ListOptions = () => {
     return (
         <ul>
             <Item>
-                <Link to={PATH.INFO}>
+                <Link to={PATH.AUTH}>
                     Trang cá nhân
                 </Link>
             </Item>
@@ -105,12 +105,36 @@ const ListOptions = () => {
 const Header = () => {
     const [searchValue, setSearchValue] = useState<string>()
     const navigate = useNavigate()
-    const token = useSelector(accountTokenSelector)
+    const { setIsLoading } = useGlobalDataContext();
+    const [accountName, setAccountName] = useState<string>()
+    const info = useSelector(accountInfoSelector)
+    const dispatch = useDispatch();
 
     const onSearch: SearchProps['onSearch'] = (value) => {
         setSearchValue(value)
         navigate(`${PATH.SEARCH}?title=${value}`)
     }
+
+    const getAccountName = async () => {
+        setIsLoading(true)
+        if (info) {
+            setAccountName(info.profile.profile_name)
+        } else {
+            try {
+                const { data, status } = await AccountAPI.getOne()
+                if (status === 201 && !Array.isArray(data)) {
+                    dispatch(actionsAccount.setInfo(data))
+                    setAccountName(data.profile.profile_name)
+                }
+            } catch (e) { }
+        }
+
+        setIsLoading(false)
+    }
+
+    useEffect(() => {
+        getAccountName()
+    }, [])
 
     return (
         <Wrapper>
@@ -133,8 +157,8 @@ const Header = () => {
                             value={searchValue}
                         />
                         {
-                            token ?
-                                <Popover content={ListOptions} title="Peter">
+                            accountName ?
+                                <Popover content={ListOptions} title={accountName}>
                                     <Avatar size="large" icon={<UserOutlined />} />
                                 </Popover> :
                                 <>

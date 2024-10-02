@@ -4,14 +4,17 @@ import { EyeOutlined, FileUnknownOutlined, FilterOutlined, OrderedListOutlined }
 import styled from 'styled-components';
 import React, { useEffect, useState } from 'react';
 import ButtonEdit from '~/services/utils/buttonEdit';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Option } from '~/services/types/dataType';
 import { useGlobalDataContext } from '~/hooks/globalData';
-import CourseAPI from '~/services/actions/course';
+import CourseAPI, { CourseParams } from '~/services/actions/course';
 import SubjectAPI from '~/services/actions/subject';
 import { CourseInfo } from '~/services/types/course';
 import HtmlContent from '~/components/htmlContent';
-import { convertDate, convertUrl, ENV } from '~/services/constants';
+import { convertDate, convertUrl } from '~/services/constants';
+import { PATH } from '~/services/constants/navbarList';
+import { useSelector } from 'react-redux';
+import { accountInfoSelector } from '~/services/reducers/selectors';
 
 interface DataType {
     key: string;
@@ -55,10 +58,14 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
     const [course, setCourse] = useState<CourseInfo>()
+    const info = useSelector(accountInfoSelector)
+    const navigate = useNavigate();
+    const location = useLocation();
+    const checkAuth = location.pathname.includes(PATH.AUTH);
 
     useEffect(() => {
         document.title = title
-        getAllCourse()
+        getAllCourse({})
         getAllSubject()
     }, [])
 
@@ -94,10 +101,18 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
         setIsLoading(false)
     }
 
-    const getAllCourse = async (page?: number, title?: string, subject?: string, limit: number = 6) => {
+    const getAllCourse = async (params: CourseParams) => {
         setIsLoading(true)
         try {
-            const { data, status, message } = await CourseAPI.getAll(page, title, subject, limit)
+            const allParams = { ...params }
+            if (checkAuth) {
+                if (info) {
+                    allParams.teacher = info.account_Id
+                } else {
+                    navigate(PATH.LOGIN)
+                }
+            }
+            const { data, status, message } = await CourseAPI.getAll(allParams)
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
                     data.courses.map((course) => {
@@ -186,10 +201,10 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                     {
                         isAction &&
                         <>
-                            <Link to={`/course-update/${record.key}`}>
+                            <Link to={`${PATH.UPDATE_COURSE.replace(':id', record.key)}`}>
                                 <ButtonEdit />
                             </Link>
-                            <Link to={'/teacher/manager-lesson/ddd'}>
+                            <Link to={`${PATH.MANAGER_LESSON.replace(':id', record.key)}`}>
                                 <Button
                                     type='primary'
                                     style={{ backgroundColor: '#f9ca24' }}
@@ -197,7 +212,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                                     <OrderedListOutlined />
                                 </Button>
                             </Link>
-                            <Link to={'/teacher/exam/hh'}>
+                            <Link to={`${PATH.MANAGER_EXAM.replace(':id', record.key)}`}>
                                 <Button
                                     type='primary'
                                     style={{ backgroundColor: '#130f40' }}
@@ -218,7 +233,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
     }
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        await getAllCourse(1, values.title, values.subject)
+        await getAllCourse({ page: 1, title: values.title, subject: values.subject })
     }
 
     return (
@@ -287,7 +302,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                 <Row gutter={[10, 10]}>
                     <Col span={8}>
                         <Image>
-                            {course?.course_image && <img src={convertUrl(`${ENV.BE_HOST}\\${course?.course_image}`)} alt="" />}
+                            {course?.course_image && <img src={convertUrl(course?.course_image)} alt="" />}
                         </Image>
                     </Col>
                     <Col span={16}>

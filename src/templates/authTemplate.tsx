@@ -1,5 +1,5 @@
-import { Flex } from "antd"
-import { Outlet, useNavigate } from "react-router-dom"
+import { Button, Flex } from "antd"
+import { Link, Outlet, useNavigate } from "react-router-dom"
 import styled from "styled-components"
 import NavbarIndividual from "~/components/navbarIndividual"
 import Footer from "~/layouts/Footer"
@@ -10,17 +10,26 @@ import { useDispatch } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { useEffect, useState } from "react"
+import { SettingOutlined } from "@ant-design/icons"
 
 const Navbar = styled.div`
     width: 25%;
 `
 
-const InfoTemplate = () => {
+const BtnAdmin = styled.div`
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 999;
+`
+
+const AuthTemplate = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { setIsLoading } = useGlobalDataContext();
     const [userName, setUserName] = useState('')
     const [items, setItems] = useState(NAVBARSTUDENT)
+    const [isShowBtn, setIsShowBtn] = useState(false)
 
     const getInfo = async () => {
         try {
@@ -30,8 +39,12 @@ const InfoTemplate = () => {
             if (data && !Array.isArray(data)) {
                 dispatch(actionsAccount.setInfo(data))
                 setUserName(data.profile?.profile_name)
-                if (data.role?.role_name.indexOf('teacher') !== -1) {
+                const roleName = data.role?.role_name.toLocaleLowerCase() ?? ''
+                if (!roleName.includes('user')) {
                     setItems(NAVBARTEACHER)
+                    if (roleName.includes('admin')) {
+                        setIsShowBtn(true)
+                    }
                 }
             } else {
                 navigate(PATH.LOGIN)
@@ -68,8 +81,18 @@ const InfoTemplate = () => {
                 </main>
             </Flex>
             <Footer />
+            {
+                isShowBtn &&
+                <BtnAdmin>
+                    <Button type="primary" shape="circle">
+                        <Link to={PATH.ADMIN}>
+                            <SettingOutlined />
+                        </Link>
+                    </Button>
+                </BtnAdmin>
+            }
         </>
     )
 }
 
-export default InfoTemplate
+export default AuthTemplate

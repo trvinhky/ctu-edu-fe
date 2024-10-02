@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components"
 import { Checkbox, GetProp, Image, Radio, type RadioChangeEvent } from 'antd';
+import { QuestionInfo } from "~/services/types/question";
 
 const Wrapper = styled.div`
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -35,9 +36,9 @@ const Space = styled.span`
 
 const Question = (
     {
-        isMultiple
+        questionInfo
     }: {
-        isMultiple?: boolean
+        questionInfo: QuestionInfo
     }
 ) => {
     const [value, setValue] = useState(1);
@@ -54,7 +55,7 @@ const Question = (
     return (
         <Wrapper>
             <Title>
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Soluta consectetur deserunt id, accusantium quae ullam minima voluptatem placeat corporis iste, sint debitis nostrum, iusto praesentium itaque quo nihil sequi incidunt. <span>(0.25đ)</span>
+                {questionInfo.question_content} <span>(0.25đ)</span>
             </Title>
             <Image.PreviewGroup>
                 <Image
@@ -68,19 +69,27 @@ const Question = (
             </Image.PreviewGroup>
             <Space />
             {
-                isMultiple ?
-                    <Checkbox.Group style={{ width: '100%' }} onChange={onChangeMultiple}>
-                        <CheckboxCustom value="A">A</CheckboxCustom>
-                        <CheckboxCustom value="B">B</CheckboxCustom>
-                        <CheckboxCustom value="C">C</CheckboxCustom>
-                        <CheckboxCustom value="D">D</CheckboxCustom>
-                    </Checkbox.Group> :
+                questionInfo.type.type_name.toLocaleLowerCase().indexOf('one') !== -1 ?
                     <Radio.Group style={{ width: '100%' }} onChange={onChange} value={value}>
-                        <RadioCustom value={1}>A</RadioCustom>
-                        <RadioCustom value={2}>B</RadioCustom>
-                        <RadioCustom value={3}>C</RadioCustom>
-                        <RadioCustom value={4}>D</RadioCustom>
-                    </Radio.Group>
+                        {
+                            questionInfo.options?.map((opt) => (
+                                <RadioCustom
+                                    key={opt.option_Id}
+                                    value={opt.option_Id}
+                                >{opt.option_content}</RadioCustom>
+                            ))
+                        }
+                    </Radio.Group> :
+                    <Checkbox.Group style={{ width: '100%' }} onChange={onChangeMultiple}>
+                        {
+                            questionInfo.options?.map((opt) => (
+                                <CheckboxCustom
+                                    key={opt.option_Id}
+                                    value={opt.option_Id}
+                                >{opt.option_content}</CheckboxCustom>
+                            ))
+                        }
+                    </Checkbox.Group>
             }
         </Wrapper>
     )

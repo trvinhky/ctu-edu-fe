@@ -6,6 +6,7 @@ import {
     KeyOutlined,
     LikeOutlined,
     MessageOutlined,
+    PicLeftOutlined,
     PieChartOutlined,
     QuestionOutlined,
     TagOutlined,
@@ -19,14 +20,18 @@ const PATH = {
     HOME: '/',
     SEARCH: '/search',
     SUBJECT: '/subject/:id',
+    POST: '/post',
+    DETAIL_POST: '/detail-post/:id',
+    CREATE_POST: 'create-post',
+    UPDATE_POST: '/update-post/:id',
     LOGIN: '/login',
+    AUTH: '/auth',
     FORGOT: '/forgot',
     NEW_PASSWORD: '/new-password',
     REGISTER: '/register',
     DETAIL: '/detail/:id',
     ADMIN: '/admin',
     LOGIN_ADMIN: '/login/admin',
-    INFO: '/info',
     CREATE_ACCOUNT: 'create-account',
     MANAGER_ACCOUNT: 'manager-account',
     MANAGER_COURSE: 'manager-course',
@@ -38,19 +43,22 @@ const PATH = {
     CREATE_QUESTION: 'create-question',
     UPDATE_COURSE: 'course-update/:id',
     LIST_COURSE: 'list-course',
-    MANAGER_LESSON: 'manager-lesson/:id',
-    MANAGER_EXAM: 'manager-exam/:id',
+    MANAGER_LESSON: '/manager-lesson/:id',
+    MANAGER_EXAM: '/manager-exam/:id',
     DETAIL_EXAM: '/exam/:id',
-    CREATE_EXAM: 'create-exam/:id',
-    UPDATE_EXAM: 'update-exam/:id',
+    CREATE_EXAM: '/create-exam/:id',
+    UPDATE_EXAM: '/update-exam/:id',
     LIST_STUDENT: '/ist-student',
-    QUESTION_RESOURCE: 'question-resource/:id',
+    QUESTION_RESOURCE: '/question-resource/:id',
+    LESSON_RESOURCE: '/lesson-resource/:id',
     LIST_COMMENT: 'list-comment',
     CONTENT_COURSE: '/course/:id',
     LIST_STATUS: 'status',
     MANAGER_CATEGORY: 'manager-category',
     LIST_TYPE: 'list-type',
-    MANAGER_ROLE: 'manager-role'
+    MANAGER_ROLE: 'manager-role',
+    MANAGER_OPTION: '/manager-option/:id',
+    MANAGER_POST: 'manager-post'
 }
 
 const pathAdmin = (path: string) => `${PATH.ADMIN}/${path}`
@@ -102,6 +110,21 @@ const NAVBARADMIN: MenuItem[] = [
         ]
     },
     {
+        key: 'sub3',
+        icon: <PicLeftOutlined />,
+        label: 'Quản lý bài đăng',
+        children: [
+            {
+                key: pathAdmin(PATH.MANAGER_POST),
+                label: <Link to={PATH.MANAGER_POST}>Danh sách bài đăng</Link>
+            },
+            {
+                key: pathAdmin(PATH.CREATE_POST),
+                label: <Link to={PATH.CREATE_POST}>Tạo bài đăng</Link>
+            }
+        ]
+    },
+    {
         key: pathAdmin(PATH.LIST_STATUS),
         icon: <UnorderedListOutlined />,
         label: <Link to={PATH.LIST_STATUS}>Danh sách trạng thái</Link>
@@ -123,11 +146,13 @@ const NAVBARADMIN: MenuItem[] = [
     }
 ]
 
+const pathAuth = (path: string) => `${PATH.AUTH}/${path}`
+
 const NAVBARTEACHER: MenuItem[] = [
     {
-        key: PATH.INFO,
+        key: PATH.AUTH,
         icon: <AuditOutlined />,
-        label: <Link to={PATH.INFO}>Thông tin</Link>,
+        label: <Link to={PATH.AUTH}>Thông tin</Link>,
     },
     {
         key: 'sub1',
@@ -135,31 +160,40 @@ const NAVBARTEACHER: MenuItem[] = [
         label: 'Quản lý khóa học',
         children: [
             {
-                key: PATH.LIST_COURSE,
-                label: <Link to={PATH.INFO}>Danh sách khóa học</Link>
+                key: pathAuth(PATH.LIST_COURSE),
+                label: <Link to={pathAuth(PATH.LIST_COURSE)}>Danh sách khóa học</Link>
             },
             {
-                key: PATH.CREATE_COURSE,
-                label: <Link to={PATH.CREATE_COURSE}>Tạo khóa học</Link>
+                key: pathAuth(PATH.CREATE_COURSE),
+                label: <Link to={pathAuth(PATH.CREATE_COURSE)}>Tạo khóa học</Link>
             }
         ]
     },
     {
-        key: PATH.MANAGER_QUESTION,
-        icon: <QuestionOutlined />,
-        label: <Link to={PATH.CREATE_COURSE}>Câu hỏi</Link>,
+        key: 'sub2',
+        icon: <PicLeftOutlined />,
+        label: 'Quản lý bài đăng',
+        children: [
+            {
+                key: pathAuth(PATH.MANAGER_POST),
+                label: <Link to={pathAuth(PATH.MANAGER_POST)}>Danh sách bài đăng</Link>
+            },
+            {
+                key: pathAuth(PATH.CREATE_POST),
+                label: <Link to={pathAuth(PATH.CREATE_POST)}>Tạo bài đăng</Link>
+            }
+        ]
     },
     {
-        key: PATH.LIST_COMMENT,
-        icon: <MessageOutlined />,
-        label: <Link to={PATH.CREATE_COURSE}>Thảo luận</Link>
+        key: pathAuth(PATH.MANAGER_QUESTION),
+        icon: <QuestionOutlined />,
+        label: <Link to={pathAuth(PATH.MANAGER_QUESTION)}>Danh sách câu hỏi</Link>
     }
-
 ]
 
 const NAVBARSTUDENT: MenuItem[] = [
     {
-        key: PATH.INFO,
+        key: PATH.AUTH,
         icon: <AuditOutlined />,
         label: <Link to={PATH.CREATE_COURSE}>Thông tin</Link>
     },
@@ -184,5 +218,7 @@ export {
     PATH,
     NAVBARADMIN,
     NAVBARSTUDENT,
-    NAVBARTEACHER
+    NAVBARTEACHER,
+    pathAdmin,
+    pathAuth
 }

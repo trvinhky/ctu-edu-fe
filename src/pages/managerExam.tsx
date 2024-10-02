@@ -2,9 +2,10 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Button, Flex, Input, Pagination } from "antd"
 import { SearchProps } from "antd/es/input";
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import ExamBox from "~/components/examBox";
+import { PATH } from "~/services/constants/navbarList";
 import { BoxTitle } from "~/services/constants/styled"
 
 const { Search } = Input;
@@ -15,6 +16,7 @@ const Wrapper = styled.div`
 
 const ManagerExam = () => {
     const [searchValue, setSearchValue] = useState<string>()
+    const { id } = useParams();
 
     const title = 'Danh sách bài thi'
     useEffect(() => {
@@ -43,7 +45,7 @@ const ManagerExam = () => {
                     type="primary"
                     style={{ backgroundColor: '#27ae60' }}
                 >
-                    <Link to='/exam-create/dd'>
+                    <Link to={`${PATH.CREATE_EXAM.replace(':id', id as string)}`}>
                         <PlusOutlined />
                     </Link>
                 </Button>

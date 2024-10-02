@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { accountInfoSelector } from "~/services/reducers/selectors";
 import AccountAPI from "~/services/actions/account";
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
-import { convertUrl, ENV } from "~/services/constants";
+import { convertUrl } from "~/services/constants";
 import { useNavigate, useParams } from "react-router-dom";
 
 type FieldType = {
@@ -98,7 +98,7 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
         try {
             const { status, data, message } = await CourseAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
-                setImageSrc(convertUrl(`${ENV.BE_HOST}\\${data?.course_image}`))
+                setImageSrc(convertUrl(data?.course_image as string))
                 setContentCourse(data.course_content)
                 form.setFieldsValue({
                     course_name: data.course_name,
@@ -157,6 +157,7 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
     const resetForm = () => {
         form.resetFields()
         setContentCourse('')
+        setImageSrc(null)
     }
 
     const createNewCourse = async (data: FormData) => {
@@ -274,7 +275,7 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
                                 />
                             </Form.Item>
                             {
-                                imageSrc?.indexOf('null') !== -1 &&
+                                imageSrc?.includes('null') &&
                                 <Flex
                                     align="center"
                                     justify="center"

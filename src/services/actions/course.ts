@@ -4,6 +4,14 @@ import { APIType } from "~/services/types/dataType";
 
 const url = (path: string = '') => `/course/${path}`
 
+export interface CourseParams {
+    page?: number
+    title?: string
+    subject?: string
+    limit?: number
+    teacher?: string
+}
+
 class CourseService extends EduAPI {
     public async create(data: FormData): Promise<APIType<undefined>> {
         return await this.postAPI(url('create'), data, true)
@@ -17,16 +25,12 @@ class CourseService extends EduAPI {
         return await this.getAPI(url(`info/${id}`))
     }
 
-    public async getAll(page?: number, title?: string, subject?: string, limit: number = 6): Promise<APIType<CourseAll>> {
-        let params = url('all')
-        if (page && !isNaN(+page)) {
-            params += `?page=${page}&limit=${limit}`
-        } else {
-            params += `?page=1&limit=${limit}`
-        }
+    public async getAll({ page = 1, title, subject, teacher, limit = 6 }: CourseParams): Promise<APIType<CourseAll>> {
+        let params = url(`all?page=${page}&limit=${limit}`)
 
         if (title) params += `&title=${title}`
         if (subject) params += `&subject=${subject}`
+        if (teacher) params += `&teacher=${teacher}`
 
         return await this.getAPI(params)
     }

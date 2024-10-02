@@ -4,6 +4,7 @@ const Title = styled.h1`
     font-weight: 600;
     font-size: 24px;
     padding-bottom: 15px;
+    text-transform: capitalize;
 `
 
 const FormTitle = styled.h1`
