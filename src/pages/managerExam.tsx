@@ -1,31 +1,56 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Flex, Input, Pagination } from "antd"
-import { SearchProps } from "antd/es/input";
+import { Button, Flex, Pagination } from "antd"
 import { useEffect, useState } from "react"
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import ExamBox from "~/components/examBox";
+import { useGlobalDataContext } from "~/hooks/globalData";
+import ExamAPI from "~/services/actions/exam";
 import { PATH } from "~/services/constants/navbarList";
 import { BoxTitle } from "~/services/constants/styled"
-
-const { Search } = Input;
+import { ExamInfo } from "~/services/types/exam";
+import ButtonBack from "~/services/utils/buttonBack";
 
 const Wrapper = styled.div`
     padding-top: 15px;
 `
 
 const ManagerExam = () => {
-    const [searchValue, setSearchValue] = useState<string>()
     const { id } = useParams();
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [exams, setExams] = useState<ExamInfo[]>([])
+    const navigate = useNavigate()
 
     const title = 'Danh sách bài thi'
     useEffect(() => {
         document.title = title
-    }, [])
+        if (id) {
+            getAllExams(1, id)
+        } else navigate(-1)
+    }, [id])
 
-    const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
-        console.log(info?.source, value);
-        setSearchValue(value)
+    const getAllExams = async (page?: number, course?: string, limit: number = 6) => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await ExamAPI.getAll(page, course, limit)
+            if (status === 201 && !Array.isArray(data)) {
+                setExams(data.exams)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+
+        setIsLoading(false)
     }
 
     return (
@@ -33,14 +58,8 @@ const ManagerExam = () => {
             <BoxTitle>
                 {title}
             </BoxTitle>
-            <Flex justify="flex-end" gap={10}>
-                <Search
-                    placeholder="Tìm kiếm"
-                    onSearch={onSearch}
-                    style={{ width: 300 }}
-                    value={searchValue}
-                    enterButton
-                />
+            <Flex justify="space-between" gap={10}>
+                <ButtonBack />
                 <Button
                     type="primary"
                     style={{ backgroundColor: '#27ae60' }}
@@ -50,12 +69,13 @@ const ManagerExam = () => {
                     </Link>
                 </Button>
             </Flex>
-            <Wrapper>
-                <ExamBox />
-            </Wrapper>
-            <Wrapper>
-                <ExamBox />
-            </Wrapper>
+            {
+                exams?.map((exam) => (
+                    <Wrapper key={exam.exam_Id}>
+                        <ExamBox data={exam} id={id as string} getAllExams={getAllExams} />
+                    </Wrapper>
+                ))
+            }
             <Flex align='center' justify='center' style={{ paddingTop: 20 }}>
                 <Pagination defaultCurrent={1} total={50} />
             </Flex>

@@ -21,7 +21,6 @@ import {
     ManagerCourse,
     ContentCourse,
     ManagerQuestion,
-    QuestionResource,
     ManagerLesson,
     ManagerExam,
     DetailExam,
@@ -38,7 +37,7 @@ import {
     ManagerPost,
     FormPost,
     Subject,
-    LessonResource
+    ListPost
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -57,16 +56,17 @@ const AppRouter = () => {
                     <Route path={PATH.SUBJECT} element={<Subject />} />
                     <Route path={PATH.DETAIL} element={<Detail />} />
                     <Route path={PATH.CONTENT_COURSE} element={<ContentCourse />} />
+                    <Route path={PATH.LIST_POST} element={<ListPost />} />
+                    <Route path={PATH.CONTENT_COURSE} element={<ContentCourse />} />
                 </Route>
                 <Route path='/' element={<GuardTemplate />}>
-                    <Route path={PATH.QUESTION_RESOURCE} element={<QuestionResource />} />
                     <Route path={PATH.MANAGER_OPTION} element={<ManagerOption />} />
-                    <Route path={PATH.UPDATE_COURSE} element={<FormCourse isEdit={true} />} />
+                    <Route path={PATH.UPDATE_COURSE} element={<FormCourse isEdit />} />
                     <Route path={PATH.UPDATE_POST} element={<FormPost />} />
                     <Route path={PATH.MANAGER_LESSON} element={<ManagerLesson />} />
                     <Route path={PATH.MANAGER_EXAM} element={<ManagerExam />} />
                     <Route path={PATH.CREATE_EXAM} element={<FormExam />} />
-                    <Route path={PATH.LESSON_RESOURCE} element={<LessonResource />} />
+                    <Route path={PATH.UPDATE_EXAM} element={<FormExam isEdit />} />
                 </Route>
                 <Route path='/' element={<FormTemplate />}>
                     <Route path={PATH.LOGIN_ADMIN} element={<LoginAdmin />} />
@@ -95,7 +95,7 @@ const AppRouter = () => {
                     <Route path={PATH.MANAGER_CATEGORY} element={<ManagerCategory />} />
                     <Route path={PATH.LIST_TYPE} element={<ListType />} />
                     <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
-                    <Route path={PATH.MANAGER_POST} element={<ManagerPost />} />
+                    <Route path={PATH.MANAGER_POST} element={<ManagerPost isAdmin />} />
                     <Route path={PATH.CREATE_POST} element={<FormPost />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

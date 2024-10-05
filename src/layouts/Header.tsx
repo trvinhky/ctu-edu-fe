@@ -103,7 +103,6 @@ const ListOptions = () => {
 }
 
 const Header = () => {
-    const [searchValue, setSearchValue] = useState<string>()
     const navigate = useNavigate()
     const { setIsLoading } = useGlobalDataContext();
     const [accountName, setAccountName] = useState<string>()
@@ -111,7 +110,6 @@ const Header = () => {
     const dispatch = useDispatch();
 
     const onSearch: SearchProps['onSearch'] = (value) => {
-        setSearchValue(value)
         navigate(`${PATH.SEARCH}?title=${value}`)
     }
 
@@ -154,7 +152,6 @@ const Header = () => {
                             placeholder="Tìm kiếm"
                             onSearch={onSearch}
                             style={{ width: 300 }}
-                            value={searchValue}
                         />
                         {
                             accountName ?

@@ -1,11 +1,18 @@
 import EduAPI from "~/services/actions"
 import { APIType } from "~/services/types/dataType"
-import { Lesson, LessonAll, LessonInfo } from "~/services/types/lesson"
+import { LessonAll, LessonInfo } from "~/services/types/lesson"
 
 const url = (path: string = '') => `/lesson/${path}`
 
+interface LessonParams {
+    id: string
+    score?: number
+    page?: number
+    limit?: number
+}
+
 class LessonService extends EduAPI {
-    public async create(data: Lesson): Promise<APIType<undefined>> {
+    public async create(data: FormData): Promise<APIType<undefined>> {
         return await this.postAPI(url('create'), data)
     }
 
@@ -13,15 +20,17 @@ class LessonService extends EduAPI {
         return await this.getAPI(url(`info/${id}`))
     }
 
-    public async update(data: Lesson): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`${data.lesson_Id}`), data)
+    public async update(id: string, data: FormData): Promise<APIType<undefined>> {
+        return await this.putAPI(url(`${id}`), data)
     }
 
-    public async getAll(id: string, page?: number, limit: number = 6): Promise<APIType<LessonAll>> {
+    public async getAll({ id, page, limit = 6, score }: LessonParams): Promise<APIType<LessonAll>> {
         let params = url(`all?id=${id}`)
         if (page && !isNaN(+page)) {
             params += `&page=${page}&limit=${limit}`
         }
+
+        if (score) params += `&score=${score}`
 
         return await this.getAPI(params)
     }

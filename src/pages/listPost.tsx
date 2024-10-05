@@ -1,36 +1,30 @@
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons"
 import { Button, Col, Flex, Form, FormProps, Input, Pagination, Row, Select } from "antd"
 import { useEffect, useState } from "react"
-import { useSearchParams } from "react-router-dom";
-import Card from "~/components/card";
-import { useGlobalDataContext } from "~/hooks/globalData";
-import CourseAPI, { CourseParams } from "~/services/actions/course";
-import SubjectAPI from "~/services/actions/subject";
-import { BoxTitle } from "~/services/constants/styled";
-import { CourseInfo } from "~/services/types/course";
-import { Option } from "~/services/types/dataType";
+import ItemPost from "~/components/itemPost"
+import { useGlobalDataContext } from "~/hooks/globalData"
+import PostAPI, { ParamsAll } from "~/services/actions/post"
+import SubjectAPI from "~/services/actions/subject"
+import { BoxTitle } from "~/services/constants/styled"
+import { Option } from "~/services/types/dataType"
+import { PostInfo } from "~/services/types/post"
 
 type FieldType = {
     subject?: string;
     title?: string;
 };
 
-const Search = () => {
-    const [searchParams] = useSearchParams();
+const ListPost = () => {
+    const title = 'Tất cả bài đăng'
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const searchTitle = searchParams.get('title');
-    const [listCourses, setListCourses] = useState<CourseInfo[]>([])
+    const [listPosts, setListPosts] = useState<PostInfo[]>([])
     const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
-    const [title, setTitle] = useState('Tất cả khóa học')
 
     useEffect(() => {
+        document.title = title
         getAllSubject()
-        if (searchTitle) {
-            setTitle('Kết quả tìm kiếm')
-            getAllCourse({ title: searchTitle })
-        } else getAllCourse({})
-
-    }, [searchTitle, title])
+        getAllPost({})
+    }, [])
 
     const getAllSubject = async () => {
         document.title = title
@@ -65,12 +59,12 @@ const Search = () => {
         setIsLoading(false)
     }
 
-    const getAllCourse = async (params: CourseParams) => {
+    const getAllPost = async (params: ParamsAll) => {
         setIsLoading(true)
         try {
-            const { data, status, message } = await CourseAPI.getAll(params)
+            const { data, status, message } = await PostAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
-                setListCourses(data.courses)
+                setListPosts(data.posts)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -89,7 +83,7 @@ const Search = () => {
     }
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        await getAllCourse({ page: 1, title: values.title, subject: values.subject })
+        await getAllPost({ page: 1, subject: values.subject, title: values.title })
     }
 
     return (
@@ -114,7 +108,7 @@ const Search = () => {
                             width: '100%',
                         }}
                     >
-                        <Input placeholder='Tên khóa học...' />
+                        <Input placeholder='Tiêu đề bài viết...' />
                     </Form.Item>
                     <Form.Item<FieldType>
                         name="subject"
@@ -135,9 +129,9 @@ const Search = () => {
             </Form>
             <Row gutter={[16, 16]}>
                 {
-                    listCourses?.map((course) => (
-                        <Col span={6} key={course.course_Id}>
-                            <Card data={course} />
+                    listPosts?.map((post) => (
+                        <Col span={12} key={post.post_Id}>
+                            <ItemPost data={post} />
                         </Col>
                     ))
                 }
@@ -158,4 +152,4 @@ const Search = () => {
     )
 }
 
-export default Search
+export default ListPost

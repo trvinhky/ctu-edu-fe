@@ -1,12 +1,15 @@
-import { ExclamationCircleFilled, FolderOutlined, PlusOutlined } from "@ant-design/icons"
-import { Button, Flex, Form, FormProps, Input, Modal, Table, TableProps } from "antd"
+import { DollarOutlined, ExclamationCircleFilled, ExclamationCircleOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons"
+import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps, Tag, Upload, UploadFile } from "antd"
+import { RcFile, UploadProps } from "antd/es/upload"
 import React, { useEffect, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import { useGlobalDataContext } from "~/hooks/globalData"
+import CategoryAPI from "~/services/actions/category"
 import LessonAPI from "~/services/actions/lesson"
-import { PATH } from "~/services/constants/navbarList"
 import { BoxTitle } from "~/services/constants/styled"
+import { CategoryInfo } from "~/services/types/category"
+import { Option } from "~/services/types/dataType"
 import ButtonBack from "~/services/utils/buttonBack"
 import ButtonDelete from "~/services/utils/buttonDelete"
 import ButtonEdit from "~/services/utils/buttonEdit"
@@ -14,13 +17,15 @@ import ButtonEdit from "~/services/utils/buttonEdit"
 type FieldType = {
     lesson_title?: string
     lesson_content?: string
+    lesson_score?: number
+    category_Id?: string
 };
 
 interface DataType {
     key: string;
     title: string;
     content: string;
-    resources: number;
+    score: number;
 }
 
 const WrapperBtn = styled.span`
@@ -38,13 +43,46 @@ const ManagerLesson = () => {
     const [form] = Form.useForm<FieldType>();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [lessonId, setLessonId] = useState<string | undefined>()
+    const [optionCategory, setOptionCategory] = useState<Option[]>()
+    const [categories, setCategories] = useState<CategoryInfo[]>()
+    const [acceptFile, setAcceptFile] = useState<string | undefined>()
+    const [fileList, setFileList] = useState<UploadFile[]>([])
 
     useEffect(() => {
         document.title = title
+        getAllCategory()
         if (id) {
             getAllLesson(id, 1)
         } else navigate(-1)
     }, [id])
+
+    const getAllCategory = async () => {
+        setIsLoading(true)
+        try {
+            const { data, message, status } = await CategoryAPI.getAll()
+            if (status === 201 && !Array.isArray(data)) {
+                const result: Option[] = data.categories.map((category) => ({
+                    label: category.category_description,
+                    value: category.category_Id as string
+                }))
+                setOptionCategory(result)
+                setCategories(data.categories)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
 
     const getOneLesson = async (id: string) => {
         setIsLoading(true)
@@ -53,8 +91,10 @@ const ManagerLesson = () => {
             if (status === 201 && !Array.isArray(data)) {
                 form.setFieldsValue({
                     lesson_content: data.lesson_content,
-                    lesson_title: data.lesson_title
+                    lesson_title: data.lesson_title,
+                    lesson_score: data.lesson_score
                 })
+
             } else {
                 messageApi.open({
                     type: 'error',
@@ -75,7 +115,7 @@ const ManagerLesson = () => {
     const getAllLesson = async (id: string, page?: number) => {
         setIsLoading(true)
         try {
-            const { data, message, status } = await LessonAPI.getAll(id, page)
+            const { data, message, status } = await LessonAPI.getAll({ id, page })
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
                     data.lessons?.map((lesson) => {
@@ -83,7 +123,7 @@ const ManagerLesson = () => {
                             key: lesson.lesson_Id as string,
                             content: lesson.lesson_content ?? 'Không',
                             title: lesson.lesson_title,
-                            resources: lesson.resources?.length ?? 0
+                            score: lesson.lesson_score ?? 0
                         }
 
                         return result
@@ -111,22 +151,31 @@ const ManagerLesson = () => {
         try {
             let status: number = 200
             let message: string = ''
+
+            const data = new FormData()
+            data.append('lesson_title', values.lesson_title as string)
+            data.append('lesson_content', values.lesson_content as string)
+            data.append('course_Id', id as string)
+            data.append('lesson_score', values.lesson_score?.toString() ?? '0')
+            data.append('category_Id', values.category_Id as string)
+            if (fileList.length > 0) {
+                const file = fileList[0].originFileObj as File;
+                data.append("file", file);
+            }
+
             if (lessonId) {
-                const res = await LessonAPI.update({
-                    course_Id: id as string,
-                    lesson_title: values.lesson_title as string,
-                    lesson_content: values.lesson_content
-                })
+                data.append('lesson_Id', lessonId as string)
+                const res = await LessonAPI.update(
+                    lessonId,
+                    data
+                )
                 status = res.status
                 message = res.message as string
             } else {
-                const res = await LessonAPI.create({
-                    course_Id: id as string,
-                    lesson_title: values.lesson_title as string,
-                    lesson_content: values.lesson_content
-                })
+                const res = await LessonAPI.create(data)
                 status = res.status
                 message = res.message as string
+                setFileList([])
                 form.resetFields()
             }
             if (status === 200) {
@@ -159,9 +208,9 @@ const ManagerLesson = () => {
             key: 'content',
         },
         {
-            title: 'Tài liệu',
-            dataIndex: 'resources',
-            key: 'resources',
+            title: 'Số điểm',
+            dataIndex: 'score',
+            key: 'score',
         },
         {
             title: '',
@@ -176,14 +225,6 @@ const ManagerLesson = () => {
                     <div onClick={() => showPromiseConfirm(record.key)}>
                         <ButtonDelete />
                     </div>
-                    <Button
-                        type="primary"
-                        style={{ backgroundColor: '#4834d4' }}
-                    >
-                        <Link to={`${PATH.LESSON_RESOURCE.replace(':id', record.key as string)}`}>
-                            <FolderOutlined />
-                        </Link>
-                    </Button>
                 </Flex>
             ),
         }
@@ -233,6 +274,9 @@ const ManagerLesson = () => {
         Modal.confirm({
             title: 'Bạn có chắc muốn xóa bài học này?',
             icon: <ExclamationCircleFilled />,
+            content: <Tag icon={<ExclamationCircleOutlined />} color="error">
+                Lưu ý: Chỉ xóa được khi bài học này chưa được mua.
+            </Tag>,
             cancelText: 'Hủy',
             async onOk() {
                 await confirmDelete(idTarget)
@@ -240,6 +284,25 @@ const ManagerLesson = () => {
             onCancel() { },
         });
     };
+
+    const handleChangeOption = (value: string) => {
+        const data = categories?.find((category) => category.category_Id === value)
+        setAcceptFile(data?.category_accept)
+    };
+
+    const handleBeforeUpload = (file: RcFile) => {
+        // Nếu fileList đã có file, không cho phép chọn thêm
+        if (fileList.length >= 1) {
+            return Upload.LIST_IGNORE;
+        }
+
+        // Cập nhật fileList với file mới
+        setFileList([file]);
+        return false; // Ngăn việc tự động upload
+    };
+
+    const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
+        setFileList(newFileList);
 
     return (
         <>
@@ -302,6 +365,51 @@ const ManagerLesson = () => {
                         label="Mô tả"
                     >
                         <Input.TextArea rows={4} />
+                    </Form.Item>
+                    {
+                        !lessonId &&
+                        <>
+                            <Form.Item<FieldType>
+                                name="category_Id"
+                                label="Chọn loại file"
+                                required
+                            >
+                                <Select
+                                    style={{ width: '100%' }}
+                                    placeholder="Chọn loại file"
+                                    options={optionCategory}
+                                    onChange={handleChangeOption}
+                                />
+                            </Form.Item>
+                            <Form.Item
+                                name="files"
+                                label="Chọn file"
+                                required
+                            >
+                                <Upload
+                                    listType="text"
+                                    maxCount={1}
+                                    fileList={fileList}
+                                    beforeUpload={handleBeforeUpload}
+                                    accept={acceptFile}
+                                    onRemove={() => setFileList([])}
+                                    onChange={handleChange}
+                                >
+                                    {
+                                        fileList.length === 0 &&
+                                        <Button icon={<UploadOutlined />}>
+                                            Chọn file theo loại
+                                        </Button>
+                                    }
+                                </Upload>
+                            </Form.Item>
+                        </>
+                    }
+                    <Form.Item<FieldType>
+                        name="lesson_score"
+                        label="Số điểm"
+                    >
+                        <InputNumber min={0} addonAfter={<DollarOutlined />} />
                     </Form.Item>
                 </Modal>
             </Form>

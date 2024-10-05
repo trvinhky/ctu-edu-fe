@@ -1,4 +1,4 @@
-import { Button, Col, Flex, Form, Input, Modal, Rate, Row, Select, Table, Typography } from 'antd';
+import { Button, Col, Flex, Form, Input, Modal, Row, Select, Table, Typography } from 'antd';
 import type { FormProps, TableProps } from 'antd';
 import { EyeOutlined, FileUnknownOutlined, FilterOutlined, OrderedListOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
@@ -120,7 +120,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                             key: course.course_Id,
                             name: course.course_name,
                             subject: course.subject.subject_name,
-                            teacher: course.teacher.profile.profile_name
+                            teacher: course.teacher?.profile.profile_name as string
                         }
 
                         return result
@@ -292,13 +292,6 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                 >
                     {course?.course_name}
                 </Typography.Title>
-                <Flex
-                    align='center'
-                    justify='center'
-                    style={{ paddingBottom: '15px' }}
-                >
-                    <Rate allowHalf defaultValue={2.5} />
-                </Flex>
                 <Row gutter={[10, 10]}>
                     <Col span={8}>
                         <Image>
@@ -310,7 +303,7 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                             <span>Môn học: </span> {course?.subject.subject_name}
                         </BoxText>
                         <BoxText>
-                            <span>Người dạy: </span> {course?.teacher.profile.profile_name}
+                            <span>Người dạy: </span> {course?.teacher?.profile.profile_name}
                         </BoxText>
                         <BoxText>
                             <span>Ngày tạo: </span> {course?.createdAt && convertDate(course?.createdAt.toString())}

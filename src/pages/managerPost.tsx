@@ -1,8 +1,8 @@
-import { EyeOutlined, FilterOutlined } from "@ant-design/icons";
+import { EyeOutlined, FilterOutlined, FormOutlined } from "@ant-design/icons";
 import { Button, Flex, Form, FormProps, Input, Modal, Select, Table, TableProps } from "antd";
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import PostAPI, { ParamsAll } from "~/services/actions/post";
 import StatusAPI from "~/services/actions/status";
@@ -28,7 +28,7 @@ interface DataType {
     status: string;
 }
 
-const ManagerPost = ({ isUser }: { isUser?: boolean }) => {
+const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
     const title = 'Danh sách bài đăng'
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
@@ -118,7 +118,7 @@ const ManagerPost = ({ isUser }: { isUser?: boolean }) => {
         try {
             const { data, status, message } = await PostAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
-                setOptionStatus(data.status.status_name)
+                setOptionStatus(data.status?.status_name)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -145,12 +145,16 @@ const ManagerPost = ({ isUser }: { isUser?: boolean }) => {
         })
     }
 
+    const checkStatus = (name: string): boolean => {
+        return name.toLowerCase().includes('chờ') || name.toLowerCase().includes('hủy')
+    }
+
     const columns: TableProps<DataType>['columns'] = [
         {
             title: 'Tên bài đăng',
             dataIndex: 'name',
             key: 'name',
-            width: '40%'
+            width: '35%'
         },
         {
             title: 'Môn học',
@@ -184,7 +188,20 @@ const ManagerPost = ({ isUser }: { isUser?: boolean }) => {
                         <EyeOutlined />
                     </ButtonLinkCustom>
                     {
-                        !isUser &&
+                        (!isAdmin && checkStatus(record.status)) &&
+                        <Button
+                            type="primary"
+                            style={{
+                                backgroundColor: '#fbc531'
+                            }}
+                        >
+                            <Link to={PATH.UPDATE_POST.replace(':id', record.key)}>
+                                <FormOutlined />
+                            </Link>
+                        </Button>
+                    }
+                    {
+                        isAdmin &&
                         <>
                             <div onClick={() => handleShowModel(record.key)}>
                                 <ButtonEdit />
@@ -221,8 +238,8 @@ const ManagerPost = ({ isUser }: { isUser?: boolean }) => {
                             key: post.post_Id as string,
                             auth: post.auth.profile.profile_name,
                             name: post.post_title,
-                            status: post.status.status_name,
-                            subject: post.subject.subject_name
+                            status: post?.status?.status_name as string,
+                            subject: post?.subject?.subject_name as string
                         }
 
                         return result

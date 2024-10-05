@@ -12,8 +12,8 @@ export interface Post {
 }
 
 export interface PostInfo extends Post {
-    status: Status
-    subject: Subject
+    status?: Status
+    subject?: Subject
     auth: AccountInfo
 }
 

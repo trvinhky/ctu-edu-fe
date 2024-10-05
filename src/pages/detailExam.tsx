@@ -11,7 +11,7 @@ const DetailExam = () => {
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
-            <ExamContent isTime={true} />
+            <ExamContent />
         </>
     )
 }

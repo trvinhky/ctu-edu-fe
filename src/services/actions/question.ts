@@ -1,6 +1,6 @@
 import EduAPI from "~/services/actions"
 import { APIType } from "~/services/types/dataType"
-import { Question, QuestionAll, QuestionInfo } from "~/services/types/question"
+import { QuestionAll, QuestionInfo } from "~/services/types/question"
 
 const url = (path: string = '') => `/question/${path}`
 
@@ -12,7 +12,7 @@ export interface QuestionParams {
 }
 
 class QuestionService extends EduAPI {
-    public async create(data: Question): Promise<APIType<undefined>> {
+    public async create(data: FormData): Promise<APIType<undefined>> {
         return await this.postAPI(url('create'), data)
     }
 
@@ -20,8 +20,8 @@ class QuestionService extends EduAPI {
         return await this.getAPI(url(`info/${id}`))
     }
 
-    public async update(data: Question): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`${data.question_Id}`), data)
+    public async update(id: string, data: FormData): Promise<APIType<undefined>> {
+        return await this.putAPI(url(`${id}`), data)
     }
 
     public async getAll({ page = 1, type, id, limit = 6 }: QuestionParams): Promise<APIType<QuestionAll>> {

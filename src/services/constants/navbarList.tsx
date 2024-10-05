@@ -41,7 +41,7 @@ const PATH = {
     CREATE_COURSE: 'create-course',
     MANAGER_QUESTION: 'manager-question',
     CREATE_QUESTION: 'create-question',
-    UPDATE_COURSE: 'course-update/:id',
+    UPDATE_COURSE: '/course-update/:id',
     LIST_COURSE: 'list-course',
     MANAGER_LESSON: '/manager-lesson/:id',
     MANAGER_EXAM: '/manager-exam/:id',
@@ -58,6 +58,8 @@ const PATH = {
     LIST_TYPE: 'list-type',
     MANAGER_ROLE: 'manager-role',
     MANAGER_OPTION: '/manager-option/:id',
+    EXAM_QUESTION: '/exam-question/:id',
+    LIST_POST: '/list-post',
     MANAGER_POST: 'manager-post'
 }
 

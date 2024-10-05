@@ -24,8 +24,6 @@ const LinkIcon = styled(Link)`
     font-size: 20px;
 `
 
-
-
 const Subject = () => {
     const [title, setTitle] = useState('Công nghệ thông tin')
     const { id } = useParams();
@@ -84,18 +82,19 @@ const Subject = () => {
                 </LinkIcon>
             </Flex>
             <Row gutter={[16, 16]}>
-                <Col span={6}>
-                    <Card />
-                </Col>
-                <Col span={6}>
-                    <Card />
-                </Col>
-                <Col span={6}>
-                    <Card />
-                </Col>
-                <Col span={6}>
-                    <Card />
-                </Col>
+                {
+                    subjectData?.courses?.map((course, i) => (
+                        i < 5 &&
+                        <Col span={6} key={course.course_Id}>
+                            <Card data={{
+                                ...course,
+                                subject: {
+                                    subject_name: title
+                                }
+                            }} />
+                        </Col>
+                    ))
+                }
             </Row>
             <Flex
                 justify="space-between"
@@ -114,7 +113,8 @@ const Subject = () => {
             </Flex>
             <Row gutter={[16, 16]}>
                 {
-                    subjectData?.posts?.map((post) => (
+                    subjectData?.posts?.map((post, i) => (
+                        i < 5 &&
                         <Col span={12} key={post.post_Id}>
                             <ItemPost data={post} />
                         </Col>

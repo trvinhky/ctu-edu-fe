@@ -1,8 +1,8 @@
-import { CheckCircleOutlined, CheckSquareOutlined, ExclamationCircleFilled, EyeOutlined, FilterOutlined, FolderOutlined, OrderedListOutlined, PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons"
-import { Button, Flex, Input, Select, Typography, Modal, Pagination, Form, Tooltip, FormProps } from "antd"
+import { ExclamationCircleFilled, EyeOutlined, FilterOutlined, PlusOutlined } from "@ant-design/icons"
+import { Button, Flex, Input, Select, Modal, Form, FormProps, TableProps, Table } from "antd"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Question from "~/components/question";
 import { useGlobalDataContext } from "~/hooks/globalData";
@@ -11,35 +11,26 @@ import QuestionAPI, { QuestionParams } from "~/services/actions/question";
 import TypeAPI from "~/services/actions/type";
 import { BoxTitle } from "~/services/constants/styled"
 import { Option } from "~/services/types/dataType";
-import { QuestionInfo, Question as QuestionType } from "~/services/types/question";
+import { QuestionInfo } from "~/services/types/question";
 import ButtonDelete from "~/services/utils/buttonDelete";
 import ButtonEdit from "~/services/utils/buttonEdit";
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { accountInfoSelector } from "~/services/reducers/selectors";
 import { PATH } from "~/services/constants/navbarList";
+import CategoryAPI from "~/services/actions/category";
+import { CategoryInfo } from "~/services/types/category";
 
 type FieldType = {
     question_content?: string
     type_Id?: string
+    category_Id?: string
 };
 
-const Box = styled.div`
-    display: flex;
-    gap: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.5);
-    padding: 15px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 15px;
-
-    &>div {
-        flex: 1;
-    }
-`
-
-const Icon = styled.span`
-    font-size: 40px;
-`
+interface DataType {
+    key: string;
+    content: string;
+    type: string;
+}
 
 const WrapperBtn = styled.span`
     display: inline-block;
@@ -51,22 +42,27 @@ const ManagerQuestion = () => {
     const [idQuestion, setIdQuestion] = useState<string | undefined>()
     const [isModalDetailOpen, setIsModalDetailOpen] = useState(false);
     const [optionType, setOptionType] = useState<Option[]>()
+    const [optionCategory, setOptionCategory] = useState<Option[]>()
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const dispatch = useDispatch();
     const account = useSelector(accountInfoSelector)
     const [accountId, setAccountId] = useState<string>()
     const [form] = Form.useForm<FieldType>();
     const title = 'Danh sách câu hỏi'
-    const [listQuestions, setListQuestions] = useState<QuestionInfo[]>([])
     const [questionInfo, setQuestionInfo] = useState<QuestionInfo | undefined>()
     const [searchValue, setSearchValue] = useState<string | undefined>()
     const location = useLocation();
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const checkAuth = location.pathname.includes(PATH.AUTH);
+    const [acceptFile, setAcceptFile] = useState<string | undefined>()
+    const [categories, setCategories] = useState<CategoryInfo[]>()
+    const [dataTable, setDataTable] = useState<DataType[]>([])
 
     useEffect(() => {
         document.title = title
         getAllType()
         getAllQuestion({})
+        getAllCategory()
         if (account?.account_Id) {
             setAccountId(account.account_Id)
         } else {
@@ -94,6 +90,43 @@ const ManagerQuestion = () => {
             });
         }
     }
+
+    const columns: TableProps<DataType>['columns'] = [
+        {
+            title: 'Nội dung',
+            dataIndex: 'content',
+            key: 'content',
+            width: '40%'
+        },
+        {
+            title: 'Loại',
+            dataIndex: 'type',
+            key: 'type',
+            width: '15%'
+        },
+        {
+            title: '',
+            key: 'action',
+            render: (_, record) => (
+                <Flex
+                    align='center'
+                    justify='flex-start'
+                    gap={10}
+                    wrap='wrap'
+                >
+                    <Button type="primary" onClick={() => showModalDetail(record.key)}>
+                        <EyeOutlined />
+                    </Button>
+                    <WrapperBtn onClick={() => showModal(record.key)}>
+                        <ButtonEdit />
+                    </WrapperBtn>
+                    <WrapperBtn onClick={() => showPromiseConfirm(record.key)}>
+                        <ButtonDelete />
+                    </WrapperBtn>
+                </Flex>
+            ),
+        },
+    ];
 
     const getInfo = async () => {
         try {
@@ -124,7 +157,17 @@ const ManagerQuestion = () => {
             }
             const { data, message, status } = await QuestionAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
-                setListQuestions(data.questions)
+                setDataTable(
+                    data.questions.map((question) => {
+                        const result: DataType = {
+                            key: question.question_Id as string,
+                            content: question.question_content,
+                            type: question.type.type_name
+                        }
+
+                        return result
+                    })
+                )
             } else {
                 messageApi.open({
                     type: 'error',
@@ -169,6 +212,34 @@ const ManagerQuestion = () => {
         setIsLoading(false)
     }
 
+    const getAllCategory = async () => {
+        setIsLoading(true)
+        try {
+            const { data, message, status } = await CategoryAPI.getAll()
+            if (status === 201 && !Array.isArray(data)) {
+                const result: Option[] = data.categories.map((category) => ({
+                    label: category.category_description,
+                    value: category.category_Id as string
+                }))
+                setOptionCategory(result)
+                setCategories(data.categories)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
     const handleChange = (value: string) => {
         setSearchValue(value)
     };
@@ -195,19 +266,23 @@ const ManagerQuestion = () => {
         try {
             let status: number = 200
             let message: string = ''
-            const data: QuestionType = {
-                question_content: values.question_content as string,
-                type_Id: values.type_Id as string,
-                auth_Id: accountId as string,
-                question_Id: idQuestion
+            const data = new FormData()
+            data.append('question_content', values.question_content as string)
+            data.append('type_Id', values.type_Id as string)
+            data.append('auth_Id', accountId as string)
+
+            if (selectedFile && values.category_Id) {
+                data.append('file', selectedFile)
+                data.append('category_Id', values.category_Id as string)
             }
+
             if (!idQuestion) {
                 const res = await QuestionAPI.create(data)
                 status = res.status
                 message = res.message as string
                 form.resetFields()
             } else {
-                const res = await QuestionAPI.update(data)
+                const res = await QuestionAPI.update(idQuestion, data)
                 status = res.status
                 message = res.message as string
             }
@@ -267,6 +342,18 @@ const ManagerQuestion = () => {
         }
     }
 
+    const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            setSelectedFile(file)
+        }
+    };
+
+    const handleChangeOption = (value: string) => {
+        const data = categories?.find((category) => category.category_Id === value)
+        setAcceptFile(data?.category_accept)
+    };
+
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
@@ -298,61 +385,7 @@ const ManagerQuestion = () => {
                 </Button>
             </Flex>
             <div>
-                {
-                    listQuestions?.map((question) => (
-                        <Box key={question.question_Id}>
-                            <Icon>
-                                <QuestionCircleOutlined />
-                            </Icon>
-                            <div>
-                                <Typography.Paragraph
-                                    ellipsis={{ rows: 2, expandable: true, symbol: 'xem thêm' }}
-                                    style={{ marginBottom: '0' }}
-                                >
-                                    {question.question_content}
-                                </Typography.Paragraph>
-                                <Flex justify="space-between" gap={20} style={{ paddingTop: '10px' }}>
-                                    <Tooltip placement="top" title={"Chọn 1"}>
-                                        <span style={{ fontSize: 20, color: '#4cd137' }}>
-                                            {
-                                                question.type.type_name.toLocaleLowerCase().indexOf('one') !== -1 ?
-                                                    <CheckCircleOutlined /> :
-                                                    <CheckSquareOutlined />
-                                            }
-                                        </span>
-                                    </Tooltip>
-                                    <Flex justify="flex-end" gap={10}>
-                                        <Button type="primary" onClick={() => showModalDetail(question.question_Id as string)}>
-                                            <EyeOutlined />
-                                        </Button>
-                                        <WrapperBtn onClick={() => showModal(question.question_Id)}>
-                                            <ButtonEdit />
-                                        </WrapperBtn>
-                                        <WrapperBtn onClick={() => showPromiseConfirm(question.question_Id as string)}>
-                                            <ButtonDelete />
-                                        </WrapperBtn>
-                                        <Button
-                                            type="primary"
-                                            style={{ backgroundColor: '#4834d4' }}
-                                        >
-                                            <Link to={`${PATH.QUESTION_RESOURCE.replace(':id', question.question_Id as string)}`}>
-                                                <FolderOutlined />
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            type="primary"
-                                            style={{ backgroundColor: '#4834d4' }}
-                                        >
-                                            <Link to={`${PATH.MANAGER_OPTION.replace(':id', question.question_Id as string)}`}>
-                                                <OrderedListOutlined />
-                                            </Link>
-                                        </Button>
-                                    </Flex>
-                                </Flex>
-                            </div>
-                        </Box>
-                    ))
-                }
+                <Table columns={columns} dataSource={dataTable} />
                 <Form
                     autoComplete="off"
                     layout="vertical"
@@ -409,6 +442,32 @@ const ManagerQuestion = () => {
                         >
                             <Input.TextArea rows={4} />
                         </Form.Item>
+                        {
+                            !idQuestion &&
+                            <>
+                                <Form.Item<FieldType>
+                                    name="category_Id"
+                                    label="Chọn loại file"
+                                >
+                                    <Select
+                                        style={{ width: '100%' }}
+                                        placeholder="Chọn loại file"
+                                        options={optionCategory}
+                                        onChange={handleChangeOption}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Chọn file"
+                                    name="resource_url"
+                                >
+                                    <Input
+                                        type="file"
+                                        onChange={handleUpload}
+                                        accept={acceptFile}
+                                    />
+                                </Form.Item>
+                            </>
+                        }
                     </Modal>
                 </Form>
                 <Modal
@@ -428,13 +487,6 @@ const ManagerQuestion = () => {
                 >
                     {questionInfo && <Question questionInfo={questionInfo} />}
                 </Modal>
-                <Flex
-                    align='center'
-                    justify='center'
-                    style={{ marginTop: '15px' }}
-                >
-                    <Pagination defaultCurrent={1} total={50} />
-                </Flex>
             </div>
         </>
     )

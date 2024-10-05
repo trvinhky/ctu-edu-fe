@@ -1,7 +1,9 @@
 import { useState } from "react";
 import styled from "styled-components"
-import { Checkbox, GetProp, Image, Radio, type RadioChangeEvent } from 'antd';
+import { Checkbox, GetProp, Radio, type RadioChangeEvent } from 'antd';
 import { QuestionInfo } from "~/services/types/question";
+import ViewURL from "~/components/viewURL";
+import { convertUrl } from "~/services/constants";
 
 const Wrapper = styled.div`
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -57,16 +59,13 @@ const Question = (
             <Title>
                 {questionInfo.question_content} <span>(0.25đ)</span>
             </Title>
-            <Image.PreviewGroup>
-                <Image
-                    width={200}
-                    src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg"
+            {
+                questionInfo.question_url &&
+                <ViewURL
+                    category={questionInfo.category?.category_name as string}
+                    url={convertUrl(questionInfo.question_url)}
                 />
-                <Image
-                    width={200}
-                    src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                />
-            </Image.PreviewGroup>
+            }
             <Space />
             {
                 questionInfo.type.type_name.toLocaleLowerCase().indexOf('one') !== -1 ?

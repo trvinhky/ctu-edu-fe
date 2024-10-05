@@ -16,7 +16,6 @@ import ButtonEdit from "~/services/utils/buttonEdit";
 
 type FieldType = {
     post_title?: string;
-    post_content?: string;
     subject_Id?: string;
 };
 
@@ -29,12 +28,14 @@ const FormPost = () => {
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [accountId, setAccountId] = useState<string>()
     const account = useSelector(accountInfoSelector)
+    const [statusId, setStatusId] = useState<string>()
     const navigate = useNavigate()
     const dispatch = useDispatch();
 
     useEffect(() => {
         if (id) {
             setTitle(`Cập nhật bài đăng`)
+            getOnePost(id)
         }
         document.title = title
         getAllSubject(1, 20)
@@ -44,6 +45,34 @@ const FormPost = () => {
             getInfo()
         }
     }, [id, account])
+
+    const getOnePost = async (postId: string) => {
+        setIsLoading(true)
+        try {
+            const { data, status, message } = await PostAPI.getOne(postId)
+            if (status === 201 && !Array.isArray(data)) {
+                form.setFieldsValue({
+                    post_title: data.post_title,
+                    subject_Id: data.subject_Id
+                })
+                setContentPost(data.post_content)
+                setStatusId(data.status_Id)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
 
     const getInfo = async () => {
         try {
@@ -117,7 +146,9 @@ const FormPost = () => {
                 post_content: contentPost as string,
                 post_title: values.post_title as string,
                 auth_Id: accountId as string,
-                subject_Id: values.subject_Id as string
+                subject_Id: values.subject_Id as string,
+                status_Id: statusId as string,
+                post_Id: id as string
             }
             if (!id) {
                 const res = await PostAPI.create(data)
@@ -184,8 +215,7 @@ const FormPost = () => {
                         placeholder="Chọn môn học"
                     />
                 </Form.Item>
-                <Form.Item<FieldType>
-                    name="post_content"
+                <Form.Item
                     label="Nội dung"
                     rules={[
                         {

@@ -1,5 +1,5 @@
 import { Course } from "~/services/types/course"
-import { Post } from "~/services/types/post"
+import { PostInfo } from "~/services/types/post"
 
 export interface Subject {
     subject_Id?: string
@@ -8,7 +8,7 @@ export interface Subject {
 
 export interface SubjectInfo extends Subject {
     courses: Course[]
-    posts: Post[]
+    posts: PostInfo[]
 }
 
 export interface SubjectAll {

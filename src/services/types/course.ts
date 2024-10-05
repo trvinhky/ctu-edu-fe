@@ -13,7 +13,7 @@ export interface Course {
 }
 
 export interface CourseInfo extends Course {
-    teacher: AccountInfo
+    teacher?: AccountInfo
     subject: Subject
 }
 

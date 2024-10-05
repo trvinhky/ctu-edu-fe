@@ -2,10 +2,17 @@ import { CaretRightOutlined, StarFilled } from "@ant-design/icons"
 import { Button, Col, Flex, Pagination, Rate, Row } from "antd"
 import { useEffect, useState } from "react"
 import ReactQuill from "react-quill"
+import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import cardImg from '~/assets/images/work.jpeg'
 import CardReview from "~/components/cardReview"
+import HtmlContent from "~/components/htmlContent"
+import { useGlobalDataContext } from "~/hooks/globalData"
+import CourseAPI from "~/services/actions/course"
+import { convertDate, convertUrl } from "~/services/constants"
+import { PATH } from "~/services/constants/navbarList"
 import { BoxTitle } from "~/services/constants/styled"
+import { CourseInfo } from "~/services/types/course"
 import ButtonLinkCustom from "~/services/utils/buttonLinkCustom"
 
 const Info = styled.div`
@@ -52,100 +59,135 @@ const WrapperBox = styled.div`
 
 const Detail = () => {
     const [contentReview, setContentReview] = useState('');
+    const { id } = useParams();
+    const navigate = useNavigate()
+    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const [course, setCourse] = useState<CourseInfo>()
+
     useEffect(() => {
-        document.title = 'Lập trình Web với ReactJS'
+        if (id) {
+            getOneCourse(id)
+        } else navigate(-1)
     }, [])
 
+    const getOneCourse = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { data, status, message } = await CourseAPI.getOne(id)
+            if (status === 201 && !Array.isArray(data)) {
+                setCourse(data)
+                document.title = data.course_name
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
     return (
-        <Row gutter={[16, 16]}>
-            <Col span={8}>
-                <Info>
-                    <Image>
-                        <img src={cardImg} alt="" />
-                    </Image>
-                    <BoxText>
-                        <span>Người dạy: </span>Jack
-                    </BoxText>
-                    <BoxText>
-                        <span>Đánh giá: </span>5<StarFilled style={{ color: '#f1c40f' }} />
-                    </BoxText>
-                    <BoxText>
-                        <span>Phí đăng ký: </span>Miễn phí
-                    </BoxText>
-                    <BoxText>
-                        <span>Yêu cầu: </span>Không
-                    </BoxText>
-                    <BoxText>
-                        <span>Ngày tạo: </span>06/09/2024
-                    </BoxText>
-                    <BoxText>
-                        <span>Cập nhật gần nhất: </span>06/09/2024
-                    </BoxText>
-                </Info>
-            </Col>
-            <Col span={16}>
-                <BoxTitle>
-                    Lập trình Web với ReactJS
-                </BoxTitle>
-                <Flex align="center" justify="center">
-                    <ButtonLinkCustom
-                        href="/field/addada"
-                    >
-                        Công Nghệ Thông Tin
-                    </ButtonLinkCustom>
-                </Flex>
-                <div style={{ fontSize: '18px', paddingTop: '15px' }}>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis cum facere velit labore perferendis eaque ea facilis, distinctio, eius ut odit error voluptates amet corporis illum quibusdam. Ab, totam molestias. Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempore dolorem maxime in quisquam vero magni excepturi deleniti dolorum itaque. Error corporis et quis delectus nisi harum pariatur debitis ratione? Cumque.</p>
-                </div>
-            </Col>
-            <Col span={24}>
-                <Flex justify="flex-end" gap={10}>
-                    <ButtonLinkCustom href="/course/hgbkh" shape="default">
-                        Xem thông tin <CaretRightOutlined />
-                    </ButtonLinkCustom>
-                    <Button type="primary">
-                        Đăng ký <CaretRightOutlined />
-                    </Button>
-                </Flex>
-            </Col>
-            <Col span={24}>
-                <SubTitle>Review</SubTitle>
-            </Col>
-            <Col span={24}>
-                <BoxReview>
-                    <h6>Tạo review</h6>
-                    <Rate allowHalf defaultValue={2.5} />
-                    <WrapperBox>
-                        <ReactQuill
-                            theme="snow"
-                            value={contentReview}
-                            onChange={setContentReview}
-                            style={{ height: '40vh' }}
-                        />
-                    </WrapperBox>
-                    <Flex
-                        justify="flex-end"
-                    >
-                        <Button type="primary">
-                            Tạo mới
-                        </Button>
-                    </Flex>
-                </BoxReview>
-            </Col>
-            <Row gutter={[16, 16]}>
-                <Col span={12}>
-                    <CardReview />
-                </Col>
-                <Col span={12}>
-                    <CardReview />
-                </Col>
-                <Col span={24}>
-                    <Flex align='center' justify='center'>
-                        <Pagination defaultCurrent={1} total={50} />
-                    </Flex>
-                </Col>
-            </Row>
-        </Row>
+        <>
+            {
+                course &&
+                <Row gutter={[16, 16]}>
+                    <Col span={8}>
+                        <Info>
+                            <Image>
+                                <img
+                                    src={course.course_image ? convertUrl(course?.course_image) : cardImg}
+                                    alt="image"
+                                />
+                            </Image>
+                            <BoxText>
+                                <span>Người dạy: </span>{course.teacher?.profile?.profile_name}
+                            </BoxText>
+                            <BoxText>
+                                <span>Đánh giá: </span>5<StarFilled style={{ color: '#f1c40f' }} />
+                            </BoxText>
+                            <BoxText>
+                                <span>Ngày tạo: </span>{course?.createdAt && convertDate(course?.createdAt.toString())}
+                            </BoxText>
+                            <BoxText>
+                                <span>Cập nhật gần nhất: </span>{course?.updatedAt && convertDate(course?.updatedAt.toString())}
+                            </BoxText>
+                        </Info>
+                    </Col>
+                    <Col span={16}>
+                        <BoxTitle>
+                            {course.course_name}
+                        </BoxTitle>
+                        <Flex align="center" justify="center">
+                            <ButtonLinkCustom
+                                href={PATH.SUBJECT.replace(':id', course.subject_Id)}
+                            >
+                                {course.subject?.subject_name}
+                            </ButtonLinkCustom>
+                        </Flex>
+                        <div style={{ fontSize: '18px', paddingTop: '15px' }}>
+                            <p>
+                                {course?.course_content && <HtmlContent htmlContent={course?.course_content} />}
+                            </p>
+                        </div>
+                    </Col>
+                    <Col span={24}>
+                        <Flex justify="flex-end" gap={10}>
+                            <ButtonLinkCustom href={PATH.CONTENT_COURSE.replace(':id', course.course_Id)} shape="default">
+                                Xem thông tin <CaretRightOutlined />
+                            </ButtonLinkCustom>
+                            <Button type="primary">
+                                Đăng ký <CaretRightOutlined />
+                            </Button>
+                        </Flex>
+                    </Col>
+                    <Col span={24}>
+                        <SubTitle>Review</SubTitle>
+                    </Col>
+                    <Col span={24}>
+                        <BoxReview>
+                            <h6>Tạo review</h6>
+                            <Rate allowHalf defaultValue={2.5} />
+                            <WrapperBox>
+                                <ReactQuill
+                                    theme="snow"
+                                    value={contentReview}
+                                    onChange={setContentReview}
+                                    style={{ height: '40vh' }}
+                                />
+                            </WrapperBox>
+                            <Flex
+                                justify="flex-end"
+                            >
+                                <Button type="primary">
+                                    Tạo mới
+                                </Button>
+                            </Flex>
+                        </BoxReview>
+                    </Col>
+                    <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                            <CardReview />
+                        </Col>
+                        <Col span={12}>
+                            <CardReview />
+                        </Col>
+                        <Col span={24}>
+                            <Flex align='center' justify='center'>
+                                <Pagination defaultCurrent={1} total={50} />
+                            </Flex>
+                        </Col>
+                    </Row>
+                </Row>
+            }
+        </>
     )
 }
 

@@ -2,7 +2,7 @@ import { Button, Flex, Modal, Tag } from "antd"
 import styled from "styled-components"
 import { QuestionResourceInfo } from "~/services/types/question_resource"
 import ButtonDelete from "~/services/utils/buttonDelete"
-import { ExclamationCircleFilled, FileExcelOutlined, FileExclamationOutlined, FileImageOutlined, FileOutlined, FilePdfOutlined, FilePptOutlined, FileTextOutlined, FileWordOutlined } from "@ant-design/icons"
+import { ExclamationCircleFilled } from "@ant-design/icons"
 import { convertUrl } from "~/services/constants"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import QuestionResourceAPI from "~/services/actions/question_resource"
@@ -10,6 +10,7 @@ import { ResourceInfo } from "~/services/types/resource"
 import ResourceAPI from "~/services/actions/resource"
 import { useState } from "react"
 import ViewPDF from "~/components/viewPDF"
+import ViewIcon from "~/components/viewIcon"
 
 const Wrapper = styled.div`
     padding: 15px;
@@ -30,30 +31,7 @@ const WrapperImage = styled.div`
     color: #000;
 `
 
-const ViewIcon = ({ category, url }: { category: string, url: string }) => {
-    switch (category) {
-        case 'image':
-            return <FileImageOutlined />
-        case 'document':
-            if (url.includes('pdf')) {
-                return <FilePdfOutlined />
-            }
-            if (url.includes('doc')) {
-                return <FileWordOutlined />
-            }
-            return <FileTextOutlined />
-        case 'Presentations and spreadsheets':
-            if (url.includes('pptx')) {
-                return <FilePptOutlined />
-            }
-            if (url.includes('xlsx')) {
-                return <FileExcelOutlined />
-            }
-            return <FileExclamationOutlined />
-        default:
-            return <FileOutlined />
-    }
-}
+
 
 interface ResourceProps {
     dataResource: QuestionResourceInfo | ResourceInfo

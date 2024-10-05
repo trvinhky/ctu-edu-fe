@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import { Tag } from 'antd'
 import { PATH } from '~/services/constants/navbarList'
+import { CourseInfo } from '~/services/types/course'
+import { convertDate, convertUrl } from '~/services/constants'
 
 const Wrapper = styled(Link)`
     width: 100%;
@@ -68,23 +70,23 @@ const Time = styled(Tag)`
     z-index: 99;
 `
 
-const Card = () => {
+const Card = ({ data }: { data: CourseInfo }) => {
     return (
-        <Wrapper to={`${PATH.DETAIL.replace(':id', 'khbjhbb')}`} className='card'>
+        <Wrapper to={`${PATH.DETAIL.replace(':id', data.course_Id)}`} className='card'>
             <Image>
                 <img
-                    src={cardImg}
+                    src={data.course_image ? convertUrl(data?.course_image) : cardImg}
                     alt="card img"
                 />
                 <Time color="green">
-                    <ClockCircleOutlined /> 12 tháng
+                    <ClockCircleOutlined /> {data?.updatedAt && convertDate(data?.updatedAt.toString())}
                 </Time>
             </Image>
             <Title className="card-title">
-                Chuyên viên Thiết kế Đồ hoạ & Web
+                {data.course_name}
             </Title>
             <Footer style={{ justifyContent: 'center' }}>
-                <Tag color="blue">Máy học ứng dụng</Tag>
+                <Tag color="blue">{data.subject?.subject_name}</Tag>
             </Footer>
         </Wrapper>
     )

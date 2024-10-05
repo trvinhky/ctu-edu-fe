@@ -100,7 +100,7 @@ const CreateAccount = () => {
         setIsLoading(false)
     }
 
-    const [form] = Form.useForm();
+    const [form] = Form.useForm<FieldType>();
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         setIsLoading(true)
@@ -114,6 +114,7 @@ const CreateAccount = () => {
                 role: values.role as string
             })
             if (check.status === 200) {
+                form.resetFields()
                 messageApi.open({
                     type: 'success',
                     content: check.message,

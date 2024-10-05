@@ -1,12 +1,13 @@
-import { Typography } from 'antd'
+import { Avatar, Flex, Typography } from 'antd'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import HtmlContent from '~/components/htmlContent'
 import { PATH } from '~/services/constants/navbarList'
-import { Post } from '~/services/types/post'
+import { PostInfo } from '~/services/types/post'
+import avatarImage from '~/assets/images/avatar.jpg'
+import { convertUrl } from '~/services/constants'
 
 const Group = styled.div`
-    margin: 10px 0;
     padding: 10px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 10px;
@@ -20,10 +21,23 @@ const Title = styled(Link)`
     color: #000;
 `
 
-const ItemPost = ({ data }: { data: Post }) => {
+const Name = styled.span`
+    display: block;
+    color: #c0392b;
+`
+
+const ItemPost = ({ data }: { data: PostInfo }) => {
+    const imageSrc = convertUrl(data.auth?.profile?.profile_avatar as string)
+
     return (
         <Group>
-            <Title to={`${PATH.DETAIL_POST.replace(':id', data.post_Id as string)}`}>{data.post_title}</Title>
+            <Flex gap={10}>
+                <Avatar src={imageSrc?.includes('null') ? avatarImage : imageSrc as string} />
+                <div>
+                    <Name>{data.auth?.profile?.profile_name}</Name>
+                    <Title to={`${PATH.DETAIL_POST.replace(':id', data.post_Id as string)}`}>{data.post_title}</Title>
+                </div>
+            </Flex>
             <Typography.Paragraph
                 ellipsis={{ rows: 4, expandable: false }}
                 style={{ paddingTop: '6px' }}

@@ -16,7 +16,7 @@ type FieldType = {
 interface DataType {
     key: number;
     name: string;
-    resources: number;
+    lessons: number;
     questions: number;
     id: string;
 }
@@ -57,7 +57,7 @@ const ManagerCategory = () => {
                             id: category.category_Id as string,
                             name: category.category_name,
                             questions: category.questions.length ?? 0,
-                            resources: category.resources.length ?? 0
+                            lessons: category.lessons.length ?? 0
                         }
 
                         return result
@@ -104,8 +104,8 @@ const ManagerCategory = () => {
         },
         {
             title: 'Số lượng bài học',
-            dataIndex: 'resources',
-            key: 'resources',
+            dataIndex: 'lessons',
+            key: 'lessons',
         },
         {
             title: '',

@@ -1,5 +1,5 @@
-import { QuestionResource } from "~/services/types/question_resource"
-import { Resource } from "~/services/types/resource"
+import { Lesson } from "~/services/types/lesson"
+import { Question } from "~/services/types/question"
 
 export interface Category {
     category_Id?: string
@@ -9,8 +9,8 @@ export interface Category {
 }
 
 export interface CategoryInfo extends Category {
-    resources: Resource[]
-    questions: QuestionResource[]
+    lessons: Lesson[]
+    questions: Question[]
 }
 
 export interface CategoryAll {
