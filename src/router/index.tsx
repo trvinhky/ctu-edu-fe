@@ -15,7 +15,6 @@ import {
     Detail,
     Info,
     CourseRegister,
-    ListReview,
     ListComment,
     FormCourse,
     ManagerCourse,
@@ -37,7 +36,8 @@ import {
     ManagerPost,
     FormPost,
     Subject,
-    ListPost
+    ListPost,
+    DetailLesson
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -58,6 +58,8 @@ const AppRouter = () => {
                     <Route path={PATH.CONTENT_COURSE} element={<ContentCourse />} />
                     <Route path={PATH.LIST_POST} element={<ListPost />} />
                     <Route path={PATH.CONTENT_COURSE} element={<ContentCourse />} />
+                    <Route path={PATH.DETAIL_EXAM} element={<DetailExam />} />
+                    <Route path={PATH.DETAIL_LESSON} element={<DetailLesson />} />
                 </Route>
                 <Route path='/' element={<GuardTemplate />}>
                     <Route path={PATH.MANAGER_OPTION} element={<ManagerOption />} />

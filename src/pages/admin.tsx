@@ -63,14 +63,6 @@ const Admin = () => {
                 </Col>
                 <Col span={8}>
                     <CardCount
-                        count={289}
-                        href='/'
-                        title='Review'
-                        color='#e67e22'
-                    />
-                </Col>
-                <Col span={8}>
-                    <CardCount
                         count={15}
                         href={`${pathAdmin(PATH.MANAGER_QUESTION)}`}
                         title='Câu hỏi'

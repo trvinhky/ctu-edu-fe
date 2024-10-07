@@ -12,7 +12,7 @@ export interface Lesson {
 }
 
 export interface LessonInfo extends Lesson {
-    category: Category[]
+    category: Category
 }
 
 export interface LessonAll {

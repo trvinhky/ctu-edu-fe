@@ -5,7 +5,6 @@ export interface Exam {
     exam_title: string
     exam_description?: string
     exam_total_score: number
-    exam_start_time?: Date
     exam_limit: number
     course_Id: string
 }

@@ -1,11 +1,11 @@
-import { CaretRightOutlined, StarFilled } from "@ant-design/icons"
-import { Button, Col, Flex, Pagination, Rate, Row } from "antd"
+import { CaretRightOutlined, MessageOutlined, UserOutlined } from "@ant-design/icons"
+import { Avatar, Button, Col, Flex, Pagination, Row } from "antd"
 import { useEffect, useState } from "react"
 import ReactQuill from "react-quill"
 import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import cardImg from '~/assets/images/work.jpeg'
-import CardReview from "~/components/cardReview"
+import Comment from "~/components/comment"
 import HtmlContent from "~/components/htmlContent"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import CourseAPI from "~/services/actions/course"
@@ -43,18 +43,9 @@ const SubTitle = styled(BoxTitle)`
     margin-top: 20px;
 `
 
-const BoxReview = styled.div`
-    padding-bottom: 20px;
-
-    h6 {
-        padding-bottom: 10px;
-        font-weight: 600;
-        font-size: 16px;
-    }
-`
-
 const WrapperBox = styled.div`
     padding: 15px 0 60px;
+    flex: 1;
 `
 
 const Detail = () => {
@@ -111,9 +102,6 @@ const Detail = () => {
                                 <span>Người dạy: </span>{course.teacher?.profile?.profile_name}
                             </BoxText>
                             <BoxText>
-                                <span>Đánh giá: </span>5<StarFilled style={{ color: '#f1c40f' }} />
-                            </BoxText>
-                            <BoxText>
                                 <span>Ngày tạo: </span>{course?.createdAt && convertDate(course?.createdAt.toString())}
                             </BoxText>
                             <BoxText>
@@ -133,9 +121,7 @@ const Detail = () => {
                             </ButtonLinkCustom>
                         </Flex>
                         <div style={{ fontSize: '18px', paddingTop: '15px' }}>
-                            <p>
-                                {course?.course_content && <HtmlContent htmlContent={course?.course_content} />}
-                            </p>
+                            {course?.course_content && <HtmlContent htmlContent={course?.course_content} />}
                         </div>
                     </Col>
                     <Col span={24}>
@@ -149,42 +135,32 @@ const Detail = () => {
                         </Flex>
                     </Col>
                     <Col span={24}>
-                        <SubTitle>Review</SubTitle>
-                    </Col>
-                    <Col span={24}>
-                        <BoxReview>
-                            <h6>Tạo review</h6>
-                            <Rate allowHalf defaultValue={2.5} />
-                            <WrapperBox>
-                                <ReactQuill
-                                    theme="snow"
-                                    value={contentReview}
-                                    onChange={setContentReview}
-                                    style={{ height: '40vh' }}
-                                />
-                            </WrapperBox>
-                            <Flex
-                                justify="flex-end"
-                            >
+                        <div style={{ paddingTop: 10 }}>
+                            <SubTitle><MessageOutlined /> Thảo luận</SubTitle>
+                            <Flex gap={10}>
+                                <Avatar size="large" icon={<UserOutlined />} />
+                                <WrapperBox>
+                                    <ReactQuill
+                                        theme="snow"
+                                        value={contentReview}
+                                        onChange={setContentReview}
+                                        style={{ height: '30vh' }}
+                                    />
+                                </WrapperBox>
+                            </Flex>
+                            <Flex justify="flex-end" style={{ paddingTop: '10px' }}>
                                 <Button type="primary">
-                                    Tạo mới
+                                    Thêm mới
                                 </Button>
                             </Flex>
-                        </BoxReview>
+                            <div style={{ padding: '20px 0 15px' }}>
+                                <Comment isAction={false} isAvatar={true} />
+                            </div>
+                        </div>
+                        <Flex align='center' justify='center' style={{ width: '100%' }}>
+                            <Pagination defaultCurrent={1} total={50} />
+                        </Flex>
                     </Col>
-                    <Row gutter={[16, 16]}>
-                        <Col span={12}>
-                            <CardReview />
-                        </Col>
-                        <Col span={12}>
-                            <CardReview />
-                        </Col>
-                        <Col span={24}>
-                            <Flex align='center' justify='center'>
-                                <Pagination defaultCurrent={1} total={50} />
-                            </Flex>
-                        </Col>
-                    </Row>
                 </Row>
             }
         </>

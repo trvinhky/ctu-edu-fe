@@ -22,6 +22,7 @@ const PATH = {
     SUBJECT: '/subject/:id',
     POST: '/post',
     DETAIL_POST: '/detail-post/:id',
+    DETAIL_LESSON: '/detail-lesson/:id',
     CREATE_POST: 'create-post',
     UPDATE_POST: '/update-post/:id',
     LOGIN: '/login',

@@ -1,15 +1,18 @@
-import { DollarOutlined, ExclamationCircleFilled, ExclamationCircleOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons"
+import { DollarOutlined, ExclamationCircleFilled, ExclamationCircleOutlined, EyeOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons"
 import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps, Tag, Upload, UploadFile } from "antd"
 import { RcFile, UploadProps } from "antd/es/upload"
 import React, { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
+import ViewURL from "~/components/viewURL"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import CategoryAPI from "~/services/actions/category"
 import LessonAPI from "~/services/actions/lesson"
+import { convertUrl } from "~/services/constants"
 import { BoxTitle } from "~/services/constants/styled"
 import { CategoryInfo } from "~/services/types/category"
 import { Option } from "~/services/types/dataType"
+import { LessonInfo } from "~/services/types/lesson"
 import ButtonBack from "~/services/utils/buttonBack"
 import ButtonDelete from "~/services/utils/buttonDelete"
 import ButtonEdit from "~/services/utils/buttonEdit"
@@ -34,6 +37,21 @@ const WrapperBtn = styled.span`
     padding-left: 10px;
 `
 
+const SubTitle = styled.h4`
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    padding-bottom: 10px;
+`
+
+const Description = styled.p`
+    padding: 15px 0;
+    span {
+        display: block;
+        font-weight: 500;
+    }
+`
+
 const ManagerLesson = () => {
     const title = 'Danh sách bài học'
     const { id } = useParams();
@@ -47,6 +65,8 @@ const ManagerLesson = () => {
     const [categories, setCategories] = useState<CategoryInfo[]>()
     const [acceptFile, setAcceptFile] = useState<string | undefined>()
     const [fileList, setFileList] = useState<UploadFile[]>([])
+    const [isModalInfo, setIsModalInfo] = useState(false)
+    const [lessonInfo, setLessonInfo] = useState<LessonInfo>()
 
     useEffect(() => {
         document.title = title
@@ -94,7 +114,7 @@ const ManagerLesson = () => {
                     lesson_title: data.lesson_title,
                     lesson_score: data.lesson_score
                 })
-
+                setLessonInfo(data)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -201,11 +221,13 @@ const ManagerLesson = () => {
             title: 'Tiêu đề',
             dataIndex: 'title',
             key: 'title',
+            width: '30%'
         },
         {
             title: 'Mô tả',
             dataIndex: 'content',
             key: 'content',
+            width: '35%'
         },
         {
             title: 'Số điểm',
@@ -217,6 +239,12 @@ const ManagerLesson = () => {
             key: 'action',
             render: (_, record) => (
                 <Flex gap={10}>
+                    <Button
+                        type="primary"
+                        onClick={() => handleShowInfo(record.key)}
+                    >
+                        <EyeOutlined />
+                    </Button>
                     <div
                         onClick={() => showModal(record.key)}
                     >
@@ -229,6 +257,11 @@ const ManagerLesson = () => {
             ),
         }
     ];
+
+    const handleShowInfo = async (id: string) => {
+        await getOneLesson(id)
+        setIsModalInfo(true)
+    }
 
     const handleCancel = () => {
         setIsModalOpen(false);
@@ -413,6 +446,39 @@ const ManagerLesson = () => {
                     </Form.Item>
                 </Modal>
             </Form>
+            <Modal
+                title="Thông tin bài học"
+                open={isModalInfo}
+                onOk={() => setIsModalInfo(false)}
+                onCancel={() => setIsModalInfo(false)}
+                footer={[
+                    <Button key="back" onClick={() => setIsModalInfo(false)}>
+                        Thoát
+                    </Button>
+                ]}
+            >
+                {
+                    lessonInfo &&
+                    <>
+                        <SubTitle>{lessonInfo.lesson_title}</SubTitle>
+                        {
+                            <ViewURL
+                                category={lessonInfo.category?.category_name as string}
+                                url={convertUrl(lessonInfo.lesson_url)}
+                            />
+                        }
+                        <Description>
+                            <span>Mô tả: </span>
+                            {lessonInfo.lesson_content}
+                        </Description>
+                        <Flex justify="flex-end">
+                            <Tag icon={<DollarOutlined />} color="warning">
+                                {lessonInfo.lesson_score === 0 ? 'free' : lessonInfo.lesson_score}
+                            </Tag>
+                        </Flex>
+                    </>
+                }
+            </Modal>
         </>
     )
 }

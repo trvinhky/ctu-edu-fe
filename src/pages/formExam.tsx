@@ -1,10 +1,8 @@
-import { Button, Col, DatePicker, Flex, Form, FormProps, Input, InputNumber, Row } from "antd"
-import dayjs, { Dayjs } from "dayjs";
+import { Button, Col, Flex, Form, FormProps, Input, InputNumber, Row } from "antd"
 import { useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useGlobalDataContext } from "~/hooks/globalData";
 import ExamAPI from "~/services/actions/exam";
-import { DATEFORMAT_FULL } from "~/services/constants";
 import { BoxTitle } from "~/services/constants/styled"
 import { Exam } from "~/services/types/exam";
 import ButtonBack from "~/services/utils/buttonBack";
@@ -14,12 +12,11 @@ type FieldType = {
     exam_title?: string
     exam_description?: string
     exam_total_score?: number
-    exam_start_time?: Dayjs
     exam_limit?: number
 };
 
 const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
-    const title = `${isEdit ? 'Cập nhật' : 'Thêm mới'} bài tập / bài thi`
+    const title = `${isEdit ? 'Cập nhật' : 'Thêm mới'} bài thi`
     const { id } = useParams();
     const [form] = Form.useForm<FieldType>();
     const navigate = useNavigate()
@@ -49,9 +46,7 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                     exam_description: data.exam_description,
                     exam_title: data.exam_title,
                     exam_total_score: data.exam_total_score,
-                    exam_limit: data.exam_limit,
-                    exam_start_time: data.exam_start_time ?
-                        dayjs(data.exam_start_time) : undefined
+                    exam_limit: data.exam_limit
                 })
             } else {
                 messageApi.open({
@@ -83,7 +78,6 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                 exam_title: values.exam_title as string,
                 exam_description: values.exam_description,
                 exam_total_score: values.exam_total_score as number,
-                exam_start_time: values.exam_start_time?.toDate(),
                 exam_Id: id as string
             }
             if (isEdit) {
@@ -141,20 +135,7 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                     <Input.TextArea rows={4} />
                 </Form.Item>
                 <Row gutter={[16, 16]}>
-                    <Col span={8}>
-                        <Form.Item<FieldType>
-                            name="exam_start_time"
-                            label="Thời gian bắt đầu"
-                        >
-                            <DatePicker
-                                style={{ width: '100%' }}
-                                placeholder="Chọn thời gian"
-                                showTime={{ format: 'HH:mm' }}
-                                format={DATEFORMAT_FULL}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
+                    <Col span={12}>
                         <Form.Item<FieldType>
                             name="exam_limit"
                             label="Thời gian"
@@ -162,7 +143,7 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                             <InputNumber min={0} placeholder="Nhập số phút" style={{ width: '100%' }} />
                         </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col span={12}>
                         <Form.Item<FieldType>
                             name="exam_total_score"
                             label="Số điểm"

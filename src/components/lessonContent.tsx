@@ -1,9 +1,7 @@
-import { MessageOutlined, UserOutlined } from "@ant-design/icons"
-import { Avatar, Button, Flex, Image, Input } from "antd"
+import { Image } from "antd"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import styled from "styled-components"
-import Comment from "~/components/comment"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import LessonAPI from "~/services/actions/lesson"
 import { LessonInfo } from "~/services/types/lesson"
@@ -73,21 +71,6 @@ const LessonContent = ({ lessonId }: { lessonId?: string }) => {
                     </p>
                 </Content>
             }
-            <div>
-                <SubTitle><MessageOutlined /> Thảo luận</SubTitle>
-                <Flex gap={10}>
-                    <Avatar size="large" icon={<UserOutlined />} />
-                    <Input.TextArea rows={4} />
-                </Flex>
-                <Flex justify="flex-end" style={{ paddingTop: '15px' }}>
-                    <Button type="primary">
-                        Thêm mới
-                    </Button>
-                </Flex>
-                <div style={{ padding: '20px 0 15px' }}>
-                    <Comment isAction={false} isAvatar={true} />
-                </div>
-            </div>
         </>
     )
 }
