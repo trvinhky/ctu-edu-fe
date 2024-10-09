@@ -9,7 +9,7 @@ import { PATH } from "~/services/constants/navbarList"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 
-const GuardTemplate = () => {
+const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
     const token = useSelector(accountTokenSelector)
     const account = useSelector(accountInfoSelector)
     const { setIsLoading } = useGlobalDataContext();
@@ -17,14 +17,16 @@ const GuardTemplate = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!token || (account && account.role?.role_name.indexOf('user') !== -1)) {
-            navigate(PATH.LOGIN)
+        if (token) {
+            if (account) {
+                if (!isUser && account.role?.role_name.includes('user')) {
+                    navigate(PATH.LOGIN)
+                }
+            } else navigate(PATH.LOGIN)
         } else {
-            if (!account) {
-                getInfo()
-            }
+            getInfo()
         }
-    }, [token, account])
+    }, [token, account, isUser])
 
     const getInfo = async () => {
         try {
@@ -33,7 +35,7 @@ const GuardTemplate = () => {
             setIsLoading(false)
             if (data && !Array.isArray(data)) {
                 dispatch(actionsAccount.setInfo(data))
-                if (data.role?.role_name.indexOf('user') !== -1) {
+                if (!isUser && data.role?.role_name.includes('user')) {
                     navigate(PATH.LOGIN)
                 }
             } else {

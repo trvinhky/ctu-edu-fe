@@ -3,8 +3,8 @@ import {
     BookOutlined,
     DesktopOutlined,
     FileOutlined,
+    FolderOutlined,
     KeyOutlined,
-    LikeOutlined,
     MessageOutlined,
     PicLeftOutlined,
     PieChartOutlined,
@@ -20,6 +20,7 @@ const PATH = {
     HOME: '/',
     SEARCH: '/search',
     SUBJECT: '/subject/:id',
+    BUY: '/pay-lesson/:id',
     POST: '/post',
     DETAIL_POST: '/detail-post/:id',
     DETAIL_LESSON: '/detail-lesson/:id',
@@ -38,7 +39,6 @@ const PATH = {
     MANAGER_COURSE: 'manager-course',
     MANAGER_SUBJECT: 'manager-subject',
     COURSE_REGISTER: 'course-register',
-    MANAGER_REVIEW: 'manager-review',
     CREATE_COURSE: 'create-course',
     MANAGER_QUESTION: 'manager-question',
     CREATE_QUESTION: 'create-question',
@@ -61,7 +61,8 @@ const PATH = {
     MANAGER_OPTION: '/manager-option/:id',
     EXAM_QUESTION: '/exam-question/:id',
     LIST_POST: '/list-post',
-    MANAGER_POST: 'manager-post'
+    MANAGER_POST: 'manager-post',
+    LESSON_BUY: 'lesson-buy'
 }
 
 const pathAdmin = (path: string) => `${PATH.ADMIN}/${path}`
@@ -198,23 +199,23 @@ const NAVBARSTUDENT: MenuItem[] = [
     {
         key: PATH.AUTH,
         icon: <AuditOutlined />,
-        label: <Link to={PATH.CREATE_COURSE}>Thông tin</Link>
+        label: <Link to={PATH.AUTH}>Thông tin</Link>
     },
     {
-        key: PATH.COURSE_REGISTER,
+        key: pathAuth(PATH.COURSE_REGISTER),
         icon: <DesktopOutlined />,
         label: <Link to={PATH.COURSE_REGISTER}>Khóa học</Link>
     },
     {
-        key: PATH.LIST_COMMENT,
-        icon: <MessageOutlined />,
-        label: <Link to={PATH.LIST_COMMENT}>Thảo luận</Link>
+        key: pathAuth(PATH.LESSON_BUY),
+        icon: <FolderOutlined />,
+        label: <Link to={PATH.LESSON_BUY}>Bài học đã mua</Link>
     },
     {
-        key: PATH.MANAGER_REVIEW,
-        icon: <LikeOutlined />,
-        label: <Link to={PATH.MANAGER_REVIEW}>Review</Link>
-    },
+        key: pathAuth(PATH.LIST_COMMENT),
+        icon: <MessageOutlined />,
+        label: <Link to={PATH.LIST_COMMENT}>Thảo luận</Link>
+    }
 ]
 
 export {

@@ -10,12 +10,11 @@ import { useGlobalDataContext } from "~/hooks/globalData";
 import { Option } from "~/services/types/dataType";
 import SubjectAPI from "~/services/actions/subject";
 import CourseAPI from "~/services/actions/course";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { accountInfoSelector } from "~/services/reducers/selectors";
-import AccountAPI from "~/services/actions/account";
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { convertUrl } from "~/services/constants";
 import { useNavigate, useParams } from "react-router-dom";
+import { PATH } from "~/services/constants/navbarList";
 
 type FieldType = {
     course_name: string
@@ -43,7 +42,6 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [subjectOption, setSubjectOption] = useState<Option[]>([])
     const account = useSelector(accountInfoSelector)
-    const dispatch = useDispatch();
     const [accountId, setAccountId] = useState<string>()
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const { id } = useParams();
@@ -54,32 +52,12 @@ const FormCourse = ({ isEdit }: { isEdit?: boolean }) => {
         getAllSubject()
         if (account?.account_Id) {
             setAccountId(account.account_Id)
-        } else {
-            getInfo()
-        }
+        } else navigate(PATH.LOGIN)
 
         if (id) {
             getOneCourse(id)
         }
     }, [account, id])
-
-    const getInfo = async () => {
-        try {
-            setIsLoading(true)
-            const { data, status } = await AccountAPI.getOne()
-            setIsLoading(false)
-            if (status === 201 && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
-                setAccountId(data.account_Id)
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-    }
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files && event.target.files[0];

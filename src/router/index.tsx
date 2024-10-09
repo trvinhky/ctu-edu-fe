@@ -37,7 +37,9 @@ import {
     FormPost,
     Subject,
     ListPost,
-    DetailLesson
+    DetailLesson,
+    BuyLesson,
+    ListBuy
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -64,11 +66,14 @@ const AppRouter = () => {
                 <Route path='/' element={<GuardTemplate />}>
                     <Route path={PATH.MANAGER_OPTION} element={<ManagerOption />} />
                     <Route path={PATH.UPDATE_COURSE} element={<FormCourse isEdit />} />
-                    <Route path={PATH.UPDATE_POST} element={<FormPost />} />
                     <Route path={PATH.MANAGER_LESSON} element={<ManagerLesson />} />
                     <Route path={PATH.MANAGER_EXAM} element={<ManagerExam />} />
                     <Route path={PATH.CREATE_EXAM} element={<FormExam />} />
                     <Route path={PATH.UPDATE_EXAM} element={<FormExam isEdit />} />
+                </Route>
+                <Route path='/' element={<GuardTemplate isUser />}>
+                    <Route path={PATH.BUY} element={<BuyLesson />} />
+                    <Route path={PATH.UPDATE_POST} element={<FormPost />} />
                 </Route>
                 <Route path='/' element={<FormTemplate />}>
                     <Route path={PATH.LOGIN_ADMIN} element={<LoginAdmin />} />
@@ -84,6 +89,8 @@ const AppRouter = () => {
                     <Route path={PATH.MANAGER_POST} element={<ManagerPost />} />
                     <Route path={PATH.CREATE_POST} element={<FormPost />} />
                     <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
+                    <Route path={PATH.COURSE_REGISTER} element={<CourseRegister />} />
+                    <Route path={PATH.LESSON_BUY} element={<ListBuy />} />
                 </Route>
                 <Route path={PATH.ADMIN} element={<AdminTemplate />}>
                     <Route index element={<Admin />} />

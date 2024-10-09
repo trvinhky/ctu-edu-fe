@@ -1,19 +1,24 @@
-import { CaretRightOutlined, MessageOutlined, UserOutlined } from "@ant-design/icons"
-import { Avatar, Button, Col, Flex, Pagination, Row } from "antd"
+import { CaretLeftOutlined, CaretRightOutlined, ExclamationCircleFilled, MessageOutlined, UserOutlined } from "@ant-design/icons"
+import { Avatar, Button, Col, Flex, Modal, Pagination, Row } from "antd"
 import { useEffect, useState } from "react"
 import ReactQuill from "react-quill"
+import { useDispatch, useSelector } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import cardImg from '~/assets/images/work.jpeg'
 import Comment from "~/components/comment"
 import HtmlContent from "~/components/htmlContent"
 import { useGlobalDataContext } from "~/hooks/globalData"
+import AccountAPI from "~/services/actions/account"
 import CourseAPI from "~/services/actions/course"
 import { convertDate, convertUrl } from "~/services/constants"
 import { PATH } from "~/services/constants/navbarList"
 import { BoxTitle } from "~/services/constants/styled"
+import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
 import { CourseInfo } from "~/services/types/course"
 import ButtonLinkCustom from "~/services/utils/buttonLinkCustom"
+import { actions as actionsAccount } from '~/services/reducers/accountSlice';
+import EnrollmentAPI from "~/services/actions/enrollment"
 
 const Info = styled.div`
     font-size: 18px;
@@ -54,12 +59,101 @@ const Detail = () => {
     const navigate = useNavigate()
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [course, setCourse] = useState<CourseInfo>()
+    const account = useSelector(accountInfoSelector)
+    const token = useSelector(accountTokenSelector)
+    const dispatch = useDispatch();
+    const [accountId, setAccountId] = useState<string>()
+    const [isRegister, setIsRegister] = useState<boolean>(false)
 
     useEffect(() => {
+        if (token) {
+            if (account) {
+                setAccountId(account.account_Id)
+            } else {
+                getInfo()
+            }
+        }
+
         if (id) {
             getOneCourse(id)
         } else navigate(-1)
-    }, [])
+
+        if (id && accountId) {
+            checkRegisterCourse(id)
+        }
+    }, [token, account, id, setAccountId])
+
+    const getInfo = async () => {
+        try {
+            setIsLoading(true)
+            const { data } = await AccountAPI.getOne()
+            setIsLoading(false)
+            if (data && !Array.isArray(data)) {
+                dispatch(actionsAccount.setInfo(data))
+                setAccountId(data.account_Id)
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+    }
+
+    const checkRegisterCourse = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { data, status, message } = await EnrollmentAPI.getAll({
+                course: id,
+                student: accountId as string
+            })
+            if (status === 201 && !Array.isArray(data)) {
+                if (data.count > 0) {
+                    setIsRegister(true)
+                } else setIsRegister(false)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const handleRegisterCourse = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { status, message } = await EnrollmentAPI.register({
+                course_Id: id,
+                student_Id: accountId as string
+            })
+            if (status === 200) {
+                setIsRegister(true)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
 
     const getOneCourse = async (id: string) => {
         setIsLoading(true)
@@ -75,6 +169,46 @@ const Detail = () => {
                     duration: 3,
                 });
             }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const showPromiseConfirm = (id: string) => {
+        Modal.confirm({
+            title: 'Bạn có chắc muốn rời khóa học này?',
+            icon: <ExclamationCircleFilled />,
+            cancelText: 'Hủy',
+            async onOk() {
+                if (account && account.account_Id) {
+                    await leaveCourse(id)
+                }
+            },
+            onCancel() { },
+        });
+    };
+
+    const leaveCourse = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { status, message } = await EnrollmentAPI.delete({
+                course_Id: id,
+                student_Id: account?.account_Id as string
+            })
+            if (status === 200) {
+                await checkRegisterCourse(id)
+            }
+
+            messageApi.open({
+                type: status === 200 ? 'success' : 'error',
+                content: message,
+                duration: 3,
+            });
         } catch (e) {
             messageApi.open({
                 type: 'error',
@@ -126,12 +260,27 @@ const Detail = () => {
                     </Col>
                     <Col span={24}>
                         <Flex justify="flex-end" gap={10}>
-                            <ButtonLinkCustom href={PATH.CONTENT_COURSE.replace(':id', course.course_Id)} shape="default">
-                                Xem thông tin <CaretRightOutlined />
-                            </ButtonLinkCustom>
-                            <Button type="primary">
-                                Đăng ký <CaretRightOutlined />
-                            </Button>
+                            {
+                                !isRegister ?
+                                    <Button
+                                        type="primary"
+                                        onClick={() => handleRegisterCourse(course.course_Id)}
+                                    >
+                                        Đăng ký <CaretRightOutlined />
+                                    </Button> :
+                                    <>
+                                        <Button
+                                            type="primary"
+                                            style={{ backgroundColor: '#e74c3c' }}
+                                            onClick={() => showPromiseConfirm(course.course_Id)}
+                                        >
+                                            <CaretLeftOutlined /> Rời lớp học
+                                        </Button>
+                                        <ButtonLinkCustom href={PATH.CONTENT_COURSE.replace(':id', course.course_Id)} shape="default">
+                                            Xem thông tin <CaretRightOutlined />
+                                        </ButtonLinkCustom>
+                                    </>
+                            }
                         </Flex>
                     </Col>
                     <Col span={24}>

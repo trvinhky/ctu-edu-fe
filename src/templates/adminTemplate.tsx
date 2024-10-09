@@ -5,10 +5,11 @@ import { Flex } from "antd"
 import { NAVBARADMIN, PATH } from "~/services/constants/navbarList"
 import styled from "styled-components"
 import AccountAPI from '~/services/actions/account'
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { useEffect, useState } from "react"
+import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
 
 const Navbar = styled.div`
     width: 25%;
@@ -19,6 +20,8 @@ const AdminTemplate = () => {
     const dispatch = useDispatch();
     const { setIsLoading } = useGlobalDataContext();
     const [userName, setUserName] = useState('')
+    const account = useSelector(accountInfoSelector)
+    const token = useSelector(accountTokenSelector)
 
     const getInfoAdmin = async () => {
         try {
@@ -29,20 +32,24 @@ const AdminTemplate = () => {
                 if (data.role?.role_name.indexOf('admin') !== -1) {
                     dispatch(actionsAccount.setInfo(data))
                     setUserName(data.profile?.profile_name)
-                } else {
-                    navigate(PATH.LOGIN_ADMIN)
+                    return
                 }
-            } else {
-                navigate(PATH.LOGIN_ADMIN)
             }
+            navigate(PATH.LOGIN_ADMIN)
         } catch (e) {
             navigate(PATH.LOGIN_ADMIN)
         }
     }
 
     useEffect(() => {
-        getInfoAdmin()
-    }, [])
+        if (token) {
+            if (account) {
+                setUserName(account.profile.profile_name)
+            } else {
+                getInfoAdmin()
+            }
+        } else navigate(PATH.LOGIN_ADMIN)
+    }, [account, token])
 
     return (
         <Flex align="center" justify="center">

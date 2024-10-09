@@ -1,18 +1,17 @@
 import { Button, Flex, Form, FormProps, Input, Select } from "antd";
 import { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGlobalDataContext } from "~/hooks/globalData";
-import AccountAPI from "~/services/actions/account";
 import PostAPI from "~/services/actions/post";
 import SubjectAPI from "~/services/actions/subject";
 import { BoxTitle } from "~/services/constants/styled";
 import { accountInfoSelector } from "~/services/reducers/selectors";
 import { Option } from "~/services/types/dataType";
 import { Post } from "~/services/types/post";
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import ButtonEdit from "~/services/utils/buttonEdit";
+import { PATH } from "~/services/constants/navbarList";
 
 type FieldType = {
     post_title?: string;
@@ -30,7 +29,6 @@ const FormPost = () => {
     const account = useSelector(accountInfoSelector)
     const [statusId, setStatusId] = useState<string>()
     const navigate = useNavigate()
-    const dispatch = useDispatch();
 
     useEffect(() => {
         if (id) {
@@ -41,9 +39,7 @@ const FormPost = () => {
         getAllSubject(1, 20)
         if (account?.account_Id) {
             setAccountId(account.account_Id)
-        } else {
-            getInfo()
-        }
+        } else navigate(PATH.LOGIN)
     }, [id, account])
 
     const getOnePost = async (postId: string) => {
@@ -72,24 +68,6 @@ const FormPost = () => {
             });
         }
         setIsLoading(false)
-    }
-
-    const getInfo = async () => {
-        try {
-            setIsLoading(true)
-            const { data, status } = await AccountAPI.getOne()
-            setIsLoading(false)
-            if (status === 201 && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
-                setAccountId(data.account_Id)
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
     }
 
     const getAllSubject = async (page?: number, limit: number = 6) => {

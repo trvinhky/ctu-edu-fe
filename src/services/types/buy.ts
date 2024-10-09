@@ -1,13 +1,18 @@
 import { Account } from "~/services/types/account"
-import { Resource } from "~/services/types/resource"
+import { Lesson } from "~/services/types/lesson"
 
 export interface Buy {
-    resource_Id: string
+    lesson_Id: string
     student_Id: string
-    buy_date: Date
+    buy_date?: Date
 }
 
 export interface BuyInfo extends Buy {
     student: Account
-    resource: Resource
+    lesson: Lesson
+}
+
+export interface BuyAll {
+    count: number
+    buy: BuyInfo[]
 }

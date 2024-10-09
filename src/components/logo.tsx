@@ -8,7 +8,7 @@ interface LogoProps {
 const Logo = ({ size = 24 }: LogoProps) => {
     return (
         <span className='logo' style={{ fontSize: `${size}px` }}>
-            <Link to='/'>CTEdu</Link>
+            <Link to='/'>InfoDocsHub</Link>
         </span>
     )
 }

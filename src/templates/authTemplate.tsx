@@ -6,11 +6,12 @@ import Footer from "~/layouts/Footer"
 import Header from "~/layouts/Header"
 import { NAVBARSTUDENT, NAVBARTEACHER, PATH } from "~/services/constants/navbarList"
 import AccountAPI from '~/services/actions/account'
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { useEffect, useState } from "react"
 import { SettingOutlined } from "@ant-design/icons"
+import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
 
 const Navbar = styled.div`
     width: 25%;
@@ -30,6 +31,8 @@ const AuthTemplate = () => {
     const [userName, setUserName] = useState('')
     const [items, setItems] = useState(NAVBARSTUDENT)
     const [isShowBtn, setIsShowBtn] = useState(false)
+    const account = useSelector(accountInfoSelector)
+    const token = useSelector(accountTokenSelector)
 
     const getInfo = async () => {
         try {
@@ -55,8 +58,14 @@ const AuthTemplate = () => {
     }
 
     useEffect(() => {
-        getInfo()
-    }, [])
+        if (token) {
+            if (account) {
+                setUserName(account.profile.profile_name)
+            } else {
+                getInfo()
+            }
+        } else navigate(PATH.LOGIN_ADMIN)
+    }, [account, token])
 
     return (
         <>

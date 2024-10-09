@@ -1,12 +1,11 @@
 import { ExclamationCircleFilled, EyeOutlined, FilterOutlined, PlusOutlined } from "@ant-design/icons"
 import { Button, Flex, Input, Select, Modal, Form, FormProps, TableProps, Table } from "antd"
 import { useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Question from "~/components/question";
 import { useGlobalDataContext } from "~/hooks/globalData";
-import AccountAPI from "~/services/actions/account";
 import QuestionAPI, { QuestionParams } from "~/services/actions/question";
 import TypeAPI from "~/services/actions/type";
 import { BoxTitle } from "~/services/constants/styled"
@@ -14,7 +13,6 @@ import { Option } from "~/services/types/dataType";
 import { QuestionInfo } from "~/services/types/question";
 import ButtonDelete from "~/services/utils/buttonDelete";
 import ButtonEdit from "~/services/utils/buttonEdit";
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { accountInfoSelector } from "~/services/reducers/selectors";
 import { PATH } from "~/services/constants/navbarList";
 import CategoryAPI from "~/services/actions/category";
@@ -44,7 +42,6 @@ const ManagerQuestion = () => {
     const [optionType, setOptionType] = useState<Option[]>()
     const [optionCategory, setOptionCategory] = useState<Option[]>()
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const dispatch = useDispatch();
     const account = useSelector(accountInfoSelector)
     const [accountId, setAccountId] = useState<string>()
     const [form] = Form.useForm<FieldType>();
@@ -57,6 +54,7 @@ const ManagerQuestion = () => {
     const [acceptFile, setAcceptFile] = useState<string | undefined>()
     const [categories, setCategories] = useState<CategoryInfo[]>()
     const [dataTable, setDataTable] = useState<DataType[]>([])
+    const navigate = useNavigate();
 
     useEffect(() => {
         document.title = title
@@ -65,9 +63,9 @@ const ManagerQuestion = () => {
         getAllCategory()
         if (account?.account_Id) {
             setAccountId(account.account_Id)
-        } else {
-            getInfo()
-        }
+        } else if (checkAuth) {
+            navigate(PATH.LOGIN)
+        } else navigate(PATH.LOGIN_ADMIN)
     }, [])
 
     const getOneQuestion = async (id: string) => {
@@ -127,24 +125,6 @@ const ManagerQuestion = () => {
             ),
         },
     ];
-
-    const getInfo = async () => {
-        try {
-            setIsLoading(true)
-            const { data, status } = await AccountAPI.getOne()
-            setIsLoading(false)
-            if (status === 201 && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
-                setAccountId(data.account_Id)
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-    }
 
     const getAllQuestion = async (params: QuestionParams) => {
         setIsLoading(true)

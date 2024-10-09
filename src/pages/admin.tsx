@@ -22,8 +22,6 @@ const Admin = () => {
             if (accCount.status === 201 && !Array.isArray(accCount.data)) {
                 setAccountTotal(accCount.data.count)
             }
-
-
         } catch (e) {
             messageApi.open({
                 type: 'error',

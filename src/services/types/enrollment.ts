@@ -1,5 +1,5 @@
 import { AccountInfo } from "~/services/types/account"
-import { Course } from "~/services/types/course"
+import { CourseInfo } from "./course"
 
 export interface Enrollment {
     course_Id: string
@@ -8,6 +8,11 @@ export interface Enrollment {
 }
 
 export interface EnrollmentInfo extends Enrollment {
-    course: Course
+    course: CourseInfo
     student: AccountInfo
+}
+
+export interface EnrollmentAll {
+    count: number
+    enrollments: EnrollmentInfo[]
 }
