@@ -9,6 +9,7 @@ export interface QuestionParams {
     type?: string
     id?: string
     limit?: number
+    title?: string
 }
 
 class QuestionService extends EduAPI {
@@ -24,7 +25,7 @@ class QuestionService extends EduAPI {
         return await this.putAPI(url(`${id}`), data)
     }
 
-    public async getAll({ page = 1, type, id, limit = 6 }: QuestionParams): Promise<APIType<QuestionAll>> {
+    public async getAll({ page = 1, type, id, limit = 6, title }: QuestionParams): Promise<APIType<QuestionAll>> {
         let params = url(`all?page=${page}&limit=${limit}`)
         if (type) {
             params += `&type=${type}`
@@ -32,6 +33,10 @@ class QuestionService extends EduAPI {
 
         if (id) {
             params += `&id=${id}`
+        }
+
+        if (title) {
+            params += `&title=${title}`
         }
 
         return await this.getAPI(params)

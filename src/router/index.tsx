@@ -39,7 +39,8 @@ import {
     ListPost,
     DetailLesson,
     BuyLesson,
-    ListBuy
+    ListBuy,
+    ListQuestionExam
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -68,6 +69,8 @@ const AppRouter = () => {
                     <Route path={PATH.UPDATE_COURSE} element={<FormCourse isEdit />} />
                     <Route path={PATH.MANAGER_LESSON} element={<ManagerLesson />} />
                     <Route path={PATH.MANAGER_EXAM} element={<ManagerExam />} />
+                    <Route path={PATH.ADD_QUESTION} element={<ListQuestionExam isAdd />} />
+                    <Route path={PATH.QUESTION_EXAM} element={<ListQuestionExam />} />
                     <Route path={PATH.CREATE_EXAM} element={<FormExam />} />
                     <Route path={PATH.UPDATE_EXAM} element={<FormExam isEdit />} />
                 </Route>

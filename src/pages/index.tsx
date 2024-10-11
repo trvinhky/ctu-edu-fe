@@ -10,6 +10,7 @@ export { default as NotFound } from './notFound'
 export { default as ListPost } from './listPost'
 export { default as DetailLesson } from './detailLesson'
 /* login */
+export { default as ListQuestionExam } from './listQuestionExam'
 export { default as BuyLesson } from './buyLesson'
 export { default as Detail } from './detail'
 export { default as Info } from './info'

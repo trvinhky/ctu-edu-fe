@@ -1,5 +1,5 @@
 import { Account } from "~/services/types/account"
-import { Lesson } from "~/services/types/lesson"
+import { LessonInfo } from "~/services/types/lesson"
 
 export interface Buy {
     lesson_Id: string
@@ -9,7 +9,7 @@ export interface Buy {
 
 export interface BuyInfo extends Buy {
     student: Account
-    lesson: Lesson
+    lesson: LessonInfo
 }
 
 export interface BuyAll {

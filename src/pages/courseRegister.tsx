@@ -241,6 +241,13 @@ const CourseRegister = () => {
     ];
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+        if (account)
+            await getAllEnrollment({
+                page: 1,
+                title: values.title,
+                subject: values.subject,
+                student: account.account_Id
+            })
     }
 
     return (

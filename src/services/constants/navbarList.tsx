@@ -62,7 +62,9 @@ const PATH = {
     EXAM_QUESTION: '/exam-question/:id',
     LIST_POST: '/list-post',
     MANAGER_POST: 'manager-post',
-    LESSON_BUY: 'lesson-buy'
+    LESSON_BUY: 'lesson-buy',
+    QUESTION_EXAM: '/question-exam/:id',
+    ADD_QUESTION: '/add-question/:id',
 }
 
 const pathAdmin = (path: string) => `${PATH.ADMIN}/${path}`

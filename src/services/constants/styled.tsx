@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 const Title = styled.h1`
@@ -34,10 +35,21 @@ const ImgCaptCha = styled.img`
     object-fit: cover;
 `
 
+const TitleLink = styled(Link)`
+    font-weight: 600;
+    border-left: 2px solid #f1c40f;
+    padding-left: 10px;
+    font-size: 20px;
+    color: #000;
+    display: inline-block;
+    margin: 30px 0 20px;
+`
+
 export {
     Title,
     FormTitle,
     FormLink,
     BoxTitle,
-    ImgCaptCha
+    ImgCaptCha,
+    TitleLink
 }

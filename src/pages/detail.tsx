@@ -1,24 +1,23 @@
-import { CaretLeftOutlined, CaretRightOutlined, ExclamationCircleFilled, MessageOutlined, UserOutlined } from "@ant-design/icons"
-import { Avatar, Button, Col, Flex, Modal, Pagination, Row } from "antd"
+import { CaretLeftOutlined, CaretRightOutlined, ExclamationCircleFilled } from "@ant-design/icons"
+import { Button, Col, Flex, Modal, Row } from "antd"
 import { useEffect, useState } from "react"
-import ReactQuill from "react-quill"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import cardImg from '~/assets/images/work.jpeg'
-import Comment from "~/components/comment"
 import HtmlContent from "~/components/htmlContent"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import AccountAPI from "~/services/actions/account"
-import CourseAPI from "~/services/actions/course"
+import CourseAPI, { CourseParams } from "~/services/actions/course"
 import { convertDate, convertUrl } from "~/services/constants"
 import { PATH } from "~/services/constants/navbarList"
-import { BoxTitle } from "~/services/constants/styled"
+import { BoxTitle, TitleLink } from "~/services/constants/styled"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
 import { CourseInfo } from "~/services/types/course"
 import ButtonLinkCustom from "~/services/utils/buttonLinkCustom"
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import EnrollmentAPI from "~/services/actions/enrollment"
+import Card from "~/components/card"
 
 const Info = styled.div`
     font-size: 18px;
@@ -41,20 +40,7 @@ const BoxText = styled.p`
     }
 `
 
-const SubTitle = styled(BoxTitle)`
-    font-size: 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 10px;
-    margin-top: 20px;
-`
-
-const WrapperBox = styled.div`
-    padding: 15px 0 60px;
-    flex: 1;
-`
-
 const Detail = () => {
-    const [contentReview, setContentReview] = useState('');
     const { id } = useParams();
     const navigate = useNavigate()
     const { setIsLoading, messageApi } = useGlobalDataContext();
@@ -64,6 +50,7 @@ const Detail = () => {
     const dispatch = useDispatch();
     const [accountId, setAccountId] = useState<string>()
     const [isRegister, setIsRegister] = useState<boolean>(false)
+    const [listCourses, setListCourses] = useState<CourseInfo[]>([])
 
     useEffect(() => {
         if (token) {
@@ -81,7 +68,7 @@ const Detail = () => {
         if (id && accountId) {
             checkRegisterCourse(id)
         }
-    }, [token, account, id, setAccountId])
+    }, [token, account, id, setAccountId, accountId])
 
     const getInfo = async () => {
         try {
@@ -162,6 +149,34 @@ const Detail = () => {
             if (status === 201 && !Array.isArray(data)) {
                 setCourse(data)
                 document.title = data.course_name
+                await getAllCourse({
+                    page: 1,
+                    subject: data.subject_Id,
+                    id: data.course_Id
+                })
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getAllCourse = async (params: CourseParams) => {
+        setIsLoading(true)
+        try {
+            const { data, status, message } = await CourseAPI.getAll(params)
+            if (status === 201 && !Array.isArray(data)) {
+                setListCourses(data.courses)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -283,35 +298,20 @@ const Detail = () => {
                             }
                         </Flex>
                     </Col>
-                    <Col span={24}>
-                        <div style={{ paddingTop: 10 }}>
-                            <SubTitle><MessageOutlined /> Thảo luận</SubTitle>
-                            <Flex gap={10}>
-                                <Avatar size="large" icon={<UserOutlined />} />
-                                <WrapperBox>
-                                    <ReactQuill
-                                        theme="snow"
-                                        value={contentReview}
-                                        onChange={setContentReview}
-                                        style={{ height: '30vh' }}
-                                    />
-                                </WrapperBox>
-                            </Flex>
-                            <Flex justify="flex-end" style={{ paddingTop: '10px' }}>
-                                <Button type="primary">
-                                    Thêm mới
-                                </Button>
-                            </Flex>
-                            <div style={{ padding: '20px 0 15px' }}>
-                                <Comment isAction={false} isAvatar={true} />
-                            </div>
-                        </div>
-                        <Flex align='center' justify='center' style={{ width: '100%' }}>
-                            <Pagination defaultCurrent={1} total={50} />
-                        </Flex>
-                    </Col>
                 </Row>
             }
+            <TitleLink to={PATH.SEARCH}>
+                Khóa học đề xuất
+            </TitleLink>
+            <Row gutter={[16, 16]}>
+                {
+                    listCourses?.map((course) => (
+                        <Col span={6} key={course.course_Id}>
+                            <Card data={course} />
+                        </Col>
+                    ))
+                }
+            </Row>
         </>
     )
 }

@@ -9,6 +9,8 @@ export interface EnrollmentProps {
     limit?: number
     student?: string
     course?: string
+    title?: string
+    subject?: string
 }
 
 class EnrollmentService extends EduAPI {
@@ -16,11 +18,13 @@ class EnrollmentService extends EduAPI {
         return await this.postAPI(url('create'), data)
     }
 
-    public async getAll({ page = 1, course, student, limit = 6 }: EnrollmentProps): Promise<APIType<EnrollmentAll>> {
+    public async getAll({ page = 1, course, student, limit = 6, title, subject }: EnrollmentProps): Promise<APIType<EnrollmentAll>> {
         let params = url(`all?page=${page}&limit=${limit}`)
 
         if (course) params += `&course=${course}`
         if (student) params += `&student=${student}`
+        if (title) params += `&title=${title}`
+        if (subject) params += `&subject=${subject}`
 
         return await this.getAPI(params)
     }

@@ -38,9 +38,11 @@ const Space = styled.span`
 
 const Question = (
     {
-        questionInfo
+        questionInfo,
+        score
     }: {
-        questionInfo: QuestionInfo
+        questionInfo: QuestionInfo,
+        score?: number
     }
 ) => {
     const [value, setValue] = useState(1);
@@ -57,7 +59,7 @@ const Question = (
     return (
         <Wrapper>
             <Title>
-                {questionInfo.question_content} <span>(0.25đ)</span>
+                {questionInfo.question_content} {score && <span>({score}đ)</span>}
             </Title>
             {
                 questionInfo.question_url &&

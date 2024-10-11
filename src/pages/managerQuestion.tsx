@@ -1,8 +1,8 @@
-import { ExclamationCircleFilled, EyeOutlined, FilterOutlined, PlusOutlined } from "@ant-design/icons"
+import { ExclamationCircleFilled, EyeOutlined, FilterOutlined, OrderedListOutlined, PlusOutlined } from "@ant-design/icons"
 import { Button, Flex, Input, Select, Modal, Form, FormProps, TableProps, Table } from "antd"
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Question from "~/components/question";
 import { useGlobalDataContext } from "~/hooks/globalData";
@@ -118,6 +118,11 @@ const ManagerQuestion = () => {
                     <WrapperBtn onClick={() => showModal(record.key)}>
                         <ButtonEdit />
                     </WrapperBtn>
+                    <Button type="primary" style={{ background: '#16a085' }}>
+                        <Link to={PATH.MANAGER_OPTION.replace(':id', record.key)}>
+                            <OrderedListOutlined />
+                        </Link>
+                    </Button>
                     <WrapperBtn onClick={() => showPromiseConfirm(record.key)}>
                         <ButtonDelete />
                     </WrapperBtn>
@@ -135,7 +140,7 @@ const ManagerQuestion = () => {
                     allParams.id = accountId
                 }
             }
-            const { data, message, status } = await QuestionAPI.getAll(params)
+            const { data, message, status } = await QuestionAPI.getAll(allParams)
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
                     data.questions.map((question) => {

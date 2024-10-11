@@ -10,6 +10,7 @@ export interface CourseParams {
     subject?: string
     limit?: number
     teacher?: string
+    id?: string
 }
 
 class CourseService extends EduAPI {
@@ -25,12 +26,13 @@ class CourseService extends EduAPI {
         return await this.getAPI(url(`info/${id}`))
     }
 
-    public async getAll({ page = 1, title, subject, teacher, limit = 6 }: CourseParams): Promise<APIType<CourseAll>> {
+    public async getAll({ page = 1, title, subject, teacher, limit = 6, id }: CourseParams): Promise<APIType<CourseAll>> {
         let params = url(`all?page=${page}&limit=${limit}`)
 
         if (title) params += `&title=${title}`
         if (subject) params += `&subject=${subject}`
         if (teacher) params += `&teacher=${teacher}`
+        if (id) params += `&id=${id}`
 
         return await this.getAPI(params)
     }

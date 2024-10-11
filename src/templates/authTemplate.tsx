@@ -34,6 +34,15 @@ const AuthTemplate = () => {
     const account = useSelector(accountInfoSelector)
     const token = useSelector(accountTokenSelector)
 
+    const checkRole = (roleName: string) => {
+        if (!roleName.includes('user')) {
+            setItems(NAVBARTEACHER)
+            if (roleName.includes('admin')) {
+                setIsShowBtn(true)
+            }
+        }
+    }
+
     const getInfo = async () => {
         try {
             setIsLoading(true)
@@ -43,12 +52,7 @@ const AuthTemplate = () => {
                 dispatch(actionsAccount.setInfo(data))
                 setUserName(data.profile?.profile_name)
                 const roleName = data.role?.role_name.toLocaleLowerCase() ?? ''
-                if (!roleName.includes('user')) {
-                    setItems(NAVBARTEACHER)
-                    if (roleName.includes('admin')) {
-                        setIsShowBtn(true)
-                    }
-                }
+                checkRole(roleName)
             } else {
                 navigate(PATH.LOGIN)
             }
@@ -61,10 +65,11 @@ const AuthTemplate = () => {
         if (token) {
             if (account) {
                 setUserName(account.profile.profile_name)
+                checkRole(account.role?.role_name as string)
             } else {
                 getInfo()
             }
-        } else navigate(PATH.LOGIN_ADMIN)
+        } else navigate(PATH.LOGIN)
     }, [account, token])
 
     return (

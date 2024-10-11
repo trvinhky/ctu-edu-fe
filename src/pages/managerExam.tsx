@@ -1,4 +1,4 @@
-import { ExclamationCircleFilled, EyeOutlined, PlusOutlined } from "@ant-design/icons";
+import { ExclamationCircleFilled, EyeOutlined, PlusOutlined, QuestionOutlined } from "@ant-design/icons";
 import { Button, Flex, Modal, Table, TableProps } from "antd"
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -95,6 +95,11 @@ const ManagerExam = () => {
                     <Link to={PATH.UPDATE_EXAM.replace(':id', record.key)}>
                         <ButtonEdit />
                     </Link>
+                    <Button type="primary" style={{ background: '#16a085' }}>
+                        <Link to={PATH.QUESTION_EXAM.replace(':id', record.key)}>
+                            <QuestionOutlined />
+                        </Link>
+                    </Button>
                     <div onClick={() => showPromiseConfirm(record.key)}>
                         <ButtonDelete />
                     </div>

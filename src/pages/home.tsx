@@ -1,7 +1,5 @@
 import { Col, Flex, Row } from 'antd'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import styled from 'styled-components'
 import Card from '~/components/card'
 import ItemPost from '~/components/itemPost'
 import { useGlobalDataContext } from '~/hooks/globalData'
@@ -9,20 +7,11 @@ import CourseAPI, { CourseParams } from '~/services/actions/course'
 import PostAPI, { ParamsAll } from '~/services/actions/post'
 import SubjectAPI from '~/services/actions/subject'
 import { PATH } from '~/services/constants/navbarList'
+import { TitleLink } from '~/services/constants/styled'
 import { CourseInfo } from '~/services/types/course'
 import { PostInfo } from '~/services/types/post'
 import { SubjectInfo } from '~/services/types/subject'
 import ButtonLinkCustom from '~/services/utils/buttonLinkCustom'
-
-const TitleLink = styled(Link)`
-    font-weight: 600;
-    border-left: 2px solid #f1c40f;
-    padding-left: 10px;
-    font-size: 20px;
-    color: #000;
-    display: inline-block;
-    margin: 30px 0 20px;
-`
 
 const Home = () => {
     const { setIsLoading, messageApi } = useGlobalDataContext();

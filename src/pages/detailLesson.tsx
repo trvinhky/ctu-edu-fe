@@ -1,15 +1,17 @@
-import { DollarOutlined } from "@ant-design/icons";
-import { Button, Flex, Tag } from "antd";
+import { DollarOutlined, MessageOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Col, Flex, Row, Tag, Avatar, Pagination } from "antd";
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import ViewPDF from "~/components/viewPDF";
+import Comment from "~/components/comment"
+import ReactQuill from "react-quill"
 import { useGlobalDataContext } from "~/hooks/globalData";
 import LessonAPI from "~/services/actions/lesson";
 import { convertUrl, ENV } from "~/services/constants";
 import { PATH } from "~/services/constants/navbarList";
-import { Title } from "~/services/constants/styled";
+import { BoxTitle, Title } from "~/services/constants/styled";
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors";
 import { LessonInfo } from "~/services/types/lesson";
 import ButtonBack from "~/services/utils/buttonBack";
@@ -21,6 +23,18 @@ const CustomTitle = styled(Title)`
     display: flex;
     gap: 5px;
     align-items: center;
+`
+
+const SubTitle = styled(BoxTitle)`
+    font-size: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 10px;
+    margin-top: 20px;
+`
+
+const WrapperBox = styled.div`
+    padding: 15px 0 60px;
+    flex: 1;
 `
 
 const DetailLesson = () => {
@@ -35,6 +49,7 @@ const DetailLesson = () => {
     const dispatch = useDispatch();
     const [accountId, setAccountId] = useState<string>()
     const [checkBuy, setCheckBuy] = useState<boolean>(false)
+    const [contentReview, setContentReview] = useState('');
 
     useEffect(() => {
         if (id) {
@@ -255,6 +270,35 @@ const DetailLesson = () => {
                     </p>
                 </section>
             }
+            <Row gutter={[16, 16]} style={{ paddingTop: 30 }}>
+                <Col span={24}>
+                    <div style={{ paddingTop: 10 }}>
+                        <SubTitle><MessageOutlined /> Thảo luận</SubTitle>
+                        <Flex gap={10}>
+                            <Avatar size="large" icon={<UserOutlined />} />
+                            <WrapperBox>
+                                <ReactQuill
+                                    theme="snow"
+                                    value={contentReview}
+                                    onChange={setContentReview}
+                                    style={{ height: '30vh' }}
+                                />
+                            </WrapperBox>
+                        </Flex>
+                        <Flex justify="flex-end" style={{ paddingTop: '10px' }}>
+                            <Button type="primary">
+                                Thêm mới
+                            </Button>
+                        </Flex>
+                        <div style={{ padding: '20px 0 15px' }}>
+                            <Comment isAction={false} isAvatar={true} />
+                        </div>
+                    </div>
+                    <Flex align='center' justify='center' style={{ width: '100%' }}>
+                        <Pagination defaultCurrent={1} total={50} />
+                    </Flex>
+                </Col>
+            </Row>
         </>
     )
 }
