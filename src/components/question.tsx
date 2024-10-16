@@ -1,9 +1,12 @@
 import { useState } from "react";
 import styled from "styled-components"
-import { Checkbox, GetProp, Radio, type RadioChangeEvent } from 'antd';
+import { Radio, type RadioChangeEvent } from 'antd';
 import { QuestionInfo } from "~/services/types/question";
 import ViewURL from "~/components/viewURL";
 import { convertUrl } from "~/services/constants";
+import { actions as actionsAnswer } from '~/services/reducers/answerSlice';
+import { useDispatch, useSelector } from "react-redux";
+import { answersSelector } from "~/services/reducers/selectors";
 
 const Wrapper = styled.div`
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -27,10 +30,6 @@ const RadioCustom = styled(Radio)`
     width: 100%;
 `
 
-const CheckboxCustom = styled(Checkbox)`
-    width: 100%;
-`
-
 const Space = styled.span`
     display: block;
     padding: 8px;
@@ -38,28 +37,32 @@ const Space = styled.span`
 
 const Question = (
     {
-        questionInfo,
-        score
+        questionInfo
     }: {
-        questionInfo: QuestionInfo,
-        score?: number
+        questionInfo: QuestionInfo
     }
 ) => {
-    const [value, setValue] = useState(1);
+    const dispatch = useDispatch();
+    const answers = useSelector(answersSelector)
+    const findValue = (id: string) => {
+        const check = answers.find((answer) => answer.question_Id === id)
+        return check?.option_Id
+    }
+
+    const [value, setValue] = useState(findValue(questionInfo.question_Id as string));
 
     const onChange = (e: RadioChangeEvent) => {
-        console.log('radio checked', e.target.value);
         setValue(e.target.value);
-    };
-
-    const onChangeMultiple: GetProp<typeof Checkbox.Group, 'onChange'> = (checkedValues) => {
-        console.log('checked = ', checkedValues);
+        dispatch(actionsAnswer.addAnswer({
+            question_Id: questionInfo.question_Id,
+            option_Id: e.target.value
+        }))
     };
 
     return (
         <Wrapper>
             <Title>
-                {questionInfo.question_content} {score && <span>({score}đ)</span>}
+                {questionInfo.question_content}
             </Title>
             {
                 questionInfo.question_url &&
@@ -70,27 +73,20 @@ const Question = (
             }
             <Space />
             {
-                questionInfo.type.type_name.toLocaleLowerCase().indexOf('one') !== -1 ?
-                    <Radio.Group style={{ width: '100%' }} onChange={onChange} value={value}>
-                        {
-                            questionInfo.options?.map((opt) => (
-                                <RadioCustom
-                                    key={opt.option_Id}
-                                    value={opt.option_Id}
-                                >{opt.option_content}</RadioCustom>
-                            ))
-                        }
-                    </Radio.Group> :
-                    <Checkbox.Group style={{ width: '100%' }} onChange={onChangeMultiple}>
-                        {
-                            questionInfo.options?.map((opt) => (
-                                <CheckboxCustom
-                                    key={opt.option_Id}
-                                    value={opt.option_Id}
-                                >{opt.option_content}</CheckboxCustom>
-                            ))
-                        }
-                    </Checkbox.Group>
+                <Radio.Group
+                    style={{ width: '100%' }}
+                    onChange={onChange}
+                    value={value}
+                >
+                    {
+                        questionInfo.options?.map((opt) => (
+                            <RadioCustom
+                                key={opt.option_Id}
+                                value={opt.option_Id}
+                            >{opt.option_content}</RadioCustom>
+                        ))
+                    }
+                </Radio.Group>
             }
         </Wrapper>
     )

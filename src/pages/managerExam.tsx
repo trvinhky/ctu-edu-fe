@@ -15,7 +15,6 @@ interface DataType {
     key: string;
     title: string;
     limit: number;
-    score: number;
 }
 
 const ManagerExam = () => {
@@ -42,8 +41,7 @@ const ManagerExam = () => {
                         const result: DataType = {
                             key: exam.exam_Id as string,
                             title: exam.exam_title,
-                            limit: exam.exam_limit,
-                            score: exam.exam_total_score
+                            limit: exam.exam_limit
                         }
 
                         return result
@@ -78,11 +76,6 @@ const ManagerExam = () => {
             title: 'Thời gian',
             dataIndex: 'limit',
             key: 'limit',
-        },
-        {
-            title: 'Số điểm',
-            dataIndex: 'score',
-            key: 'score',
         },
         {
             title: '',

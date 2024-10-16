@@ -1,29 +1,26 @@
 import { ExclamationCircleFilled, EyeOutlined, FilterOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons"
-import { Button, Flex, Form, FormProps, Input, Modal, Select, Table, TableProps } from "antd"
+import { Button, Flex, Form, FormProps, Input, Modal, Table, TableProps } from "antd"
 import React, { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import Question from "~/components/question"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import QuestionAPI, { QuestionParams } from "~/services/actions/question"
-import TypeAPI from "~/services/actions/type"
+import QuestionExamAPI, { QuestionExamParams } from "~/services/actions/question_exam"
 import { PATH } from "~/services/constants/navbarList"
 import { BoxTitle } from "~/services/constants/styled"
-import { Option } from "~/services/types/dataType"
 import { QuestionInfo } from "~/services/types/question"
+import { QuestionExam } from "~/services/types/question_exam"
 import ButtonBack from "~/services/utils/buttonBack"
 import ButtonDelete from "~/services/utils/buttonDelete"
-import ButtonEdit from "~/services/utils/buttonEdit"
 
 type FieldType = {
-    type?: string;
     title?: string;
 };
 
 interface DataType {
     key: string;
     content: string;
-    type: string;
     score?: number;
 }
 
@@ -34,12 +31,12 @@ const WrapperBtn = styled.span`
 
 const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
     const [title, setTitle] = useState('Danh sách câu hỏi của bài thi')
-    const [optionType, setOptionType] = useState<Option[]>()
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [questionInfo, setQuestionInfo] = useState<QuestionInfo | undefined>()
     const [isModalDetailOpen, setIsModalDetailOpen] = useState(false);
     const [listQuestions, setListQuestions] = useState<string[]>([])
+    const [listQuestionsCurrent, setListQuestionsCurrent] = useState<string[]>([])
     const { id } = useParams();
     const navigate = useNavigate()
 
@@ -50,36 +47,9 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
         document.title = title
         if (id) {
             if (isAdd) getAllQuestion({ page: 1 })
+            getAllQuestionExam({ exam: id, page: 1 })
         } else navigate(-1)
-        getAllType()
     }, [title, isAdd])
-
-    const getAllType = async () => {
-        setIsLoading(true)
-        try {
-            const { data, message, status } = await TypeAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
-                const result: Option[] = data.types.map((type) => ({
-                    label: type.type_name,
-                    value: type.type_Id as string
-                }))
-                setOptionType(result)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
 
     const getAllQuestion = async (params: QuestionParams) => {
         setIsLoading(true)
@@ -90,13 +60,13 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                     data.questions.map((question) => {
                         const result: DataType = {
                             key: question.question_Id as string,
-                            content: question.question_content,
-                            type: question.type.type_name
+                            content: question.question_content
                         }
 
                         return result
                     })
                 )
+                setListQuestions([])
             } else {
                 messageApi.open({
                     type: 'error',
@@ -115,10 +85,9 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
     }
 
     const getOneQuestion = async (id: string) => {
+        setIsLoading(true)
         try {
-            setIsLoading(true)
             const { data, status } = await QuestionAPI.getOne(id)
-            setIsLoading(false)
             if (status === 201 && !Array.isArray(data)) {
                 setQuestionInfo(data)
             }
@@ -129,6 +98,7 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                 duration: 3,
             });
         }
+        setIsLoading(false)
     }
 
     const showModalDetail = async (id: string) => {
@@ -138,18 +108,52 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
         setIsModalDetailOpen(true);
     }
 
+    const getAllQuestionExam = async (params: QuestionExamParams) => {
+        setIsLoading(true)
+        try {
+            const { data, message, status } = await QuestionExamAPI.getAll(params)
+            if (status === 201 && !Array.isArray(data)) {
+                if (isAdd) {
+                    setListQuestionsCurrent(data.questionExams.map((item) => {
+                        const question = item.question
+                        return question.question_Id as string
+                    }))
+                } else {
+                    setDataTable(
+                        data.questionExams.map((item) => {
+                            const question = item.question
+                            const result: DataType = {
+                                key: question.question_Id as string,
+                                content: question.question_content
+                            }
+
+                            return result
+                        })
+                    )
+                }
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
     const columns: TableProps<DataType>['columns'] = [
         {
             title: 'Nội dung',
             dataIndex: 'content',
             key: 'content',
             width: '40%'
-        },
-        {
-            title: 'Loại',
-            dataIndex: 'type',
-            key: 'type',
-            width: '15%'
         },
         !isAdd ? {
             title: 'Điểm',
@@ -171,14 +175,9 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                     </Button>
                     {
                         !isAdd &&
-                        <>
-                            <WrapperBtn>
-                                <ButtonEdit />
-                            </WrapperBtn>
-                            <WrapperBtn onClick={() => showPromiseConfirm(record.key)}>
-                                <ButtonDelete />
-                            </WrapperBtn>
-                        </>
+                        <WrapperBtn onClick={() => showPromiseConfirm(record.key)}>
+                            <ButtonDelete />
+                        </WrapperBtn>
                     }
                     {
                         isAdd &&
@@ -186,6 +185,7 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                             type="checkbox"
                             onChange={handleChangeCheckbox}
                             value={record.key}
+                            hidden={hiddenInput(record.key) || false}
                             checked={checkInput(record.key) || false}
                         />
                     }
@@ -196,6 +196,10 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
 
     const checkInput = (id: string) => {
         return listQuestions.includes(id)
+    }
+
+    const hiddenInput = (id: string) => {
+        return listQuestionsCurrent.includes(id)
     }
 
     const handleChangeCheckbox = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,13 +214,42 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
         }
     }
 
-    const showPromiseConfirm = (id: string) => {
+    const handleDeleteQuestionExam = async (params: QuestionExam) => {
+        setIsLoading(true)
+        try {
+            const { status, message } = await QuestionExamAPI.delete(params)
+            if (status === 200) {
+                await getAllQuestionExam({
+                    exam: id
+                })
+            }
+            messageApi.open({
+                type: status === 200 ? 'success' : 'error',
+                content: message,
+                duration: 3,
+            });
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const showPromiseConfirm = (idQuestion: string) => {
         Modal.confirm({
             title: 'Bạn có chắc muốn xóa câu hỏi này?',
             icon: <ExclamationCircleFilled />,
             cancelText: 'Hủy',
             async onOk() {
-
+                if (id) {
+                    await handleDeleteQuestionExam({
+                        exam_Id: id,
+                        question_Id: idQuestion
+                    })
+                }
             },
             onCancel() { },
         });
@@ -226,15 +259,45 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
         if (isAdd) {
             await getAllQuestion({
                 page: 1,
-                title: values.title,
-                type: values.type
+                title: values.title
             })
         }
     }
 
+    const addQuestionExam = async (data: QuestionExam) => {
+        setIsLoading(true)
+        try {
+            const { status, message } = await QuestionExamAPI.create({
+                exam_Id: data.exam_Id,
+                question_Id: data.question_Id
+            })
+
+            messageApi.open({
+                type: status === 200 ? 'success' : 'error',
+                content: message,
+                duration: 3,
+            });
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
     const handleAddQuestion = async () => {
-        if (isAdd) {
-            console.log(listQuestions)
+        if (listQuestions && id) {
+            if (isAdd) {
+                for (let question_Id of listQuestions) {
+                    await addQuestionExam({
+                        question_Id,
+                        exam_Id: id
+                    })
+                }
+                setListQuestions([])
+            }
         }
     }
 
@@ -283,15 +346,6 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                         }}
                     >
                         <Input placeholder='Tên khóa học...' />
-                    </Form.Item>
-                    <Form.Item<FieldType>
-                        name="type"
-                        style={{ marginBottom: 0, width: '20%' }}
-                    >
-                        <Select
-                            options={optionType}
-                            placeholder="Chọn loại"
-                        />
                     </Form.Item>
                     <Button
                         type="primary"

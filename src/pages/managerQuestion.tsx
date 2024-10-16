@@ -1,4 +1,4 @@
-import { ExclamationCircleFilled, EyeOutlined, FilterOutlined, OrderedListOutlined, PlusOutlined } from "@ant-design/icons"
+import { ExclamationCircleFilled, EyeOutlined, OrderedListOutlined, PlusOutlined } from "@ant-design/icons"
 import { Button, Flex, Input, Select, Modal, Form, FormProps, TableProps, Table } from "antd"
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
@@ -7,7 +7,6 @@ import styled from "styled-components";
 import Question from "~/components/question";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import QuestionAPI, { QuestionParams } from "~/services/actions/question";
-import TypeAPI from "~/services/actions/type";
 import { BoxTitle } from "~/services/constants/styled"
 import { Option } from "~/services/types/dataType";
 import { QuestionInfo } from "~/services/types/question";
@@ -20,14 +19,12 @@ import { CategoryInfo } from "~/services/types/category";
 
 type FieldType = {
     question_content?: string
-    type_Id?: string
     category_Id?: string
 };
 
 interface DataType {
     key: string;
     content: string;
-    type: string;
 }
 
 const WrapperBtn = styled.span`
@@ -39,7 +36,6 @@ const ManagerQuestion = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [idQuestion, setIdQuestion] = useState<string | undefined>()
     const [isModalDetailOpen, setIsModalDetailOpen] = useState(false);
-    const [optionType, setOptionType] = useState<Option[]>()
     const [optionCategory, setOptionCategory] = useState<Option[]>()
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const account = useSelector(accountInfoSelector)
@@ -47,7 +43,6 @@ const ManagerQuestion = () => {
     const [form] = Form.useForm<FieldType>();
     const title = 'Danh sách câu hỏi'
     const [questionInfo, setQuestionInfo] = useState<QuestionInfo | undefined>()
-    const [searchValue, setSearchValue] = useState<string | undefined>()
     const location = useLocation();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const checkAuth = location.pathname.includes(PATH.AUTH);
@@ -58,7 +53,6 @@ const ManagerQuestion = () => {
 
     useEffect(() => {
         document.title = title
-        getAllType()
         getAllQuestion({})
         getAllCategory()
         if (account?.account_Id) {
@@ -76,8 +70,7 @@ const ManagerQuestion = () => {
             if (status === 201 && !Array.isArray(data)) {
                 setQuestionInfo(data)
                 form.setFieldsValue({
-                    question_content: data.question_content,
-                    type_Id: data.type_Id
+                    question_content: data.question_content
                 })
             }
         } catch (e) {
@@ -95,12 +88,6 @@ const ManagerQuestion = () => {
             dataIndex: 'content',
             key: 'content',
             width: '40%'
-        },
-        {
-            title: 'Loại',
-            dataIndex: 'type',
-            key: 'type',
-            width: '15%'
         },
         {
             title: '',
@@ -146,40 +133,12 @@ const ManagerQuestion = () => {
                     data.questions.map((question) => {
                         const result: DataType = {
                             key: question.question_Id as string,
-                            content: question.question_content,
-                            type: question.type.type_name
+                            content: question.question_content
                         }
 
                         return result
                     })
                 )
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
-
-    const getAllType = async () => {
-        setIsLoading(true)
-        try {
-            const { data, message, status } = await TypeAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
-                const result: Option[] = data.types.map((type) => ({
-                    label: type.type_name,
-                    value: type.type_Id as string
-                }))
-                setOptionType(result)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -225,10 +184,6 @@ const ManagerQuestion = () => {
         setIsLoading(false)
     }
 
-    const handleChange = (value: string) => {
-        setSearchValue(value)
-    };
-
     const showModal = async (id?: string) => {
         setIdQuestion(id)
         if (id) {
@@ -253,7 +208,6 @@ const ManagerQuestion = () => {
             let message: string = ''
             const data = new FormData()
             data.append('question_content', values.question_content as string)
-            data.append('type_Id', values.type_Id as string)
             data.append('auth_Id', accountId as string)
 
             if (selectedFile && values.category_Id) {
@@ -321,12 +275,6 @@ const ManagerQuestion = () => {
         });
     };
 
-    const filterQuestion = async () => {
-        if (searchValue) {
-            await getAllQuestion({ type: searchValue })
-        }
-    }
-
     const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files && event.target.files[0];
         if (file) {
@@ -348,19 +296,6 @@ const ManagerQuestion = () => {
                 gap={10}
                 style={{ marginBottom: '15px' }}
             >
-                <Select
-                    style={{ width: 120 }}
-                    onChange={handleChange}
-                    options={optionType}
-                    value={searchValue}
-                    placeholder="Chọn loại"
-                />
-                <Button
-                    type="primary"
-                    onClick={filterQuestion}
-                >
-                    <FilterOutlined />
-                </Button>
                 <Button
                     type="primary"
                     style={{ backgroundColor: '#27ae60' }}
@@ -403,20 +338,6 @@ const ManagerQuestion = () => {
                             </WrapperBtn>
                         ]}
                     >
-                        <Form.Item<FieldType>
-                            name="type_Id"
-                            label="Chọn loại"
-                            rules={[{
-                                required: true,
-                                message: 'Vui lòng chọn loại!',
-                            }]}
-                        >
-                            <Select
-                                style={{ width: '100%' }}
-                                placeholder="Chọn loại"
-                                options={optionType}
-                            />
-                        </Form.Item>
                         <Form.Item<FieldType>
                             name="question_content"
                             label="Nội dung"

@@ -5,6 +5,7 @@ import { useGlobalDataContext } from "~/hooks/globalData"
 import ExamAPI from "~/services/actions/exam"
 import { BoxTitle } from "~/services/constants/styled"
 import { ExamInfo } from "~/services/types/exam"
+import ButtonBack from "~/services/utils/buttonBack"
 
 const DetailExam = () => {
     const [title, setTitle] = useState('Thông tin bài thi')
@@ -48,6 +49,7 @@ const DetailExam = () => {
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
+            <ButtonBack />
             {
                 examInfo &&
                 <ExamContent data={examInfo} />

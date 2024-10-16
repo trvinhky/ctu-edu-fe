@@ -117,6 +117,10 @@ const Detail = () => {
     }
 
     const handleRegisterCourse = async (id: string) => {
+        if (!accountId) {
+            navigate(PATH.LOGIN)
+            return
+        }
         setIsLoading(true)
         try {
             const { status, message } = await EnrollmentAPI.register({

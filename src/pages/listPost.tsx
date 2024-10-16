@@ -19,6 +19,11 @@ const ListPost = () => {
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [listPosts, setListPosts] = useState<PostInfo[]>([])
     const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 8,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
@@ -65,6 +70,10 @@ const ListPost = () => {
             const { data, status, message } = await PostAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
                 setListPosts(data.posts)
+                setPagination((prev) => ({
+                    ...prev,
+                    total: data.count
+                }))
             } else {
                 messageApi.open({
                     type: 'error',
@@ -85,6 +94,10 @@ const ListPost = () => {
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         await getAllPost({ page: 1, subject: values.subject, title: values.title })
     }
+
+    const handlePageChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
 
     return (
         <>
@@ -142,8 +155,10 @@ const ListPost = () => {
                         style={{ paddingTop: '10px' }}
                     >
                         <Pagination
-                            defaultCurrent={1}
-                            total={50}
+                            total={pagination.total}
+                            pageSize={pagination.pageSize}
+                            current={pagination.current}
+                            onChange={handlePageChange}
                         />
                     </Flex>
                 </Col>

@@ -30,7 +30,6 @@ import {
     NotFound,
     ManagerRole,
     ListStatus,
-    ListType,
     ManagerCategory,
     ManagerOption,
     ManagerPost,
@@ -105,7 +104,6 @@ const AppRouter = () => {
                     <Route path={PATH.CREATE_COURSE} element={<FormCourse />} />
                     <Route path={PATH.LIST_STATUS} element={<ListStatus />} />
                     <Route path={PATH.MANAGER_CATEGORY} element={<ManagerCategory />} />
-                    <Route path={PATH.LIST_TYPE} element={<ListType />} />
                     <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
                     <Route path={PATH.MANAGER_POST} element={<ManagerPost isAdmin />} />
                     <Route path={PATH.CREATE_POST} element={<FormPost />} />

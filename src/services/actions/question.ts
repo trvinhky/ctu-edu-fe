@@ -6,7 +6,6 @@ const url = (path: string = '') => `/question/${path}`
 
 export interface QuestionParams {
     page?: number
-    type?: string
     id?: string
     limit?: number
     title?: string
@@ -25,11 +24,8 @@ class QuestionService extends EduAPI {
         return await this.putAPI(url(`${id}`), data)
     }
 
-    public async getAll({ page = 1, type, id, limit = 6, title }: QuestionParams): Promise<APIType<QuestionAll>> {
+    public async getAll({ page = 1, id, limit = 6, title }: QuestionParams): Promise<APIType<QuestionAll>> {
         let params = url(`all?page=${page}&limit=${limit}`)
-        if (type) {
-            params += `&type=${type}`
-        }
 
         if (id) {
             params += `&id=${id}`

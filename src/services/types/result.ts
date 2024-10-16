@@ -4,8 +4,7 @@ import { Exam } from "~/services/types/exam"
 export interface Result {
     student_Id: string
     exam_Id: string
-    result_score: number
-    result_completed: Date
+    result_completed?: Date
 }
 
 export interface ResultInfo extends Result {

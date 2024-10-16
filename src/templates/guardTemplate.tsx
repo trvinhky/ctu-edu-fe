@@ -22,10 +22,8 @@ const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
                 if (!isUser && account.role?.role_name.includes('user')) {
                     navigate(PATH.LOGIN)
                 }
-            } else navigate(PATH.LOGIN)
-        } else {
-            getInfo()
-        }
+            } else getInfo()
+        } else navigate(PATH.LOGIN)
     }, [token, account, isUser])
 
     const getInfo = async () => {

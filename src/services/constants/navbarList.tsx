@@ -9,7 +9,6 @@ import {
     PicLeftOutlined,
     PieChartOutlined,
     QuestionOutlined,
-    TagOutlined,
     TeamOutlined,
     UnorderedListOutlined
 } from "@ant-design/icons"
@@ -56,7 +55,6 @@ const PATH = {
     CONTENT_COURSE: '/course/:id',
     LIST_STATUS: 'status',
     MANAGER_CATEGORY: 'manager-category',
-    LIST_TYPE: 'list-type',
     MANAGER_ROLE: 'manager-role',
     MANAGER_OPTION: '/manager-option/:id',
     EXAM_QUESTION: '/exam-question/:id',
@@ -134,11 +132,6 @@ const NAVBARADMIN: MenuItem[] = [
         key: pathAdmin(PATH.LIST_STATUS),
         icon: <UnorderedListOutlined />,
         label: <Link to={PATH.LIST_STATUS}>Danh sách trạng thái</Link>
-    },
-    {
-        key: pathAdmin(PATH.LIST_TYPE),
-        icon: <TagOutlined />,
-        label: <Link to={PATH.LIST_TYPE}>Danh sách loại câu hỏi</Link>
     },
     {
         key: pathAdmin(PATH.MANAGER_CATEGORY),

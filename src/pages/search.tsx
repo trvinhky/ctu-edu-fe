@@ -22,6 +22,11 @@ const Search = () => {
     const [listCourses, setListCourses] = useState<CourseInfo[]>([])
     const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
     const [title, setTitle] = useState('Tất cả khóa học')
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 8,
+        total: 0,
+    });
 
     useEffect(() => {
         getAllSubject()
@@ -71,6 +76,10 @@ const Search = () => {
             const { data, status, message } = await CourseAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
                 setListCourses(data.courses)
+                setPagination((prev) => ({
+                    ...prev,
+                    total: data.count
+                }))
             } else {
                 messageApi.open({
                     type: 'error',
@@ -91,6 +100,10 @@ const Search = () => {
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         await getAllCourse({ page: 1, title: values.title, subject: values.subject })
     }
+
+    const handlePageChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
 
     return (
         <>
@@ -148,8 +161,10 @@ const Search = () => {
                         style={{ paddingTop: '10px' }}
                     >
                         <Pagination
-                            defaultCurrent={1}
-                            total={50}
+                            total={pagination.total}
+                            pageSize={pagination.pageSize}
+                            current={pagination.current}
+                            onChange={handlePageChange}
                         />
                     </Flex>
                 </Col>

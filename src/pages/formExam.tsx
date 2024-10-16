@@ -11,7 +11,6 @@ import ButtonEdit from "~/services/utils/buttonEdit";
 type FieldType = {
     exam_title?: string
     exam_description?: string
-    exam_total_score?: number
     exam_limit?: number
 };
 
@@ -45,7 +44,6 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                 form.setFieldsValue({
                     exam_description: data.exam_description,
                     exam_title: data.exam_title,
-                    exam_total_score: data.exam_total_score,
                     exam_limit: data.exam_limit
                 })
             } else {
@@ -77,7 +75,6 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                 exam_limit: values.exam_limit as number,
                 exam_title: values.exam_title as string,
                 exam_description: values.exam_description,
-                exam_total_score: values.exam_total_score as number,
                 exam_Id: id as string
             }
             if (isEdit) {
@@ -135,7 +132,7 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                     <Input.TextArea rows={4} />
                 </Form.Item>
                 <Row gutter={[16, 16]}>
-                    <Col span={12}>
+                    <Col span={10}>
                         <Form.Item<FieldType>
                             name="exam_limit"
                             label="Thời gian"
@@ -143,42 +140,34 @@ const FormExam = ({ isEdit }: { isEdit?: boolean }) => {
                             <InputNumber min={0} placeholder="Nhập số phút" style={{ width: '100%' }} />
                         </Form.Item>
                     </Col>
-                    <Col span={12}>
-                        <Form.Item<FieldType>
-                            name="exam_total_score"
-                            label="Số điểm"
+                    <Col span={14}>
+                        <Flex
+                            justify="flex-end"
+                            style={{
+                                paddingTop: '20px',
+                                fontWeight: 600
+                            }}
+                            gap={10}
                         >
-                            <InputNumber min={0} style={{ width: '100%' }} />
-                        </Form.Item>
+                            <Button onClick={handleActionBtn}>
+                                {isEdit ? 'Thoát' : 'Làm mới'}
+                            </Button>
+                            {
+                                isEdit ?
+                                    <ButtonEdit
+                                        text="Cập nhật"
+                                        htmlType="submit"
+                                    /> :
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                    >
+                                        Tạo mới
+                                    </Button>
+                            }
+                        </Flex>
                     </Col>
                 </Row>
-                <Col span={24}>
-                    <Flex
-                        justify="flex-end"
-                        style={{
-                            paddingTop: '20px',
-                            fontWeight: 600
-                        }}
-                        gap={10}
-                    >
-                        <Button onClick={handleActionBtn}>
-                            {isEdit ? 'Thoát' : 'Làm mới'}
-                        </Button>
-                        {
-                            isEdit ?
-                                <ButtonEdit
-                                    text="Cập nhật"
-                                    htmlType="submit"
-                                /> :
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                >
-                                    Tạo mới
-                                </Button>
-                        }
-                    </Flex>
-                </Col>
             </Form>
         </>
     )
