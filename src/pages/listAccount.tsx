@@ -29,12 +29,17 @@ const ListAccount = () => {
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [roleOptions, setRoleOptions] = useState<Option[]>([])
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
-        getAllAccount()
+        getAllAccount(pagination.current, pagination.pageSize)
         getAllRole()
-    }, [])
+    }, [pagination.current, pagination.pageSize])
 
     const getAllRole = async () => {
         setIsLoading(true)
@@ -68,7 +73,7 @@ const ListAccount = () => {
         setIsLoading(false)
     }
 
-    const getAllAccount = async (page?: number, role?: string, limit: number = 6) => {
+    const getAllAccount = async (page?: number, limit: number = 6, role?: string) => {
         setIsLoading(true)
         try {
             const { status, data, message } = await AccountAPI.getAll(page, role, limit)
@@ -87,6 +92,11 @@ const ListAccount = () => {
                     }
                     )
                 )
+                setPagination({
+                    current: page ?? 1,
+                    pageSize: limit,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -129,7 +139,11 @@ const ListAccount = () => {
     ];
 
     const handleChange = async (value: string) => {
-        await getAllAccount(1, value)
+        await getAllAccount(pagination.current, pagination.pageSize, value)
+    };
+
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
     };
 
     return (
@@ -153,7 +167,13 @@ const ListAccount = () => {
                     <FilterOutlined />
                 </Button>
             </Flex>
-            <Table columns={columns} dataSource={dataTable} />
+            <Table
+                columns={columns}
+                dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
+                rowKey="id"
+            />
         </Wrapper>
     )
 }

@@ -200,7 +200,7 @@ const Info = () => {
                                 }}
                             >
                                 <Tag icon={<DollarOutlined />} color="gold" >
-                                    0
+                                    {account?.profile.profile_score}
                                 </Tag>
                             </Flex>
                         </Wrapper>

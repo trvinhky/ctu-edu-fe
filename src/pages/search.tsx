@@ -32,10 +32,17 @@ const Search = () => {
         getAllSubject()
         if (searchTitle) {
             setTitle('Kết quả tìm kiếm')
-            getAllCourse({ title: searchTitle })
-        } else getAllCourse({})
+            getAllCourse({
+                title: searchTitle,
+                page: pagination.current,
+                limit: pagination.pageSize
+            })
+        } else getAllCourse({
+            page: pagination.current,
+            limit: pagination.pageSize
+        })
 
-    }, [searchTitle, title])
+    }, [searchTitle, title, pagination.current, pagination.pageSize])
 
     const getAllSubject = async () => {
         document.title = title
@@ -76,10 +83,11 @@ const Search = () => {
             const { data, status, message } = await CourseAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
                 setListCourses(data.courses)
-                setPagination((prev) => ({
-                    ...prev,
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 8,
                     total: data.count
-                }))
+                })
             } else {
                 messageApi.open({
                     type: 'error',

@@ -23,7 +23,7 @@ const Home = () => {
         document.title = 'Trang chủ'
         getAllSubject()
         getAllCourse({ page: 1 })
-        getAllPost({ page: 1 })
+        getAllPost({ page: 1, isview: true })
     }, [])
 
     const getAllSubject = async (page?: number, limit: number = 6) => {

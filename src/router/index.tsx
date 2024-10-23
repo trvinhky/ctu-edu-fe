@@ -15,7 +15,6 @@ import {
     Detail,
     Info,
     CourseRegister,
-    ListComment,
     FormCourse,
     ManagerCourse,
     ContentCourse,
@@ -39,7 +38,11 @@ import {
     DetailLesson,
     BuyLesson,
     ListBuy,
-    ListQuestionExam
+    ListQuestionExam,
+    Point,
+    ManagerPoint,
+    ListHistory,
+    Revenue
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -62,6 +65,7 @@ const AppRouter = () => {
                     <Route path={PATH.CONTENT_COURSE} element={<ContentCourse />} />
                     <Route path={PATH.DETAIL_EXAM} element={<DetailExam />} />
                     <Route path={PATH.DETAIL_LESSON} element={<DetailLesson />} />
+                    <Route path={PATH.POINT} element={<Point />} />
                 </Route>
                 <Route path='/' element={<GuardTemplate />}>
                     <Route path={PATH.MANAGER_OPTION} element={<ManagerOption />} />
@@ -93,6 +97,7 @@ const AppRouter = () => {
                     <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
                     <Route path={PATH.COURSE_REGISTER} element={<CourseRegister />} />
                     <Route path={PATH.LESSON_BUY} element={<ListBuy />} />
+                    <Route path={PATH.LIST_HISTORY} element={<ListHistory />} />
                 </Route>
                 <Route path={PATH.ADMIN} element={<AdminTemplate />}>
                     <Route index element={<Admin />} />
@@ -107,6 +112,8 @@ const AppRouter = () => {
                     <Route path={PATH.MANAGER_QUESTION} element={<ManagerQuestion />} />
                     <Route path={PATH.MANAGER_POST} element={<ManagerPost isAdmin />} />
                     <Route path={PATH.CREATE_POST} element={<FormPost />} />
+                    <Route path={PATH.MANAGER_POINT} element={<ManagerPoint />} />
+                    <Route path={PATH.REVENUE} element={<Revenue />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
             </Routes>

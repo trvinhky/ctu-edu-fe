@@ -40,7 +40,7 @@ const Subject = () => {
     const getOneSubject = async (id: string) => {
         setIsLoading(true)
         try {
-            const { status, message, data } = await SubjectAPI.getOne(id)
+            const { status, message, data } = await SubjectAPI.getOne(id, true)
             if (status === 201 && !Array.isArray(data)) {
                 setSubjectData(data)
                 setTitle(data.subject_name)

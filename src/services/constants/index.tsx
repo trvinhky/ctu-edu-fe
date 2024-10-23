@@ -10,7 +10,7 @@ export const DATEFORMAT = 'DD/MM/YYYY';
 export const DATEFORMAT_FULL = 'DD/MM/YYYY HH:mm'
 
 export const ENV = {
-    BE_HOST: import.meta.env.VITE_URL_BACKEND || 'http://localhost:5000'
+    BE_HOST: import.meta.env.VITE_URL_BACKEND
 }
 
 export const convertUrl = (url: string, host: string = ENV.BE_HOST) => `${host}\\${url}`.replace(/\\/g, '/')
@@ -42,3 +42,7 @@ export const getFileNameFromUrl = (url: string) => {
     // Sử dụng split("/") để tách các phần của URL và lấy phần cuối cùng
     return url.split('/').pop() || 'default_filename';
 };
+
+export const formatCurrency = (num: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
+}; 

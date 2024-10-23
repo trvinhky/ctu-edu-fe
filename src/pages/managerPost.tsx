@@ -41,13 +41,21 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const checkAuth = location.pathname.includes(PATH.AUTH);
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
         getAllSubject()
         getAllStatus()
-        getAllPost({ page: 1 })
-    }, [])
+        getAllPost({
+            page: pagination.current,
+            limit: pagination.pageSize
+        })
+    }, [pagination.current, pagination.pageSize])
 
     const getAllSubject = async () => {
         setIsLoading(true)
@@ -138,10 +146,11 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         await getAllPost({
-            page: 1,
+            page: pagination.current,
             status: values.status,
             subject: values.subject,
-            title: values.title
+            title: values.title,
+            limit: pagination.pageSize
         })
     }
 
@@ -245,6 +254,11 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                         return result
                     })
                 )
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -271,7 +285,10 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     optionStatus
                 )
                 if (status === 200) {
-                    await getAllPost({ page: 1 })
+                    await getAllPost({
+                        page: pagination.current,
+                        limit: pagination.pageSize
+                    })
                 }
                 messageApi.open({
                     type: status === 200 ? 'success' : 'error',
@@ -292,6 +309,10 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
 
     const handleChange = (value: string) => {
         setOptionStatus(value)
+    };
+
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
     };
 
     return (
@@ -342,7 +363,13 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     </Button>
                 </Flex>
             </Form>
-            <Table columns={columns} dataSource={dataTable} />
+            <Table
+                columns={columns}
+                dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
+                rowKey="key"
+            />
             <Modal
                 title="Cập nhật trạng thái"
                 open={isOpenModal}

@@ -1,6 +1,5 @@
 import { Category } from "~/services/types/category"
 import { Option } from "~/services/types/option"
-import { Type } from "~/services/types/type"
 
 export interface Question {
     question_Id?: string

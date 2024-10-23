@@ -13,7 +13,7 @@ export interface QuestionParams {
 
 class QuestionService extends EduAPI {
     public async create(data: FormData): Promise<APIType<undefined>> {
-        return await this.postAPI(url('create'), data)
+        return await this.postAPI(url('create'), data, true)
     }
 
     public async getOne(id: string): Promise<APIType<QuestionInfo>> {
@@ -21,7 +21,7 @@ class QuestionService extends EduAPI {
     }
 
     public async update(id: string, data: FormData): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`${id}`), data)
+        return await this.putAPI(url(`${id}`), data, true)
     }
 
     public async getAll({ page = 1, id, limit = 6, title }: QuestionParams): Promise<APIType<QuestionAll>> {

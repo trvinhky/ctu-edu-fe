@@ -28,7 +28,9 @@ const ListPost = () => {
     useEffect(() => {
         document.title = title
         getAllSubject()
-        getAllPost({})
+        getAllPost({
+            isview: true
+        })
     }, [])
 
     const getAllSubject = async () => {
@@ -70,10 +72,11 @@ const ListPost = () => {
             const { data, status, message } = await PostAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
                 setListPosts(data.posts)
-                setPagination((prev) => ({
-                    ...prev,
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
                     total: data.count
-                }))
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -92,7 +95,7 @@ const ListPost = () => {
     }
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        await getAllPost({ page: 1, subject: values.subject, title: values.title })
+        await getAllPost({ page: 1, subject: values.subject, title: values.title, isview: true })
     }
 
     const handlePageChange = (newPagination: any) => {

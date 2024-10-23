@@ -39,6 +39,11 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
     const [listQuestionsCurrent, setListQuestionsCurrent] = useState<string[]>([])
     const { id } = useParams();
     const navigate = useNavigate()
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         if (isAdd) {
@@ -46,10 +51,21 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
         }
         document.title = title
         if (id) {
-            if (isAdd) getAllQuestion({ page: 1 })
-            getAllQuestionExam({ exam: id, page: 1 })
+            if (isAdd) {
+                getAllQuestion({
+                    page: pagination.current,
+                    limit: pagination.pageSize
+                })
+                getAllQuestionExam({ exam: id })
+            } else {
+                getAllQuestionExam({
+                    exam: id,
+                    page: pagination.current,
+                    limit: pagination.pageSize
+                })
+            }
         } else navigate(-1)
-    }, [title, isAdd])
+    }, [title, isAdd, pagination.current, pagination.pageSize])
 
     const getAllQuestion = async (params: QuestionParams) => {
         setIsLoading(true)
@@ -67,6 +83,11 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                     })
                 )
                 setListQuestions([])
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -130,6 +151,11 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                             return result
                         })
                     )
+                    setPagination({
+                        current: params.page ?? 1,
+                        pageSize: params.limit ?? 6,
+                        total: data.count
+                    })
                 }
             } else {
                 messageApi.open({
@@ -301,6 +327,10 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
         }
     }
 
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
+
     return (
         <>
             <BoxTitle>
@@ -355,7 +385,13 @@ const ListQuestionExam = ({ isAdd }: { isAdd?: boolean }) => {
                     </Button>
                 </Flex>
             </Form>
-            <Table columns={columns} dataSource={dataTable} />
+            <Table
+                columns={columns}
+                dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
+                rowKey="key"
+            />
             <Modal
                 title="Chi tiết câu hỏi"
                 open={isModalDetailOpen}

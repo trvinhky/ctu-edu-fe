@@ -62,12 +62,20 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
     const navigate = useNavigate();
     const location = useLocation();
     const checkAuth = location.pathname.includes(PATH.AUTH);
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
-        getAllCourse({})
+        getAllCourse({
+            page: pagination.current,
+            limit: pagination.pageSize
+        })
         getAllSubject()
-    }, [])
+    }, [pagination.current, pagination.pageSize])
 
     const getAllSubject = async () => {
         setIsLoading(true)
@@ -126,6 +134,11 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                         return result
                     })
                 )
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -233,8 +246,16 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
     }
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        await getAllCourse({ page: 1, title: values.title, subject: values.subject })
+        await getAllCourse({
+            page: 1,
+            title: values.title,
+            subject: values.subject
+        })
     }
+
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
 
     return (
         <>
@@ -275,7 +296,13 @@ const ListCourse = ({ children, title, isAction }: PropsType) => {
                     </Button>
                 </Flex>
             </Form>
-            <Table columns={columns} dataSource={dataTable} />
+            <Table
+                columns={columns}
+                dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
+                rowKey="key"
+            />
             <Modal
                 title="Thông tin khóa học"
                 open={open}

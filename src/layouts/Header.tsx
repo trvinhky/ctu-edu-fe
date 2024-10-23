@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { UserOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { accountInfoSelector } from "~/services/reducers/selectors";
+import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors";
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
-import { PATH } from '~/services/constants/navbarList'
+import { NAVBARHEADER, PATH } from '~/services/constants/navbarList'
 import AccountAPI from '~/services/actions/account'
 import { useGlobalDataContext } from '~/hooks/globalData'
 
@@ -39,6 +39,24 @@ const Item = styled.li<{ $color?: string }>`
 
     &:hover {
         text-decoration: underline;
+    }
+`
+
+const NavBarHeader = styled.nav`
+    display: flex;
+    gap: 10px;
+
+    a {
+        display: inline-block;
+        padding: 4px 16px;
+        color: #000;
+        font-weight: 700;
+    }
+`
+
+const NavBarItem = styled.span<{ $isActive?: boolean }>`
+    a {
+        color: ${props => props.$isActive ? '#1677ff' : '#000'};
     }
 `
 
@@ -104,9 +122,10 @@ const ListOptions = () => {
 
 const Header = () => {
     const navigate = useNavigate()
-    const { setIsLoading } = useGlobalDataContext();
+    const { setIsLoading, messageApi } = useGlobalDataContext();
     const [accountName, setAccountName] = useState<string>()
     const info = useSelector(accountInfoSelector)
+    const token = useSelector(accountTokenSelector)
     const dispatch = useDispatch();
 
     const onSearch: SearchProps['onSearch'] = (value) => {
@@ -124,15 +143,33 @@ const Header = () => {
                     dispatch(actionsAccount.setInfo(data))
                     setAccountName(data.profile.profile_name)
                 }
-            } catch (e) { }
+            } catch (e) {
+                messageApi.open({
+                    type: 'error',
+                    content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                    duration: 3,
+                });
+            }
         }
 
         setIsLoading(false)
     }
 
     useEffect(() => {
-        getAccountName()
-    }, [])
+        if (token) {
+            getAccountName()
+        }
+    }, [token])
+
+    const checkActive = (path: string) => {
+        const localPath = location.pathname.replace("/", "")
+        const pathConvert = path.replace("/", "")
+        if (localPath && pathConvert) {
+            return location.pathname.includes(path)
+        } else if (!localPath && !pathConvert) {
+            return true
+        } else return false
+    }
 
     return (
         <Wrapper>
@@ -143,6 +180,15 @@ const Header = () => {
                     gap='20px'
                 >
                     <Logo />
+                    <NavBarHeader>
+                        {
+                            NAVBARHEADER.map((item) => (
+                                <NavBarItem key={item.key} $isActive={checkActive(item.key)}>
+                                    {item.label}
+                                </NavBarItem>
+                            ))
+                        }
+                    </NavBarHeader>
                     <Flex
                         align="center"
                         justify="flex-end"

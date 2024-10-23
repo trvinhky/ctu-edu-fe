@@ -13,7 +13,7 @@ interface LessonParams {
 
 class LessonService extends EduAPI {
     public async create(data: FormData): Promise<APIType<undefined>> {
-        return await this.postAPI(url('create'), data)
+        return await this.postAPI(url('create'), data, true)
     }
 
     public async getOne(id: string): Promise<APIType<LessonInfo>> {
@@ -21,7 +21,7 @@ class LessonService extends EduAPI {
     }
 
     public async update(id: string, data: FormData): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`${id}`), data)
+        return await this.putAPI(url(`${id}`), data, true)
     }
 
     public async getAll({ id, page, limit = 6, score }: LessonParams): Promise<APIType<LessonAll>> {

@@ -67,14 +67,19 @@ const ManagerLesson = () => {
     const [fileList, setFileList] = useState<UploadFile[]>([])
     const [isModalInfo, setIsModalInfo] = useState(false)
     const [lessonInfo, setLessonInfo] = useState<LessonInfo>()
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
         getAllCategory()
         if (id) {
-            getAllLesson(id, 1)
+            getAllLesson(id, pagination.current, pagination.pageSize)
         } else navigate(-1)
-    }, [id])
+    }, [id, pagination.current, pagination.pageSize])
 
     const getAllCategory = async () => {
         setIsLoading(true)
@@ -132,10 +137,10 @@ const ManagerLesson = () => {
         setIsLoading(false)
     }
 
-    const getAllLesson = async (id: string, page?: number) => {
+    const getAllLesson = async (id: string, page?: number, limit?: number) => {
         setIsLoading(true)
         try {
-            const { data, message, status } = await LessonAPI.getAll({ id, page })
+            const { data, message, status } = await LessonAPI.getAll({ id, page, limit })
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
                     data.lessons?.map((lesson) => {
@@ -149,6 +154,12 @@ const ManagerLesson = () => {
                         return result
                     })
                 )
+
+                setPagination({
+                    current: page ?? 1,
+                    pageSize: limit ?? 6,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -199,7 +210,11 @@ const ManagerLesson = () => {
                 form.resetFields()
             }
             if (status === 200) {
-                await getAllLesson(id as string, 1)
+                await getAllLesson(
+                    id as string,
+                    pagination.current,
+                    pagination.pageSize
+                )
             }
             messageApi.open({
                 type: status === 200 ? "success" : "error",
@@ -287,7 +302,11 @@ const ManagerLesson = () => {
         setIsLoading(true)
         try {
             const { message, status } = await LessonAPI.delete(idTarget)
-            if (status === 200) await getAllLesson(id as string)
+            if (status === 200) await getAllLesson(
+                id as string,
+                pagination.current,
+                pagination.pageSize
+            )
             messageApi.open({
                 type: status === 200 ? 'success' : 'error',
                 content: message,
@@ -334,6 +353,10 @@ const ManagerLesson = () => {
         return false; // Ngăn việc tự động upload
     };
 
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
+
     const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
         setFileList(newFileList);
 
@@ -356,6 +379,8 @@ const ManagerLesson = () => {
                 columns={columns}
                 dataSource={dataTable}
                 rowKey="key"
+                pagination={pagination}
+                onChange={handleTableChange}
             />
             <Form
                 layout="vertical"

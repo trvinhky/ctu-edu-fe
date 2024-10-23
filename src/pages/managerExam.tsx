@@ -22,16 +22,21 @@ const ManagerExam = () => {
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const navigate = useNavigate()
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     const title = 'Danh sách bài thi'
     useEffect(() => {
         document.title = title
         if (id) {
-            getAllExams(1, id)
+            getAllExams(pagination.current, pagination.pageSize, id)
         } else navigate(-1)
-    }, [id])
+    }, [id, pagination.current, pagination.pageSize])
 
-    const getAllExams = async (page?: number, course?: string, limit: number = 6) => {
+    const getAllExams = async (page?: number, limit: number = 6, course?: string) => {
         setIsLoading(true)
         try {
             const { status, data, message } = await ExamAPI.getAll(page, course, limit)
@@ -47,6 +52,11 @@ const ManagerExam = () => {
                         return result
                     })
                 )
+                setPagination({
+                    current: page ?? 1,
+                    pageSize: limit,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -105,7 +115,7 @@ const ManagerExam = () => {
         setIsLoading(true)
         try {
             const { message, status } = await ExamAPI.delete(idFind)
-            if (status === 200) await getAllExams(1, id, 6)
+            if (status === 200) await getAllExams(pagination.current, pagination.pageSize, id)
             messageApi.open({
                 type: status === 200 ? 'success' : 'error',
                 content: message,
@@ -133,6 +143,10 @@ const ManagerExam = () => {
         });
     };
 
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
+
     return (
         <>
             <BoxTitle>
@@ -158,6 +172,8 @@ const ManagerExam = () => {
             <Table
                 columns={columns}
                 dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
                 rowKey="key"
             />
         </>

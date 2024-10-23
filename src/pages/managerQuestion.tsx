@@ -7,7 +7,7 @@ import styled from "styled-components";
 import Question from "~/components/question";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import QuestionAPI, { QuestionParams } from "~/services/actions/question";
-import { BoxTitle } from "~/services/constants/styled"
+import { Title } from "~/services/constants/styled"
 import { Option } from "~/services/types/dataType";
 import { QuestionInfo } from "~/services/types/question";
 import ButtonDelete from "~/services/utils/buttonDelete";
@@ -50,17 +50,25 @@ const ManagerQuestion = () => {
     const [categories, setCategories] = useState<CategoryInfo[]>()
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const navigate = useNavigate();
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
-        getAllQuestion({})
+        getAllQuestion({
+            page: pagination.current,
+            limit: pagination.pageSize
+        })
         getAllCategory()
         if (account?.account_Id) {
             setAccountId(account.account_Id)
         } else if (checkAuth) {
             navigate(PATH.LOGIN)
         } else navigate(PATH.LOGIN_ADMIN)
-    }, [])
+    }, [pagination.current, pagination.pageSize])
 
     const getOneQuestion = async (id: string) => {
         try {
@@ -139,6 +147,11 @@ const ManagerQuestion = () => {
                         return result
                     })
                 )
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -247,7 +260,10 @@ const ManagerQuestion = () => {
         setIsLoading(true)
         try {
             const { message, status } = await QuestionAPI.delete(id)
-            if (status === 200) await getAllQuestion({})
+            if (status === 200) await getAllQuestion({
+                page: pagination.current,
+                limit: pagination.pageSize
+            })
             messageApi.open({
                 type: status === 200 ? 'success' : 'error',
                 content: message,
@@ -287,9 +303,13 @@ const ManagerQuestion = () => {
         setAcceptFile(data?.category_accept)
     };
 
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
+
     return (
         <>
-            <BoxTitle>{title}</BoxTitle>
+            <Title>{title}</Title>
             <Flex
                 align='center'
                 justify='flex-end'
@@ -305,7 +325,13 @@ const ManagerQuestion = () => {
                 </Button>
             </Flex>
             <div>
-                <Table columns={columns} dataSource={dataTable} />
+                <Table
+                    columns={columns}
+                    dataSource={dataTable}
+                    pagination={pagination}
+                    onChange={handleTableChange}
+                    rowKey="key"
+                />
                 <Form
                     autoComplete="off"
                     layout="vertical"

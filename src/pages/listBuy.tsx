@@ -44,13 +44,22 @@ const ListBuy = () => {
     const [open, setOpen] = useState(false);
     const [buyDetail, setBuyDetail] = useState<BuyInfo>()
     const token = useSelector(accountTokenSelector)
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
         if (account) {
-            getAllLessonBuy({ student: account.account_Id })
+            getAllLessonBuy({
+                student: account.account_Id,
+                page: pagination.current,
+                limit: pagination.pageSize
+            })
         }
-    }, [account])
+    }, [account, pagination.current, pagination.pageSize])
 
     const getAllLessonBuy = async (params: BuyProps) => {
         setIsLoading(true)
@@ -73,6 +82,11 @@ const ListBuy = () => {
                         return result
                     })
                 )
+                setPagination({
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -81,7 +95,6 @@ const ListBuy = () => {
                 });
             }
         } catch (e) {
-            console.log(e)
             messageApi.open({
                 type: 'error',
                 content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
@@ -141,10 +154,11 @@ const ListBuy = () => {
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         if (account) {
             await getAllLessonBuy({
-                page: 1,
+                page: pagination.pageSize,
                 student: account.account_Id,
                 score: values.score ? +values.score : undefined,
-                title: values.title
+                title: values.title,
+                limit: pagination.pageSize
             })
         }
     }
@@ -217,6 +231,10 @@ const ListBuy = () => {
         setOpen(true)
     }
 
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
+
     return (
         <section>
             <BoxTitle>{title}</BoxTitle>
@@ -258,7 +276,13 @@ const ListBuy = () => {
                     </Button>
                 </Flex>
             </Form>
-            <Table columns={columns} dataSource={dataTable} />
+            <Table
+                columns={columns}
+                dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
+                rowKey="key"
+            />
             <Modal
                 title="Thông tin bài học"
                 open={open}

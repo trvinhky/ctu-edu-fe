@@ -1,16 +1,21 @@
 import {
     AuditOutlined,
     BookOutlined,
+    ClockCircleOutlined,
     DesktopOutlined,
+    DollarOutlined,
     FileOutlined,
     FolderOutlined,
+    HomeOutlined,
     KeyOutlined,
     MessageOutlined,
     PicLeftOutlined,
     PieChartOutlined,
     QuestionOutlined,
+    SolutionOutlined,
     TeamOutlined,
-    UnorderedListOutlined
+    UnorderedListOutlined,
+    WalletOutlined
 } from "@ant-design/icons"
 import { Link } from "react-router-dom"
 import { MenuItem } from "~/services/types/dataType"
@@ -21,6 +26,7 @@ const PATH = {
     SUBJECT: '/subject/:id',
     BUY: '/pay-lesson/:id',
     POST: '/post',
+    POINT: '/point',
     DETAIL_POST: '/detail-post/:id',
     DETAIL_LESSON: '/detail-lesson/:id',
     CREATE_POST: 'create-post',
@@ -35,14 +41,17 @@ const PATH = {
     LOGIN_ADMIN: '/login/admin',
     CREATE_ACCOUNT: 'create-account',
     MANAGER_ACCOUNT: 'manager-account',
+    REVENUE: 'revenue',
     MANAGER_COURSE: 'manager-course',
     MANAGER_SUBJECT: 'manager-subject',
     COURSE_REGISTER: 'course-register',
     CREATE_COURSE: 'create-course',
     MANAGER_QUESTION: 'manager-question',
+    MANAGER_POINT: 'manager-point',
     CREATE_QUESTION: 'create-question',
     UPDATE_COURSE: '/course-update/:id',
     LIST_COURSE: 'list-course',
+    LIST_HISTORY: 'list-history',
     MANAGER_LESSON: '/manager-lesson/:id',
     MANAGER_EXAM: '/manager-exam/:id',
     DETAIL_EXAM: '/exam/:id',
@@ -64,6 +73,29 @@ const PATH = {
     QUESTION_EXAM: '/question-exam/:id',
     ADD_QUESTION: '/add-question/:id',
 }
+
+const NAVBARHEADER = [
+    {
+        key: PATH.HOME,
+        icon: <HomeOutlined />,
+        label: <Link to={PATH.HOME}>Trang chủ </Link>,
+    },
+    {
+        key: PATH.SEARCH,
+        icon: <DesktopOutlined />,
+        label: <Link to={PATH.SEARCH}>Khóa học </Link>,
+    },
+    {
+        key: PATH.LIST_POST,
+        icon: <SolutionOutlined />,
+        label: <Link to={PATH.LIST_POST}>Bài đăng </Link>,
+    },
+    {
+        key: PATH.POINT,
+        icon: <DollarOutlined />,
+        label: <Link to={PATH.POINT}>Nạp điểm </Link>,
+    },
+]
 
 const pathAdmin = (path: string) => `${PATH.ADMIN}/${path}`
 
@@ -142,6 +174,16 @@ const NAVBARADMIN: MenuItem[] = [
         key: pathAdmin(PATH.MANAGER_QUESTION),
         icon: <QuestionOutlined />,
         label: <Link to={PATH.MANAGER_QUESTION}>Danh sách câu hỏi</Link>
+    },
+    {
+        key: pathAdmin(PATH.MANAGER_POINT),
+        icon: <DollarOutlined />,
+        label: <Link to={PATH.MANAGER_POINT}>Danh sách gói nạp</Link>
+    },
+    {
+        key: pathAdmin(PATH.REVENUE),
+        icon: <WalletOutlined />,
+        label: <Link to={PATH.REVENUE}>Danh thu</Link>
     }
 ]
 
@@ -187,6 +229,11 @@ const NAVBARTEACHER: MenuItem[] = [
         key: pathAuth(PATH.MANAGER_QUESTION),
         icon: <QuestionOutlined />,
         label: <Link to={pathAuth(PATH.MANAGER_QUESTION)}>Danh sách câu hỏi</Link>
+    },
+    {
+        key: pathAuth(PATH.LIST_HISTORY),
+        icon: <ClockCircleOutlined />,
+        label: <Link to={PATH.LIST_HISTORY}>Lịch sử nạp</Link>
     }
 ]
 
@@ -210,6 +257,11 @@ const NAVBARSTUDENT: MenuItem[] = [
         key: pathAuth(PATH.LIST_COMMENT),
         icon: <MessageOutlined />,
         label: <Link to={PATH.LIST_COMMENT}>Thảo luận</Link>
+    },
+    {
+        key: pathAuth(PATH.LIST_HISTORY),
+        icon: <ClockCircleOutlined />,
+        label: <Link to={PATH.LIST_HISTORY}>Lịch sử nạp</Link>
     }
 ]
 
@@ -219,5 +271,6 @@ export {
     NAVBARSTUDENT,
     NAVBARTEACHER,
     pathAdmin,
-    pathAuth
+    pathAuth,
+    NAVBARHEADER
 }

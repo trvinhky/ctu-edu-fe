@@ -11,6 +11,7 @@ export interface ParamsAll {
     auth?: string;
     title?: string;
     limit?: number;
+    isview?: boolean;
 }
 
 class PostService extends EduAPI {
@@ -31,7 +32,7 @@ class PostService extends EduAPI {
     }
 
     public async getAll(data: ParamsAll): Promise<APIType<PostAll>> {
-        const { page, limit, status, auth, title, subject } = data
+        const { page, limit, status, auth, title, subject, isview } = data
         let params = url('all')
         if (page && !isNaN(+page)) {
             params += `?page=${page}&limit=${limit ?? 6}`
@@ -41,6 +42,7 @@ class PostService extends EduAPI {
         if (auth) params += `&auth=${auth}`
         if (title) params += `&title=${title}`
         if (subject) params += `&subject=${subject}`
+        if (isview) params += `&isview=${isview}`
 
         return await this.getAPI(params)
     }

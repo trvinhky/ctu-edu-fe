@@ -35,11 +35,19 @@ const ManagerSubject = () => {
     const [idSubject, setIdSubject] = useState<string>()
     const [nameSubject, setNameSubject] = useState<string>()
     const [dataTable, setDataTable] = useState<DataType[]>([])
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 6,
+        total: 0,
+    });
 
     useEffect(() => {
         document.title = title
-        getAllSubject()
-    }, [])
+        getAllSubject(
+            pagination.current,
+            pagination.pageSize
+        )
+    }, [pagination.current, pagination.pageSize])
 
     const getAllSubject = async (page?: number, limit: number = 6) => {
         setIsLoading(true)
@@ -59,6 +67,11 @@ const ManagerSubject = () => {
                         return result
                     })
                 )
+                setPagination({
+                    current: page ?? 1,
+                    pageSize: limit,
+                    total: data.count
+                })
             } else {
                 messageApi.open({
                     type: 'error',
@@ -112,7 +125,10 @@ const ManagerSubject = () => {
                     duration: 3,
                 });
                 setNameSubject('')
-                await getAllSubject()
+                await getAllSubject(
+                    pagination.current,
+                    pagination.pageSize
+                )
             } else {
                 messageApi.open({
                     type: 'error',
@@ -143,7 +159,10 @@ const ManagerSubject = () => {
                     content: message,
                     duration: 3,
                 });
-                await getAllSubject()
+                await getAllSubject(
+                    pagination.current,
+                    pagination.pageSize
+                )
             } else {
                 messageApi.open({
                     type: 'error',
@@ -217,6 +236,10 @@ const ManagerSubject = () => {
         setOpen(false);
     };
 
+    const handleTableChange = (newPagination: any) => {
+        setPagination(newPagination);
+    };
+
     return (
         <section>
             <Title>{title}</Title>
@@ -236,7 +259,13 @@ const ManagerSubject = () => {
                     <PlusOutlined />
                 </Button>
             </Flex>
-            <Table columns={columns} dataSource={dataTable} />
+            <Table
+                columns={columns}
+                dataSource={dataTable}
+                pagination={pagination}
+                onChange={handleTableChange}
+                rowKey="id"
+            />
             <Modal
                 title={`${idSubject ? 'Cập nhật' : 'Thêm'} môn học mới`}
                 open={open}
