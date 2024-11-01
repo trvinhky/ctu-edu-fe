@@ -1,15 +1,15 @@
 import { Account } from "~/services/types/account"
-import { LessonInfo } from "~/services/types/lesson"
+import { DocumentInfo } from "~/services/types/document"
 
 export interface Buy {
-    lesson_Id: string
-    student_Id: string
+    document_Id: string
+    account_Id: string
     buy_date?: Date
 }
 
 export interface BuyInfo extends Buy {
-    student: Account
-    lesson: LessonInfo
+    account: Account
+    document: DocumentInfo
 }
 
 export interface BuyAll {

@@ -1,17 +1,15 @@
 import {
     AuditOutlined,
-    BookOutlined,
     ClockCircleOutlined,
+    DatabaseOutlined,
     DesktopOutlined,
     DollarOutlined,
     FileOutlined,
+    FileTextOutlined,
     FolderOutlined,
     HomeOutlined,
-    KeyOutlined,
-    MessageOutlined,
     PicLeftOutlined,
     PieChartOutlined,
-    QuestionOutlined,
     SolutionOutlined,
     TeamOutlined,
     UnorderedListOutlined,
@@ -23,12 +21,12 @@ import { MenuItem } from "~/services/types/dataType"
 const PATH = {
     HOME: '/',
     SEARCH: '/search',
-    SUBJECT: '/subject/:id',
-    BUY: '/pay-lesson/:id',
+    FORMAT: '/format/:id',
+    BUY: '/pay-document/:id',
     POST: '/post',
     POINT: '/point',
     DETAIL_POST: '/detail-post/:id',
-    DETAIL_LESSON: '/detail-lesson/:id',
+    DETAIL_DOCUMENT: '/detail-document/:id',
     CREATE_POST: 'create-post',
     UPDATE_POST: '/update-post/:id',
     LOGIN: '/login',
@@ -36,42 +34,21 @@ const PATH = {
     FORGOT: '/forgot',
     NEW_PASSWORD: '/new-password',
     REGISTER: '/register',
-    DETAIL: '/detail/:id',
+    DETAIL_STORE: '/detail-store/:id',
     ADMIN: '/admin',
-    LOGIN_ADMIN: '/login/admin',
     CREATE_ACCOUNT: 'create-account',
     MANAGER_ACCOUNT: 'manager-account',
     REVENUE: 'revenue',
-    MANAGER_COURSE: 'manager-course',
-    MANAGER_SUBJECT: 'manager-subject',
-    COURSE_REGISTER: 'course-register',
-    CREATE_COURSE: 'create-course',
-    MANAGER_QUESTION: 'manager-question',
+    MANAGER_STORE: 'manager-store',
     MANAGER_POINT: 'manager-point',
-    CREATE_QUESTION: 'create-question',
-    UPDATE_COURSE: '/course-update/:id',
-    LIST_COURSE: 'list-course',
+    LIST_STORE: 'list-store',
     LIST_HISTORY: 'list-history',
-    MANAGER_LESSON: '/manager-lesson/:id',
-    MANAGER_EXAM: '/manager-exam/:id',
-    DETAIL_EXAM: '/exam/:id',
-    CREATE_EXAM: '/create-exam/:id',
-    UPDATE_EXAM: '/update-exam/:id',
-    LIST_STUDENT: '/ist-student',
-    QUESTION_RESOURCE: '/question-resource/:id',
-    LESSON_RESOURCE: '/lesson-resource/:id',
-    LIST_COMMENT: 'list-comment',
-    CONTENT_COURSE: '/course/:id',
+    MANAGER_DOCUMENT: 'manager-document',
     LIST_STATUS: 'status',
-    MANAGER_CATEGORY: 'manager-category',
-    MANAGER_ROLE: 'manager-role',
-    MANAGER_OPTION: '/manager-option/:id',
-    EXAM_QUESTION: '/exam-question/:id',
+    MANAGER_FORMAT: 'manager-format',
     LIST_POST: '/list-post',
     MANAGER_POST: 'manager-post',
-    LESSON_BUY: 'lesson-buy',
-    QUESTION_EXAM: '/question-exam/:id',
-    ADD_QUESTION: '/add-question/:id',
+    DOCUMENT_BUY: 'document-buy'
 }
 
 const NAVBARHEADER = [
@@ -83,7 +60,7 @@ const NAVBARHEADER = [
     {
         key: PATH.SEARCH,
         icon: <DesktopOutlined />,
-        label: <Link to={PATH.SEARCH}>Khóa học </Link>,
+        label: <Link to={PATH.SEARCH}>Tài liệu </Link>,
     },
     {
         key: PATH.LIST_POST,
@@ -106,11 +83,6 @@ const NAVBARADMIN: MenuItem[] = [
         label: <Link to={PATH.ADMIN}>Trang chủ Admin</Link>,
     },
     {
-        key: pathAdmin(PATH.MANAGER_ROLE),
-        icon: <KeyOutlined />,
-        label: <Link to={PATH.MANAGER_ROLE}>Quản lý quyền</Link>
-    },
-    {
         key: 'sub1',
         icon: <TeamOutlined />,
         label: 'Quản lý tài khoản',
@@ -122,26 +94,6 @@ const NAVBARADMIN: MenuItem[] = [
             {
                 key: pathAdmin(PATH.CREATE_ACCOUNT),
                 label: <Link to={PATH.CREATE_ACCOUNT}>Tạo tài khoản</Link>
-            }
-        ]
-    },
-    {
-        key: pathAdmin(PATH.MANAGER_SUBJECT),
-        icon: <BookOutlined />,
-        label: <Link to={PATH.MANAGER_SUBJECT}>Quản lý môn học</Link>
-    },
-    {
-        key: 'sub2',
-        icon: <DesktopOutlined />,
-        label: 'Quản lý khóa học',
-        children: [
-            {
-                key: pathAdmin(PATH.MANAGER_COURSE),
-                label: <Link to={PATH.MANAGER_COURSE}>Danh sách khóa học</Link>
-            },
-            {
-                key: pathAdmin(PATH.CREATE_COURSE),
-                label: <Link to={PATH.CREATE_COURSE}>Tạo khóa học</Link>
             }
         ]
     },
@@ -166,14 +118,19 @@ const NAVBARADMIN: MenuItem[] = [
         label: <Link to={PATH.LIST_STATUS}>Danh sách trạng thái</Link>
     },
     {
-        key: pathAdmin(PATH.MANAGER_CATEGORY),
+        key: pathAdmin(PATH.MANAGER_FORMAT),
         icon: <FileOutlined />,
-        label: <Link to={PATH.MANAGER_CATEGORY}>Quản lý loại file</Link>
+        label: <Link to={PATH.MANAGER_FORMAT}>Quản lý định dạng file</Link>
     },
     {
-        key: pathAdmin(PATH.MANAGER_QUESTION),
-        icon: <QuestionOutlined />,
-        label: <Link to={PATH.MANAGER_QUESTION}>Danh sách câu hỏi</Link>
+        key: pathAdmin(PATH.MANAGER_STORE),
+        icon: <DatabaseOutlined />,
+        label: <Link to={PATH.MANAGER_STORE}>Quản lý kho tài liệu</Link>
+    },
+    {
+        key: pathAdmin(PATH.MANAGER_DOCUMENT),
+        icon: <FileTextOutlined />,
+        label: <Link to={PATH.MANAGER_DOCUMENT}>Quản lý tài liệu</Link>
     },
     {
         key: pathAdmin(PATH.MANAGER_POINT),
@@ -189,26 +146,11 @@ const NAVBARADMIN: MenuItem[] = [
 
 const pathAuth = (path: string) => `${PATH.AUTH}/${path}`
 
-const NAVBARTEACHER: MenuItem[] = [
+const NAVBARAUTH: MenuItem[] = [
     {
         key: PATH.AUTH,
         icon: <AuditOutlined />,
         label: <Link to={PATH.AUTH}>Thông tin</Link>,
-    },
-    {
-        key: 'sub1',
-        icon: <DesktopOutlined />,
-        label: 'Quản lý khóa học',
-        children: [
-            {
-                key: pathAuth(PATH.LIST_COURSE),
-                label: <Link to={pathAuth(PATH.LIST_COURSE)}>Danh sách khóa học</Link>
-            },
-            {
-                key: pathAuth(PATH.CREATE_COURSE),
-                label: <Link to={pathAuth(PATH.CREATE_COURSE)}>Tạo khóa học</Link>
-            }
-        ]
     },
     {
         key: 'sub2',
@@ -226,37 +168,22 @@ const NAVBARTEACHER: MenuItem[] = [
         ]
     },
     {
-        key: pathAuth(PATH.MANAGER_QUESTION),
-        icon: <QuestionOutlined />,
-        label: <Link to={pathAuth(PATH.MANAGER_QUESTION)}>Danh sách câu hỏi</Link>
-    },
-    {
         key: pathAuth(PATH.LIST_HISTORY),
         icon: <ClockCircleOutlined />,
         label: <Link to={PATH.LIST_HISTORY}>Lịch sử nạp</Link>
     }
 ]
 
-const NAVBARSTUDENT: MenuItem[] = [
+const NAVBARUSER: MenuItem[] = [
     {
         key: PATH.AUTH,
         icon: <AuditOutlined />,
         label: <Link to={PATH.AUTH}>Thông tin</Link>
     },
     {
-        key: pathAuth(PATH.COURSE_REGISTER),
-        icon: <DesktopOutlined />,
-        label: <Link to={PATH.COURSE_REGISTER}>Khóa học</Link>
-    },
-    {
-        key: pathAuth(PATH.LESSON_BUY),
+        key: pathAuth(PATH.DOCUMENT_BUY),
         icon: <FolderOutlined />,
-        label: <Link to={PATH.LESSON_BUY}>Bài học đã mua</Link>
-    },
-    {
-        key: pathAuth(PATH.LIST_COMMENT),
-        icon: <MessageOutlined />,
-        label: <Link to={PATH.LIST_COMMENT}>Thảo luận</Link>
+        label: <Link to={PATH.DOCUMENT_BUY}>Tài liệu đã mua</Link>
     },
     {
         key: pathAuth(PATH.LIST_HISTORY),
@@ -268,8 +195,8 @@ const NAVBARSTUDENT: MenuItem[] = [
 export {
     PATH,
     NAVBARADMIN,
-    NAVBARSTUDENT,
-    NAVBARTEACHER,
+    NAVBARUSER,
+    NAVBARAUTH,
     pathAdmin,
     pathAuth,
     NAVBARHEADER

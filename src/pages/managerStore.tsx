@@ -1,18 +1,18 @@
-import { Button, Flex, Input, Modal, Table } from 'antd';
+import { Button, Flex, Form, Input, Modal, Table } from 'antd';
 import type { TableProps } from 'antd';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { CloudUploadOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Title } from '~/services/constants/styled';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useGlobalDataContext } from '~/hooks/globalData';
-import SubjectAPI from '~/services/actions/subject';
 import ButtonEdit from '~/services/utils/buttonEdit';
+import StoreAPI from '~/services/actions/store';
+import { convertUrl } from '~/services/constants';
 
 interface DataType {
     name: string;
-    posts: number;
-    courses: number;
-    id: string;
+    image: string;
+    documents: number;
     key: string;
 }
 
@@ -28,40 +28,65 @@ const WrapperBtn = styled.span`
     padding-left: 10px;
 `
 
-const ManagerSubject = () => {
-    const title = 'Danh sách môn học'
+const UploadBox = styled.label`
+    border-radius: 10px;
+    width: 100%;
+    height: 200px;
+    border: 1px dashed #000;
+    font-size: 20px;
+    cursor: pointer;
+    display: inline-block;
+    background-size: cover;
+    background-position: center;
+`
+
+const ImageStore = styled.img`
+    width: 50px;
+    height: auto;
+    object-fit: cover;
+`
+
+const Content = styled.section`
+    td {
+        vertical-align: middle;
+    }
+`
+
+const ManagerStore = () => {
+    const title = 'Danh sách kho tài liệu'
     const [open, setOpen] = useState(false);
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const [idSubject, setIdSubject] = useState<string>()
-    const [nameSubject, setNameSubject] = useState<string>()
+    const [storeId, setStoreId] = useState<string>()
+    const [storeTitle, setStoreTitle] = useState<string>()
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 6,
         total: 0,
     });
+    const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     useEffect(() => {
         document.title = title
-        getAllSubject(
+        getAllStore(
             pagination.current,
             pagination.pageSize
         )
     }, [pagination.current, pagination.pageSize])
 
-    const getAllSubject = async (page?: number, limit: number = 6) => {
+    const getAllStore = async (page?: number, limit: number = 6, title?: string) => {
         setIsLoading(true)
         try {
-            const { status, data, message } = await SubjectAPI.getAll(page, limit)
+            const { status, data, message } = await StoreAPI.getAll(page, limit, title)
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
-                    data.subjects.map((subject) => {
+                    data.stores.map((store) => {
                         const result: DataType = {
-                            name: subject.subject_name,
-                            id: subject.subject_Id as string,
-                            courses: subject.courses.length,
-                            posts: subject.posts.length,
-                            key: subject.subject_Id as string
+                            name: store.store_Id as string,
+                            image: convertUrl(store.store_image as string),
+                            documents: store.documents.length,
+                            key: store.store_Id as string
                         }
 
                         return result
@@ -89,12 +114,13 @@ const ManagerSubject = () => {
         setIsLoading(false)
     }
 
-    const getOneSubject = async (id: string) => {
+    const getOneStore = async (id: string) => {
         setIsLoading(true)
         try {
-            const { status, message, data } = await SubjectAPI.getOne(id)
+            const { status, message, data } = await StoreAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
-                setNameSubject(data.subject_name)
+                setImageSrc(convertUrl(data?.store_image as string))
+                setStoreTitle(data.store_title)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -112,20 +138,17 @@ const ManagerSubject = () => {
         setIsLoading(false)
     }
 
-    const createNewSubject = async () => {
+    const createNewStore = async (data: FormData) => {
         setIsLoading(true)
         try {
-            const { status, message } = await SubjectAPI.create({
-                subject_name: nameSubject as string
-            })
+            const { status, message } = await StoreAPI.create(data)
             if (status === 200) {
                 messageApi.open({
                     type: 'success',
                     content: message,
                     duration: 3,
                 });
-                setNameSubject('')
-                await getAllSubject(
+                await getAllStore(
                     pagination.current,
                     pagination.pageSize
                 )
@@ -146,20 +169,17 @@ const ManagerSubject = () => {
         setIsLoading(false)
     }
 
-    const editSubject = async () => {
+    const editStore = async (id: string, data: FormData) => {
         setIsLoading(true)
         try {
-            const { status, message } = await SubjectAPI.update({
-                subject_name: nameSubject as string,
-                subject_Id: idSubject as string
-            })
+            const { status, message } = await StoreAPI.update(id, data)
             if (status === 200) {
                 messageApi.open({
                     type: 'success',
                     content: message,
                     duration: 3,
                 });
-                await getAllSubject(
+                await getAllStore(
                     pagination.current,
                     pagination.pageSize
                 )
@@ -179,22 +199,35 @@ const ManagerSubject = () => {
         }
         setIsLoading(false)
     }
+
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            setSelectedFile(file)
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageSrc(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const columns: TableProps<DataType>['columns'] = [
         {
-            title: 'Tên môn học',
+            title: 'Hình ảnh',
+            dataIndex: 'image',
+            key: 'image',
+            render: (text) => <ImageStore src={text} />,
+        },
+        {
+            title: 'Tên kho',
             dataIndex: 'name',
-            key: 'name',
+            key: 'name'
         },
         {
-            title: 'Tổng khóa học',
-            dataIndex: 'courses',
-            key: 'courses',
-        },
-        {
-            title: 'Tổng bài viết',
-            dataIndex: 'posts',
-            key: 'posts',
+            title: 'Tổng tài liệu',
+            dataIndex: 'documents',
+            key: 'documents',
         },
         {
             title: '',
@@ -203,7 +236,7 @@ const ManagerSubject = () => {
                 <Button
                     type="primary"
                     style={{ backgroundColor: '#f1c40f' }}
-                    onClick={() => handleShow(record.id)}
+                    onClick={() => handleShow(record.key)}
                 >
                     <EditOutlined />
                 </Button>
@@ -211,23 +244,32 @@ const ManagerSubject = () => {
         },
     ];
 
+    const resetForm = () => {
+        setImageSrc(undefined)
+        setStoreTitle(undefined)
+    }
+
     const handleShow = async (id?: string) => {
+        resetForm()
         if (id) {
-            setIdSubject(id)
-            await getOneSubject(id)
+            setStoreId(id)
+            await getOneStore(id)
         } else {
-            setIdSubject('')
+            setStoreId('')
         }
         setOpen(true);
     }
 
     const handleSubmit = async () => {
-        if (nameSubject) {
-            if (idSubject) {
-                await editSubject()
-            } else {
-                await createNewSubject()
-            }
+        const formData = new FormData()
+        formData.append('store_title', storeTitle as string)
+        if (selectedFile) {
+            formData.append('file', selectedFile)
+        }
+        if (storeId) {
+            await editStore(storeId, formData)
+        } else {
+            await createNewStore(formData)
         }
         setOpen(false);
     };
@@ -241,7 +283,7 @@ const ManagerSubject = () => {
     };
 
     return (
-        <section>
+        <Content>
             <Title>{title}</Title>
             <Flex
                 justify="flex-end"
@@ -267,7 +309,7 @@ const ManagerSubject = () => {
                 rowKey="id"
             />
             <Modal
-                title={`${idSubject ? 'Cập nhật' : 'Thêm'} môn học mới`}
+                title={`${storeId ? 'Cập nhật' : 'Thêm'} môn kho tài liệu`}
                 open={open}
                 onCancel={handleCancel}
                 onOk={handleSubmit}
@@ -277,7 +319,7 @@ const ManagerSubject = () => {
                     </Button>,
                     <React.Fragment key="action">
                         {
-                            idSubject ?
+                            storeId ?
                                 <WrapperBtn onClick={handleSubmit}>
                                     <ButtonEdit text="Cập nhật" />
                                 </WrapperBtn>
@@ -289,18 +331,50 @@ const ManagerSubject = () => {
                     </React.Fragment>
                 ]}
             >
-                <Label htmlFor="name">
-                    Tên môn học:
+                <UploadBox
+                    htmlFor="image"
+                    style={{
+                        backgroundImage: `url(${imageSrc})`,
+                    }}
+                >
+                    <Form.Item
+                        style={{ display: 'none' }}
+                    >
+                        <Input
+                            type="file"
+                            hidden
+                            id="image"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                        />
+                    </Form.Item>
+                    {
+                        (imageSrc?.includes('undefined') || !imageSrc) &&
+                        <Flex
+                            align="center"
+                            justify="center"
+                            style={{
+                                flexDirection: 'column',
+                                height: '100%'
+                            }}
+                        >
+                            <CloudUploadOutlined />
+                            <span>Chọn ảnh</span>
+                        </Flex>
+                    }
+                </UploadBox>
+                <Label htmlFor="name" style={{ paddingTop: 10 }}>
+                    Tên kho:
                 </Label>
                 <Input
-                    placeholder="Tên môn học"
+                    placeholder="Tên kho"
                     id='name'
-                    value={nameSubject}
-                    onChange={(e) => setNameSubject(e.target.value)}
+                    value={storeTitle}
+                    onChange={(e) => setStoreTitle(e.target.value)}
                 />
             </Modal>
-        </section>
+        </Content>
     )
 }
 
-export default ManagerSubject
+export default ManagerStore

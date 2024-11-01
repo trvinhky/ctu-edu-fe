@@ -19,7 +19,7 @@ const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
     useEffect(() => {
         if (token) {
             if (account) {
-                if (!isUser && account.role?.role_name.includes('user')) {
+                if (!isUser && !account.account_admin) {
                     navigate(PATH.LOGIN)
                 }
             } else getInfo()
@@ -33,7 +33,7 @@ const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
             setIsLoading(false)
             if (data && !Array.isArray(data)) {
                 dispatch(actionsAccount.setInfo(data))
-                if (!isUser && data.role?.role_name.includes('user')) {
+                if (!isUser && !data.account_admin) {
                     navigate(PATH.LOGIN)
                 }
             } else {

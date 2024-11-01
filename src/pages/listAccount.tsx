@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Option } from '~/services/types/dataType';
 import { useGlobalDataContext } from '~/hooks/globalData';
 import AccountAPI from '~/services/actions/account';
-import RoleAPI from '~/services/actions/role';
+import { ROLE_OPTIONS } from '~/services/constants';
 
 interface DataType {
     key: number;
@@ -28,7 +28,6 @@ const ListAccount = () => {
     const title = 'Danh sách tài khoản'
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
-    const [roleOptions, setRoleOptions] = useState<Option[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 6,
@@ -38,42 +37,9 @@ const ListAccount = () => {
     useEffect(() => {
         document.title = title
         getAllAccount(pagination.current, pagination.pageSize)
-        getAllRole()
     }, [pagination.current, pagination.pageSize])
 
-    const getAllRole = async () => {
-        setIsLoading(true)
-        try {
-            const { status, data, message } = await RoleAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
-                setRoleOptions(
-                    data.roles.map((role) => {
-                        const result: Option = {
-                            label: role.role_name,
-                            value: role.role_Id as string
-                        }
-
-                        return result
-                    })
-                )
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
-
-    const getAllAccount = async (page?: number, limit: number = 6, role?: string) => {
+    const getAllAccount = async (page?: number, limit: number = 6, role?: boolean) => {
         setIsLoading(true)
         try {
             const { status, data, message } = await AccountAPI.getAll(page, role, limit)
@@ -85,7 +51,7 @@ const ListAccount = () => {
                             name: account.profile.profile_name,
                             id: account.account_Id,
                             email: account.account_email,
-                            role: account.role?.role_name ?? 'Không biết'
+                            role: account.account_admin ? 'Admin' : 'Người dùng'
                         }
 
                         return result
@@ -138,7 +104,7 @@ const ListAccount = () => {
         }
     ];
 
-    const handleChange = async (value: string) => {
+    const handleChange = async (value: boolean) => {
         await getAllAccount(pagination.current, pagination.pageSize, value)
     };
 
@@ -158,7 +124,7 @@ const ListAccount = () => {
                 <Select
                     style={{ width: 120 }}
                     onChange={handleChange}
-                    options={roleOptions}
+                    options={ROLE_OPTIONS}
                     placeholder="Chọn role"
                 />
                 <Button

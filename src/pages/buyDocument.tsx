@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGlobalDataContext } from "~/hooks/globalData";
-import LessonAPI from "~/services/actions/lesson";
-import { LessonInfo } from "~/services/types/lesson";
+import { DocumentInfo } from "~/services/types/document";
 import { Title } from '~/services/constants/styled';
 import { Button, Col, Flex, Modal, Row, Typography } from "antd";
 import ButtonBack from "~/services/utils/buttonBack";
@@ -12,6 +11,7 @@ import { DollarOutlined, ExclamationCircleFilled } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { accountInfoSelector } from "~/services/reducers/selectors";
 import BuyAPI from "~/services/actions/buy";
+import DocumentAPI from "~/services/actions/document";
 
 const WrapperIcon = styled.div`
   width: 100%;
@@ -28,7 +28,7 @@ const BuyLesson = () => {
   const { id } = useParams();
   const navigate = useNavigate()
   const { setIsLoading, messageApi } = useGlobalDataContext();
-  const [lessonInfo, setLessonInfo] = useState<LessonInfo>()
+  const [documentInfo, setDocumentInfo] = useState<DocumentInfo>()
   const account = useSelector(accountInfoSelector)
   const [accountId, setAccountId] = useState<string>()
 
@@ -38,16 +38,16 @@ const BuyLesson = () => {
       if (account) {
         setAccountId(account.account_Id)
       } else navigate(-1)
-      getOneLesson(id)
+      getOneDocument(id)
     } else navigate(-1)
   }, [id, account, setAccountId])
 
-  const getOneLesson = async (id: string) => {
+  const getOneDocument = async (id: string) => {
     setIsLoading(true)
     try {
-      const { status, message, data } = await LessonAPI.getOne(id)
+      const { status, message, data } = await DocumentAPI.getOne(id)
       if (status === 201 && !Array.isArray(data)) {
-        setLessonInfo(data)
+        setDocumentInfo(data)
       } else {
         messageApi.open({
           type: 'error',
@@ -65,12 +65,12 @@ const BuyLesson = () => {
     setIsLoading(false)
   }
 
-  const payLesson = async (student_Id: string, lesson_Id: string) => {
+  const payDocument = async (account_Id: string, document_Id: string) => {
     setIsLoading(true)
     try {
       const { status, message } = await BuyAPI.create({
-        lesson_Id,
-        student_Id
+        document_Id,
+        account_Id
       })
       if (status === 200) {
         messageApi.open({
@@ -104,7 +104,7 @@ const BuyLesson = () => {
       cancelText: 'Hủy',
       async onOk() {
         if (id && accountId) {
-          await payLesson(accountId, id)
+          await payDocument(accountId, id)
         }
       },
       onCancel() { },
@@ -118,16 +118,16 @@ const BuyLesson = () => {
         <ButtonBack />
       </Flex>
       {
-        lessonInfo &&
+        documentInfo &&
         <Row gutter={[16, 16]}>
           <Col span={10}>
             <WrapperIcon>
               <ViewIcon
-                url={lessonInfo.lesson_url}
-                category={lessonInfo.category.category_name}
+                url={documentInfo.document_url}
+                format={documentInfo.format.format_name}
               />
             </WrapperIcon>
-            <SubTitle>{lessonInfo.lesson_title}</SubTitle>
+            <SubTitle>{documentInfo.document_title}</SubTitle>
           </Col>
           <Col span={14}>
             <Typography.Paragraph
@@ -136,7 +136,7 @@ const BuyLesson = () => {
                 textAlign: 'left'
               }}
             >
-              {lessonInfo.lesson_content}
+              {documentInfo.document_content}
             </Typography.Paragraph>
             <Flex justify="flex-end" gap={10}>
               <Button
@@ -145,7 +145,7 @@ const BuyLesson = () => {
                   cursor: 'default'
                 }}
               >
-                {"" + lessonInfo.lesson_score}
+                {"" + documentInfo.document_score}
               </Button>
               <Button type="primary" onClick={showPromiseConfirm}>
                 Mua

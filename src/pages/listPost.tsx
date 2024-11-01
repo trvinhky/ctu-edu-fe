@@ -1,16 +1,13 @@
 import { SearchOutlined } from "@ant-design/icons"
-import { Button, Col, Flex, Form, FormProps, Input, Pagination, Row, Select } from "antd"
+import { Button, Col, Flex, Form, FormProps, Input, Pagination, Row } from "antd"
 import { useEffect, useState } from "react"
 import ItemPost from "~/components/itemPost"
 import { useGlobalDataContext } from "~/hooks/globalData"
-import PostAPI, { ParamsAll } from "~/services/actions/post"
-import SubjectAPI from "~/services/actions/subject"
+import PostAPI, { ParamsPost } from "~/services/actions/post"
 import { BoxTitle } from "~/services/constants/styled"
-import { Option } from "~/services/types/dataType"
 import { PostInfo } from "~/services/types/post"
 
 type FieldType = {
-    subject?: string;
     title?: string;
 };
 
@@ -18,7 +15,6 @@ const ListPost = () => {
     const title = 'Tất cả bài đăng'
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [listPosts, setListPosts] = useState<PostInfo[]>([])
-    const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 8,
@@ -27,46 +23,14 @@ const ListPost = () => {
 
     useEffect(() => {
         document.title = title
-        getAllSubject()
         getAllPost({
-            isview: true
+            index: 1,
+            page: pagination.current,
+            limit: pagination.pageSize
         })
-    }, [])
+    }, [pagination.current, pagination.pageSize])
 
-    const getAllSubject = async () => {
-        document.title = title
-        setIsLoading(true)
-        try {
-            const { status, data, message } = await SubjectAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
-                setSubjectOptions(
-                    data.subjects.map((subject) => {
-                        const result: Option = {
-                            value: subject.subject_Id as string,
-                            label: subject.subject_name
-                        }
-
-                        return result
-                    })
-                )
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
-
-    const getAllPost = async (params: ParamsAll) => {
+    const getAllPost = async (params: ParamsPost) => {
         setIsLoading(true)
         try {
             const { data, status, message } = await PostAPI.getAll(params)
@@ -95,7 +59,11 @@ const ListPost = () => {
     }
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        await getAllPost({ page: 1, subject: values.subject, title: values.title, isview: true })
+        await getAllPost({
+            page: pagination.current,
+            title: values.title,
+            index: 1
+        })
     }
 
     const handlePageChange = (newPagination: any) => {
@@ -125,16 +93,6 @@ const ListPost = () => {
                         }}
                     >
                         <Input placeholder='Tiêu đề bài viết...' />
-                    </Form.Item>
-                    <Form.Item<FieldType>
-                        name="subject"
-                        style={{ marginBottom: 0, width: '40%' }}
-                    >
-                        <Select
-                            style={{ width: "100%" }}
-                            placeholder="chọn môn học"
-                            options={subjectOptions}
-                        />
                     </Form.Item>
                     <Button
                         type="primary"

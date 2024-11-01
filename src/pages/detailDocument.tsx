@@ -6,17 +6,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import ViewPDF from "~/components/viewPDF";
 import { useGlobalDataContext } from "~/hooks/globalData";
-import LessonAPI from "~/services/actions/lesson";
 import { convertUrl, ENV } from "~/services/constants";
 import { PATH } from "~/services/constants/navbarList";
 import { Title } from "~/services/constants/styled";
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors";
-import { LessonInfo } from "~/services/types/lesson";
+import { DocumentInfo } from "~/services/types/document";
 import ButtonBack from "~/services/utils/buttonBack";
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import AccountAPI from "~/services/actions/account";
 import BuyAPI from "~/services/actions/buy";
 import FacebookComments from "~/components/facebookComments";
+import DocumentAPI from "~/services/actions/document";
 
 const CustomTitle = styled(Title)`
     display: flex;
@@ -24,12 +24,12 @@ const CustomTitle = styled(Title)`
     align-items: center;
 `
 
-const DetailLesson = () => {
+const DetailDocument = () => {
     const [title, setTitle] = useState<string>()
     const { id } = useParams();
     const navigate = useNavigate()
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const [lessonInfo, setLessonInfo] = useState<LessonInfo>()
+    const [documentInfo, setDocumentInfo] = useState<DocumentInfo>()
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const token = useSelector(accountTokenSelector)
     const account = useSelector(accountInfoSelector)
@@ -43,7 +43,7 @@ const DetailLesson = () => {
                 if (account) setAccountId(account.account_Id)
                 else getInfo()
             }
-            getOneLesson(id)
+            getOneDocument(id)
         } else navigate(-1)
     }, [id, token, account, setAccountId])
 
@@ -65,14 +65,13 @@ const DetailLesson = () => {
         }
     }
 
-    const checkBuyLesson = async (student_Id: string, lesson_Id: string) => {
+    const checkBuyDocument = async (account_Id: string, document_Id: string) => {
+        setIsLoading(true)
         try {
-            setIsLoading(true)
             const { status, data } = await BuyAPI.getOne({
-                lesson_Id,
-                student_Id
+                document_Id,
+                account_Id
             })
-            setIsLoading(false)
             if (status === 201 && !Array.isArray(data)) {
                 if (data) {
                     setCheckBuy(true)
@@ -85,6 +84,7 @@ const DetailLesson = () => {
                 duration: 3,
             });
         }
+        setIsLoading(false)
     }
 
     const readFile = async (url: string) => {
@@ -129,19 +129,19 @@ const DetailLesson = () => {
     }
 
 
-    const getOneLesson = async (id: string) => {
+    const getOneDocument = async (id: string) => {
         setIsLoading(true)
         try {
-            const { status, message, data } = await LessonAPI.getOne(id)
+            const { status, message, data } = await DocumentAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
-                setLessonInfo(data)
-                setTitle(data.lesson_title)
-                document.title = data.lesson_title
-                if (data.lesson_score > 0) {
-                    await readFile(data.lesson_url)
+                setDocumentInfo(data)
+                setTitle(data.document_title)
+                document.title = data.document_title
+                if (data.document_score > 0) {
+                    await readFile(data.document_url)
                 }
                 if (accountId)
-                    await checkBuyLesson(accountId, data.lesson_Id as string)
+                    await checkBuyDocument(accountId, data.document_Id as string)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -199,16 +199,16 @@ const DetailLesson = () => {
     }
 
     const handleDownload = async () => {
-        if (lessonInfo && (lessonInfo?.lesson_score <= 0 || checkBuy)) {
-            await downloadFile(lessonInfo.lesson_url)
+        if (documentInfo && (documentInfo?.document_score <= 0 || checkBuy)) {
+            await downloadFile(documentInfo.document_url)
         } else
-            navigate(PATH.BUY.replace(':id', lessonInfo?.lesson_Id as string))
+            navigate(PATH.BUY.replace(':id', documentInfo?.document_Id as string))
     }
 
     return (
         <>
             {
-                lessonInfo &&
+                documentInfo &&
                 <section>
                     <Flex justify="flex-start">
                         <ButtonBack />
@@ -216,7 +216,7 @@ const DetailLesson = () => {
                     <CustomTitle>
                         {title}
                         <Tag icon={<DollarOutlined />} color="warning">
-                            {lessonInfo.lesson_score === 0 ? 'free' : lessonInfo.lesson_score}
+                            {documentInfo.document_score === 0 ? 'free' : documentInfo.document_score}
                         </Tag>
                     </CustomTitle>
                     {pdfUrl ? (
@@ -226,10 +226,10 @@ const DetailLesson = () => {
                             height="600px"
                             title={title}
                         />
-                    ) : lessonInfo.lesson_score === 0 ?
+                    ) : documentInfo.document_score === 0 ?
                         (
                             <ViewPDF
-                                pdfUrl={convertUrl(lessonInfo.lesson_url)}
+                                pdfUrl={convertUrl(documentInfo.document_url)}
                                 height="70vh"
                             />
                         ) :
@@ -252,17 +252,17 @@ const DetailLesson = () => {
                         </Button>
                     </Flex>
                     <p>
-                        {lessonInfo.lesson_content}
+                        {documentInfo.document_content}
                     </p>
                 </section>
             }
             <Row gutter={[16, 16]}>
-                <Col>
-                    <FacebookComments />
+                <Col span={24}>
+                    <FacebookComments path="lesson" />
                 </Col>
             </Row>
         </>
     )
 }
 
-export default DetailLesson
+export default DetailDocument

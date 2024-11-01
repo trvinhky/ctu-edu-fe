@@ -1,48 +1,63 @@
 import { SearchOutlined } from "@ant-design/icons";
-import { Button, Col, Flex, Form, FormProps, Input, Pagination, Row, Select } from "antd"
-import { useEffect, useState } from "react"
-import { useSearchParams } from "react-router-dom";
+import { Button, Col, Flex, Form, FormProps, Input, Pagination, Row, Select } from "antd";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import styled from "styled-components";
 import BoxDocument from "~/components/boxDocument";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import DocumentAPI, { DocumentParams } from "~/services/actions/document";
 import FormatAPI from "~/services/actions/format";
+import StoreAPI from "~/services/actions/store";
+import { convertUrl } from "~/services/constants";
 import { BoxTitle } from "~/services/constants/styled";
 import { Option } from "~/services/types/dataType";
 import { DocumentInfo } from "~/services/types/document";
+import { StoreInfo } from "~/services/types/store";
 
 type FieldType = {
     format?: string;
     title?: string;
 };
 
-const Search = () => {
-    const [searchParams] = useSearchParams();
+const CardStore = styled.div`
+    padding: 15px;
+    img {
+        width: 100%;
+        object-fit: cover;
+    }
+
+    h4 {
+        font-weight: 600;
+    }
+`
+
+const DetailStore = () => {
+    const [title, setTitle] = useState<string>()
+    const { id } = useParams();
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const searchTitle = searchParams.get('title');
-    const [listDocument, setListDocument] = useState<DocumentInfo[]>([])
-    const [formatOptions, setFormatOptions] = useState<Option[]>([])
-    const [title, setTitle] = useState('Tất cả khóa học')
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 8,
         total: 0,
     });
+    const [storeInfo, setStoreInfo] = useState<StoreInfo>()
+    const [listDocument, setListDocument] = useState<DocumentInfo[]>([])
+    const navigate = useNavigate()
+    const [formatOptions, setFormatOptions] = useState<Option[]>([])
 
     useEffect(() => {
-        getAllFormat()
-        if (searchTitle) {
-            setTitle('Kết quả tìm kiếm')
-        }
-        getAllDocument({
-            title: searchTitle ?? undefined,
-            page: pagination.current,
-            limit: pagination.pageSize
-        })
-
-    }, [searchTitle, title, pagination.current, pagination.pageSize])
+        if (id) {
+            getOneStore(id)
+            getAllFormat()
+            getAllDocument({
+                store: id,
+                page: pagination.current,
+                limit: pagination.pageSize
+            })
+        } else navigate(-1)
+    }, [id, pagination.current, pagination.pageSize])
 
     const getAllFormat = async () => {
-        document.title = title
         setIsLoading(true)
         try {
             const { status, data, message } = await FormatAPI.getAll()
@@ -57,6 +72,31 @@ const Search = () => {
                         return result
                     })
                 )
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getOneStore = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { status, data, message } = await StoreAPI.getOne(id)
+            if (status === 201 && !Array.isArray(data)) {
+                setStoreInfo(data)
+                setTitle(data.store_title)
+                document.title = data.store_title
             } else {
                 messageApi.open({
                     type: 'error',
@@ -111,7 +151,7 @@ const Search = () => {
     };
 
     return (
-        <>
+        <section>
             <BoxTitle>
                 {title}
             </BoxTitle>
@@ -152,30 +192,51 @@ const Search = () => {
                 </Flex>
             </Form>
             <Row gutter={[16, 16]}>
-                {
-                    listDocument?.map((doc) => (
-                        <Col span={6} key={doc.document_Id}>
-                            <BoxDocument data={doc} />
+                <Col span={4}>
+                    {
+                        storeInfo &&
+                        <CardStore>
+                            {
+                                storeInfo.store_image &&
+                                <img src={convertUrl(storeInfo.store_image)} alt={storeInfo.store_title} />
+                            }
+                            <h4>
+                                {storeInfo.store_title}
+                            </h4>
+                            <p>
+                                Số lượng tài liệu: {storeInfo.documents.length}
+                            </p>
+                        </CardStore>
+                    }
+                </Col>
+                <Col span={20}>
+                    <Row gutter={[16, 16]}>
+                        {
+                            listDocument?.map((doc) => (
+                                <Col span={6} key={doc.document_Id}>
+                                    <BoxDocument data={doc} />
+                                </Col>
+                            ))
+                        }
+                        <Col span={24}>
+                            <Flex
+                                align='center'
+                                justify='center'
+                                style={{ paddingTop: '10px' }}
+                            >
+                                <Pagination
+                                    total={pagination.total}
+                                    pageSize={pagination.pageSize}
+                                    current={pagination.current}
+                                    onChange={handlePageChange}
+                                />
+                            </Flex>
                         </Col>
-                    ))
-                }
-                <Col span={24}>
-                    <Flex
-                        align='center'
-                        justify='center'
-                        style={{ paddingTop: '10px' }}
-                    >
-                        <Pagination
-                            total={pagination.total}
-                            pageSize={pagination.pageSize}
-                            current={pagination.current}
-                            onChange={handlePageChange}
-                        />
-                    </Flex>
+                    </Row>
                 </Col>
             </Row>
-        </>
+        </section>
     )
 }
 
-export default Search
+export default DetailStore

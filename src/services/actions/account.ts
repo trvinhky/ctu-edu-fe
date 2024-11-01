@@ -45,12 +45,12 @@ class AccountService extends EduAPI {
         return await this.postAPI(url('email'), { email })
     }
 
-    public async getAll(page?: number, role?: string, limit: number = 6): Promise<APIType<AccountAll>> {
+    public async getAll(page?: number, role?: boolean, limit: number = 6): Promise<APIType<AccountAll>> {
         let params = url('all')
         if (page) {
             params += `?page=${page}&limit=${limit}`
 
-            if (role) {
+            if (typeof role !== 'undefined') {
                 params += `&role=${role}`
             }
         }

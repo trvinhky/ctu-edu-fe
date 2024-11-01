@@ -5,8 +5,7 @@ import { useGlobalDataContext } from '~/hooks/globalData';
 import { Title } from '~/services/constants/styled';
 import { isValidPassword } from '~/services/constants/validation';
 import AccountAPI from '~/services/actions/account'
-import RoleAPI from '~/services/actions/role';
-import { Option } from '~/services/types/dataType';
+import { ROLE_OPTIONS } from '~/services/constants';
 
 interface SubmitButtonProps {
     form: FormInstance;
@@ -15,7 +14,7 @@ interface SubmitButtonProps {
 type FieldType = {
     username?: string;
     password?: string;
-    role?: string;
+    role?: boolean;
     email?: string;
     code?: string;
 };
@@ -43,35 +42,7 @@ const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({ fo
 const CreateAccount = () => {
     const title = 'Tạo tài khoản'
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const [roles, setRoles] = useState<Option[]>([])
     const [emailSend, setEmailSend] = useState('')
-
-    const getAllRole = async () => {
-        setIsLoading(true)
-        try {
-            const { data, message, status } = await RoleAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
-                const result: Option[] = data.roles.map((item) => ({
-                    label: item.role_name,
-                    value: item.role_Id as string
-                }))
-                setRoles(result)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
 
     const getCode = async () => {
         setIsLoading(true)
@@ -111,7 +82,7 @@ const CreateAccount = () => {
                 name: values.username as string,
                 password: values.password as string,
                 code: values.code as string,
-                role: values.role as string
+                isAdmin: values.role
             })
             if (check.status === 200) {
                 form.resetFields()
@@ -140,7 +111,6 @@ const CreateAccount = () => {
 
     useEffect(() => {
         document.title = title
-        getAllRole()
     }, [])
 
     return (
@@ -176,7 +146,7 @@ const CreateAccount = () => {
                             name="role"
                         >
                             <Select
-                                options={roles}
+                                options={ROLE_OPTIONS}
                                 placeholder="Chọn role"
                             />
                         </Form.Item>

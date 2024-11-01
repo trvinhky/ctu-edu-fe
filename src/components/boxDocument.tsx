@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 import styled from "styled-components"
 import ViewIcon from "~/components/viewIcon"
 import { PATH } from "~/services/constants/navbarList"
-import { LessonInfo } from "~/services/types/lesson"
+import { DocumentInfo } from "~/services/types/document"
 
 const CardTop = styled.div`
     font-size: 60px;
@@ -20,15 +20,15 @@ const Group = styled.span`
     cursor: default;
 `
 
-const BoxLesson = ({ data }: { data: LessonInfo }) => {
+const BoxDocument = ({ data }: { data: DocumentInfo }) => {
     return (
         <Card
             style={{ width: '100%' }}
             cover={
                 <CardTop>
                     <ViewIcon
-                        category={data.category.category_name as string}
-                        url={data.lesson_url}
+                        format={data.format.format_name as string}
+                        url={data.document_url}
                     />
                 </CardTop>
             }
@@ -37,18 +37,18 @@ const BoxLesson = ({ data }: { data: LessonInfo }) => {
                     <VerticalAlignBottomOutlined /> 0
                 </Group>,
                 <Group>
-                    <Link to={PATH.DETAIL_LESSON.replace(':id', data.lesson_Id as string)}>
+                    <Link to={PATH.DETAIL_DOCUMENT.replace(':id', data.document_Id as string)}>
                         <EyeOutlined />
                     </Link>
                 </Group>,
                 <Group>
-                    <DollarOutlined /> {data.lesson_score === 0 ? 'free' : data.lesson_score}
+                    <DollarOutlined /> {data.document_score === 0 ? 'free' : data.document_score}
                 </Group>
             ]}
         >
-            <Title>{data.lesson_title}</Title>
+            <Title>{data.document_title}</Title>
         </Card>
     )
 }
 
-export default BoxLesson
+export default BoxDocument

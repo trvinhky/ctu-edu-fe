@@ -14,10 +14,10 @@ import { Buy, BuyInfo } from "~/services/types/buy"
 interface DataType {
     key: string;
     title: string;
-    category: string;
+    format: string;
     score: number;
-    lesson: string;
-    student: string;
+    document: string;
+    account: string;
     url: string;
 }
 
@@ -53,30 +53,30 @@ const ListBuy = () => {
     useEffect(() => {
         document.title = title
         if (account) {
-            getAllLessonBuy({
-                student: account.account_Id,
+            getAllDocumentBuy({
+                account: account.account_Id,
                 page: pagination.current,
                 limit: pagination.pageSize
             })
         }
     }, [account, pagination.current, pagination.pageSize])
 
-    const getAllLessonBuy = async (params: BuyProps) => {
+    const getAllDocumentBuy = async (params: BuyProps) => {
         setIsLoading(true)
         try {
             const { status, data, message } = await BuyAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
                     data.buy.map((item) => {
-                        const lesson = item.lesson
+                        const document = item.document
                         const result: DataType = {
                             key: item.buy_date?.toString() as string,
-                            category: lesson.category.category_description,
-                            title: lesson.lesson_title,
-                            score: lesson.lesson_score,
-                            lesson: item.lesson_Id,
-                            student: item.student_Id,
-                            url: lesson.lesson_url
+                            format: document.format.format_description,
+                            title: document.document_title,
+                            score: document.document_score,
+                            document: document.document_Id as string,
+                            account: item.account_Id,
+                            url: document.document_url as string
                         }
 
                         return result
@@ -106,14 +106,14 @@ const ListBuy = () => {
 
     const columns: TableProps<DataType>['columns'] = [
         {
-            title: 'Tên bài học',
+            title: 'Tên tài liệu',
             dataIndex: 'title',
             key: 'title',
         },
         {
-            title: 'Loại file',
-            dataIndex: 'category',
-            key: 'category',
+            title: 'Định dạng file',
+            dataIndex: 'format',
+            key: 'format',
         },
         {
             title: 'Điểm',
@@ -133,8 +133,8 @@ const ListBuy = () => {
                     <Button
                         type="primary"
                         onClick={() => handleShowDetail({
-                            lesson_Id: record.lesson,
-                            student_Id: record.student
+                            document_Id: record.document,
+                            account_Id: record.account
                         })}
                     >
                         <EyeOutlined />
@@ -153,9 +153,9 @@ const ListBuy = () => {
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         if (account) {
-            await getAllLessonBuy({
+            await getAllDocumentBuy({
                 page: pagination.pageSize,
-                student: account.account_Id,
+                account: account.account_Id,
                 score: values.score ? +values.score : undefined,
                 title: values.title,
                 limit: pagination.pageSize
@@ -163,7 +163,7 @@ const ListBuy = () => {
         }
     }
 
-    const getDetailLessonBuy = async (params: Buy) => {
+    const getDetailDocumentBuy = async (params: Buy) => {
         setIsLoading(true)
         try {
             const { status, data, message } = await BuyAPI.getOne(params)
@@ -227,7 +227,7 @@ const ListBuy = () => {
     }
 
     const handleShowDetail = async (data: Buy) => {
-        await getDetailLessonBuy(data)
+        await getDetailDocumentBuy(data)
         setOpen(true)
     }
 
@@ -300,8 +300,8 @@ const ListBuy = () => {
                     >
                         <WrapperIcon>
                             <ViewIcon
-                                url={buyDetail.lesson.lesson_url}
-                                category={buyDetail.lesson.category.category_name}
+                                url={buyDetail.document.document_url}
+                                format={buyDetail.document.format.format_name}
                             />
                         </WrapperIcon>
                         <div>
@@ -309,10 +309,10 @@ const ListBuy = () => {
                                 level={4}
                                 style={{ textAlign: 'center', marginBottom: '10px' }}
                             >
-                                {buyDetail.lesson.lesson_title}
+                                {buyDetail.document.document_title}
                             </Typography.Title>
                             <BoxText>
-                                <span>Số điểm: </span> {buyDetail.lesson.lesson_score} <DollarOutlined />
+                                <span>Số điểm: </span> {buyDetail.document.document_score} <DollarOutlined />
                             </BoxText>
                             <BoxText>
                                 <span>Ngày mua: </span> {buyDetail.buy_date && convertDate(buyDetail.buy_date.toString())}
@@ -320,7 +320,7 @@ const ListBuy = () => {
                             <BoxText>
                                 <span>Nội dung: </span>
                                 <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
-                                    {buyDetail.lesson.lesson_content}
+                                    {buyDetail.document.document_content}
                                 </Typography.Paragraph>
                             </BoxText>
                         </div>

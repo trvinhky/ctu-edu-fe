@@ -45,4 +45,15 @@ export const getFileNameFromUrl = (url: string) => {
 
 export const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
-}; 
+};
+
+export const ROLE_OPTIONS = [
+    {
+        label: 'admin',
+        value: true
+    },
+    {
+        label: 'người dùng',
+        value: false
+    }
+]

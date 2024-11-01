@@ -4,45 +4,45 @@ import { Post, PostAll, PostInfo } from "~/services/types/post"
 
 const url = (path: string = '') => `/post/${path}`
 
-export interface ParamsAll {
+export interface ParamsPost {
     page?: number;
     status?: string;
-    subject?: string;
-    auth?: string;
+    format?: string;
+    account?: string;
     title?: string;
     limit?: number;
-    isview?: boolean;
+    index?: 1 | -1 | 0
 }
 
 class PostService extends EduAPI {
-    public async create(data: Post): Promise<APIType<undefined>> {
-        return await this.postAPI(url('create'), data)
+    public async create(data: FormData): Promise<APIType<undefined>> {
+        return await this.postAPI(url('create'), data, true)
     }
 
     public async update(data: Post): Promise<APIType<undefined>> {
         return await this.putAPI(url(`auth/${data.post_Id}`), data)
     }
 
-    public async updateStatus(id: string, status_Id: string): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`status/${id}`), { status_Id })
+    public async updateStatus(id: string, status_index: 1 | 0 | -1, score?: number): Promise<APIType<undefined>> {
+        return await this.putAPI(url(`status/${id}`), { status_index, score })
     }
 
     public async getOne(id: string): Promise<APIType<PostInfo>> {
         return await this.getAPI(url(`info/${id}`))
     }
 
-    public async getAll(data: ParamsAll): Promise<APIType<PostAll>> {
-        const { page, limit, status, auth, title, subject, isview } = data
+    public async getAll(data: ParamsPost): Promise<APIType<PostAll>> {
+        const { page = 1, limit, status, account, title, format, index } = data
         let params = url('all')
         if (page && !isNaN(+page)) {
             params += `?page=${page}&limit=${limit ?? 6}`
         }
 
         if (status) params += `&status=${status}`
-        if (auth) params += `&auth=${auth}`
+        if (account) params += `&account=${account}`
         if (title) params += `&title=${title}`
-        if (subject) params += `&subject=${subject}`
-        if (isview) params += `&isview=${isview}`
+        if (format) params += `&format=${format}`
+        if (index) params += `&index=${index}`
 
         return await this.getAPI(params)
     }

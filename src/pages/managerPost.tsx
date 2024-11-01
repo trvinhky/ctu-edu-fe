@@ -1,17 +1,15 @@
-import { EyeOutlined, FilterOutlined, FormOutlined } from "@ant-design/icons";
-import { Button, Flex, Form, FormProps, Input, Modal, Select, Table, TableProps } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined, DollarOutlined, ExclamationCircleFilled, EyeOutlined, FilterOutlined, FormOutlined } from "@ant-design/icons";
+import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps } from "antd";
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useGlobalDataContext } from "~/hooks/globalData";
-import PostAPI, { ParamsAll } from "~/services/actions/post";
+import PostAPI, { ParamsPost } from "~/services/actions/post";
 import StatusAPI from "~/services/actions/status";
-import SubjectAPI from "~/services/actions/subject";
 import { PATH } from "~/services/constants/navbarList";
 import { Title } from "~/services/constants/styled"
 import { accountInfoSelector } from "~/services/reducers/selectors";
 import { Option } from "~/services/types/dataType";
-import ButtonEdit from "~/services/utils/buttonEdit";
 import ButtonLinkCustom from "~/services/utils/buttonLinkCustom";
 
 type FieldType = {
@@ -23,21 +21,20 @@ type FieldType = {
 interface DataType {
     key: string;
     name: string;
-    subject: string;
-    auth: string;
+    account: string;
     status: string;
+    status_index: number;
 }
 
 const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
     const title = 'Danh sách bài đăng'
     const { setIsLoading, messageApi } = useGlobalDataContext();
-    const [subjectOptions, setSubjectOptions] = useState<Option[]>([])
     const [statusOptions, setStatusOptions] = useState<Option[]>([])
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [isOpenModal, setIsOpenModal] = useState(false)
-    const [idQuestion, setIdQuestion] = useState<string>('')
-    const [optionStatus, setOptionStatus] = useState<string | undefined>()
+    const [postId, setPostId] = useState<string>('')
     const info = useSelector(accountInfoSelector)
+    const [score, setScore] = useState<number | null>(null)
     const navigate = useNavigate();
     const location = useLocation();
     const checkAuth = location.pathname.includes(PATH.AUTH);
@@ -49,45 +46,12 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
 
     useEffect(() => {
         document.title = title
-        getAllSubject()
         getAllStatus()
         getAllPost({
             page: pagination.current,
             limit: pagination.pageSize
         })
     }, [pagination.current, pagination.pageSize])
-
-    const getAllSubject = async () => {
-        setIsLoading(true)
-        try {
-            const { status, data, message } = await SubjectAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
-                setSubjectOptions(
-                    data.subjects.map((subject) => {
-                        const result: Option = {
-                            value: subject.subject_Id as string,
-                            label: subject.subject_name
-                        }
-
-                        return result
-                    })
-                )
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
 
     const getAllStatus = async () => {
         setIsLoading(true)
@@ -121,41 +85,13 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
         setIsLoading(false)
     }
 
-    const getOnePost = async (id: string) => {
-        setIsLoading(true)
-        try {
-            const { data, status, message } = await PostAPI.getOne(id)
-            if (status === 201 && !Array.isArray(data)) {
-                setOptionStatus(data.status?.status_name)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
-
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         await getAllPost({
             page: pagination.current,
             status: values.status,
-            subject: values.subject,
             title: values.title,
             limit: pagination.pageSize
         })
-    }
-
-    const checkStatus = (name: string): boolean => {
-        return name.toLowerCase().includes('chờ') || name.toLowerCase().includes('hủy')
     }
 
     const columns: TableProps<DataType>['columns'] = [
@@ -166,14 +102,9 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
             width: '35%'
         },
         {
-            title: 'Môn học',
-            dataIndex: 'subject',
-            key: 'subject',
-        },
-        {
             title: 'Tác giả',
-            dataIndex: 'auth',
-            key: 'auth',
+            dataIndex: 'account',
+            key: 'account',
         },
         {
             title: 'Trạng thái',
@@ -197,7 +128,7 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                         <EyeOutlined />
                     </ButtonLinkCustom>
                     {
-                        (!isAdmin && checkStatus(record.status)) &&
+                        !isAdmin && record.status_index === 0 &&
                         <Button
                             type="primary"
                             style={{
@@ -210,11 +141,26 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                         </Button>
                     }
                     {
-                        isAdmin &&
+                        isAdmin && record.status_index === 0 &&
                         <>
-                            <div onClick={() => handleShowModel(record.key)}>
-                                <ButtonEdit />
-                            </div>
+                            <Button
+                                type="primary"
+                                onClick={() => handleShowModel(record.key)}
+                                style={{
+                                    backgroundColor: '#2ecc71'
+                                }}
+                            >
+                                <CheckCircleOutlined />
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={() => handleCancelPost(record.key)}
+                                style={{
+                                    backgroundColor: '#c0392b'
+                                }}
+                            >
+                                <CloseCircleOutlined />
+                            </Button>
                         </>
                     }
                 </Flex>
@@ -223,18 +169,29 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
     ];
 
     const handleShowModel = async (id: string) => {
-        setIdQuestion(id)
-        await getOnePost(id)
+        setPostId(id)
         setIsOpenModal(true)
     }
 
-    const getAllPost = async (params: ParamsAll) => {
+    const handleCancelPost = async (id: string) => {
+        Modal.confirm({
+            title: 'Bạn có chắc muốn hủy bài đăng này?',
+            icon: <ExclamationCircleFilled />,
+            cancelText: 'Hủy',
+            async onOk() {
+                await handleChangeStatus(id, -1)
+            },
+            onCancel() { },
+        });
+    }
+
+    const getAllPost = async (params: ParamsPost) => {
         setIsLoading(true)
         try {
             const allParams = { ...params }
             if (checkAuth) {
                 if (info) {
-                    allParams.auth = info.account_Id
+                    allParams.account = info.account_Id
                 } else {
                     navigate(PATH.LOGIN)
                 }
@@ -245,10 +202,10 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     data.posts.map((post) => {
                         const result: DataType = {
                             key: post.post_Id as string,
-                            auth: post.auth.profile.profile_name,
+                            account: post.account.profile.profile_name,
                             name: post.post_title,
                             status: post?.status?.status_name as string,
-                            subject: post?.subject?.subject_name as string
+                            status_index: post.status.status_index
                         }
 
                         return result
@@ -276,44 +233,45 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
         setIsLoading(false)
     }
 
-    const handleChangeStatus = async () => {
-        if (idQuestion && optionStatus) {
-            setIsLoading(true)
-            try {
-                const { status, message } = await PostAPI.updateStatus(
-                    idQuestion,
-                    optionStatus
-                )
-                if (status === 200) {
-                    await getAllPost({
-                        page: pagination.current,
-                        limit: pagination.pageSize
-                    })
-                }
-                messageApi.open({
-                    type: status === 200 ? 'success' : 'error',
-                    content: message,
-                    duration: 3,
-                });
-            } catch (e) {
-                messageApi.open({
-                    type: 'error',
-                    content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                    duration: 3,
-                });
+    const handleChangeStatus = async (post_Id: string, status_index: 1 | 0 | -1) => {
+        if (score === null && status_index === 1) return
+        setIsLoading(true)
+        try {
+            const { status, message } = await PostAPI.updateStatus(
+                post_Id,
+                status_index,
+                score as number
+            )
+            if (status === 200) {
+                await getAllPost({
+                    page: pagination.current,
+                    limit: pagination.pageSize
+                })
+                setScore(null)
             }
-            setIsLoading(false)
+            messageApi.open({
+                type: status === 200 ? 'success' : 'error',
+                content: message,
+                duration: 3,
+            });
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
         }
-        setIsOpenModal(false)
+        setIsLoading(false)
     }
-
-    const handleChange = (value: string) => {
-        setOptionStatus(value)
-    };
 
     const handleTableChange = (newPagination: any) => {
         setPagination(newPagination);
     };
+
+    const handleModalOK = async () => {
+        handleChangeStatus(postId, 1)
+        setIsOpenModal(false)
+    }
 
     return (
         <>
@@ -338,17 +296,8 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                         <Input placeholder='Tên bài đăng...' />
                     </Form.Item>
                     <Form.Item<FieldType>
-                        name="subject"
-                        style={{ marginBottom: 0, width: '30%' }}
-                    >
-                        <Select
-                            options={subjectOptions}
-                            placeholder="Chọn môn học"
-                        />
-                    </Form.Item>
-                    <Form.Item<FieldType>
                         name="status"
-                        style={{ marginBottom: 0, width: '15%' }}
+                        style={{ marginBottom: 0, width: '25%' }}
                     >
                         <Select
                             options={statusOptions}
@@ -371,17 +320,18 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                 rowKey="key"
             />
             <Modal
-                title="Cập nhật trạng thái"
+                title="Duyệt bài đăng"
                 open={isOpenModal}
                 onCancel={() => setIsOpenModal(false)}
-                onOk={handleChangeStatus}
+                onOk={handleModalOK}
                 cancelText="Thoát"
             >
-                <Select
-                    options={statusOptions}
-                    value={optionStatus}
-                    onChange={handleChange}
-                    style={{ width: '100%' }}
+                <InputNumber
+                    min={0}
+                    addonAfter={<DollarOutlined />}
+                    required
+                    value={score}
+                    onChange={(value) => setScore(value)}
                 />
             </Modal>
         </>

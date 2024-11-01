@@ -25,11 +25,11 @@ const WrapperImage = styled.div`
 
 interface URLProps {
     url: string
-    category: string
+    format: string
 }
 
-const ResourceInfo = ({ category, url }: { category: string, url: string }) => {
-    switch (category) {
+const ResourceInfo = ({ format, url }: { format: string, url: string }) => {
+    switch (format) {
         case 'document':
             if (url.includes('pdf')) {
                 return <ViewPDF pdfUrl={url} />
@@ -40,7 +40,7 @@ const ResourceInfo = ({ category, url }: { category: string, url: string }) => {
     }
 }
 
-const ViewURL = ({ url, category }: URLProps) => {
+const ViewURL = ({ url, format }: URLProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const closeModal = () => {
@@ -48,7 +48,7 @@ const ViewURL = ({ url, category }: URLProps) => {
     }
 
     const showModal = () => {
-        if (category === 'image') {
+        if (format === 'image') {
             setIsModalOpen(false)
         } else setIsModalOpen(true)
     }
@@ -56,7 +56,7 @@ const ViewURL = ({ url, category }: URLProps) => {
     return (
         <Wrapper>
             <WrapperImage onClick={showModal}>
-                <ViewIcon category={category} url={url} isShowImg={category === 'image'} />
+                <ViewIcon format={format} url={url} isShowImg={format === 'image'} />
             </WrapperImage>
             <Modal
                 title="Nội dung file"
@@ -73,7 +73,7 @@ const ViewURL = ({ url, category }: URLProps) => {
                     </Button>
                 ]}
             >
-                <ResourceInfo category={category} url={url} />
+                <ResourceInfo format={format} url={url} />
             </Modal>
         </Wrapper>
     )

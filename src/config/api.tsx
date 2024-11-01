@@ -24,14 +24,6 @@ api.interceptors.request.use(
     }
 );
 
-const navigateByToken = () => {
-    if (window.location.href.indexOf('admin') === -1) {
-        window.location.href = PATH.LOGIN
-    } else {
-        window.location.href = PATH.LOGIN_ADMIN
-    }
-}
-
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -39,7 +31,6 @@ api.interceptors.response.use(
 
         // Kiểm tra xem error.response có tồn tại hay không
         if (!error.response) {
-            navigateByToken()
             store.dispatch(actions.LogOut());
             return Promise.reject(error);
         }
@@ -57,12 +48,12 @@ api.interceptors.response.use(
                     originalRequest.headers['Authorization'] = `Bearer ${data.token}`;
                 }
 
-                navigateByToken()
+                window.location.href = PATH.LOGIN
                 store.dispatch(actions.LogOut());
                 return axios(originalRequest);
             } catch (refreshError) {
                 // Nếu refreshToken cũng hết hạn, xóa thông tin xác thực và yêu cầu đăng nhập lại
-                navigateByToken()
+                window.location.href = PATH.LOGIN
                 store.dispatch(actions.LogOut());
                 return Promise.reject(refreshError);
             }

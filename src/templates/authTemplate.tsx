@@ -4,7 +4,7 @@ import styled from "styled-components"
 import NavbarIndividual from "~/components/navbarIndividual"
 import Footer from "~/layouts/Footer"
 import Header from "~/layouts/Header"
-import { NAVBARSTUDENT, NAVBARTEACHER, PATH } from "~/services/constants/navbarList"
+import { NAVBARAUTH, NAVBARUSER, PATH } from "~/services/constants/navbarList"
 import AccountAPI from '~/services/actions/account'
 import { useDispatch, useSelector } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
@@ -29,19 +29,10 @@ const AuthTemplate = () => {
     const dispatch = useDispatch();
     const { setIsLoading } = useGlobalDataContext();
     const [userName, setUserName] = useState('')
-    const [items, setItems] = useState(NAVBARSTUDENT)
+    const [items, setItems] = useState(NAVBARUSER)
     const [isShowBtn, setIsShowBtn] = useState(false)
     const account = useSelector(accountInfoSelector)
     const token = useSelector(accountTokenSelector)
-
-    const checkRole = (roleName: string) => {
-        if (!roleName.includes('user')) {
-            setItems(NAVBARTEACHER)
-            if (roleName.includes('admin')) {
-                setIsShowBtn(true)
-            }
-        }
-    }
 
     const getInfo = async () => {
         try {
@@ -51,8 +42,10 @@ const AuthTemplate = () => {
             if (data && !Array.isArray(data)) {
                 dispatch(actionsAccount.setInfo(data))
                 setUserName(data.profile?.profile_name)
-                const roleName = data.role?.role_name.toLocaleLowerCase() ?? ''
-                checkRole(roleName)
+                if (data.account_admin) {
+                    setItems(NAVBARAUTH)
+                    setIsShowBtn(true)
+                }
             } else {
                 navigate(PATH.LOGIN)
             }
@@ -64,8 +57,11 @@ const AuthTemplate = () => {
     useEffect(() => {
         if (token) {
             if (account) {
+                setIsShowBtn(account.account_admin as boolean)
                 setUserName(account.profile.profile_name)
-                checkRole(account.role?.role_name as string)
+                if (account.account_admin) {
+                    setItems(NAVBARAUTH)
+                }
             } else {
                 getInfo()
             }

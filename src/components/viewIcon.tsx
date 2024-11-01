@@ -1,8 +1,8 @@
 import { FileExcelOutlined, FileExclamationOutlined, FileImageOutlined, FileOutlined, FilePdfOutlined, FilePptOutlined, FileTextOutlined, FileWordOutlined } from "@ant-design/icons"
 import { Image } from "antd"
 
-const ViewIcon = ({ category, url, isShowImg }: { category: string, url: string, isShowImg?: boolean }) => {
-    switch (category) {
+const ViewIcon = ({ format, url, isShowImg }: { format: string, url: string, isShowImg?: boolean }) => {
+    switch (format) {
         case 'image':
             return !isShowImg ? <FileImageOutlined /> : <Image
                 width="100%"

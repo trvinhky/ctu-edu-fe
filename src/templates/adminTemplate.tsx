@@ -29,15 +29,15 @@ const AdminTemplate = () => {
             const { data } = await AccountAPI.getOne()
             setIsLoading(false)
             if (data && !Array.isArray(data)) {
-                if (data.role?.role_name.indexOf('admin') !== -1) {
+                if (data.account_admin) {
                     dispatch(actionsAccount.setInfo(data))
                     setUserName(data.profile?.profile_name)
                     return
                 }
             }
-            navigate(PATH.LOGIN_ADMIN)
+            navigate(PATH.LOGIN)
         } catch (e) {
-            navigate(PATH.LOGIN_ADMIN)
+            navigate(PATH.LOGIN)
         }
     }
 
@@ -48,7 +48,7 @@ const AdminTemplate = () => {
             } else {
                 getInfoAdmin()
             }
-        } else navigate(PATH.LOGIN_ADMIN)
+        } else navigate(PATH.LOGIN)
     }, [account, token])
 
     return (

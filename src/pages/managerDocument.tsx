@@ -1,33 +1,37 @@
 import { DollarOutlined, ExclamationCircleFilled, ExclamationCircleOutlined, EyeOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons"
-import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps, Tag, Upload, UploadFile } from "antd"
+import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps, Tag, Typography, Upload, UploadFile } from "antd"
 import { RcFile, UploadProps } from "antd/es/upload"
 import React, { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import styled from "styled-components"
 import ViewURL from "~/components/viewURL"
 import { useGlobalDataContext } from "~/hooks/globalData"
-import CategoryAPI from "~/services/actions/category"
-import LessonAPI from "~/services/actions/lesson"
+import DocumentAPI, { DocumentParams } from "~/services/actions/document"
 import { convertUrl } from "~/services/constants"
 import { BoxTitle } from "~/services/constants/styled"
-import { CategoryInfo } from "~/services/types/category"
+import { FormatInfo } from "~/services/types/format.ts"
 import { Option } from "~/services/types/dataType"
-import { LessonInfo } from "~/services/types/lesson"
+import { DocumentInfo } from "~/services/types/document"
 import ButtonBack from "~/services/utils/buttonBack"
 import ButtonDelete from "~/services/utils/buttonDelete"
 import ButtonEdit from "~/services/utils/buttonEdit"
+import FormatAPI from "~/services/actions/format"
+import StoreAPI from "~/services/actions/store"
+import HtmlContent from "~/components/htmlContent"
 
 type FieldType = {
-    lesson_title?: string
-    lesson_content?: string
-    lesson_score?: number
-    category_Id?: string
+    document_title?: string
+    document_content?: string
+    document_score?: number
+    format_Id?: string
+    store_Id?: string
 };
 
 interface DataType {
     key: string;
     title: string;
     content: string;
+    store: string;
     score: number;
 }
 
@@ -52,21 +56,21 @@ const Description = styled.p`
     }
 `
 
-const ManagerLesson = () => {
-    const title = 'Danh sách bài học'
+const ManagerDocument = () => {
+    const title = 'Quản lý tài liệu'
     const { id } = useParams();
-    const navigate = useNavigate()
     const { setIsLoading, messageApi } = useGlobalDataContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm<FieldType>();
     const [dataTable, setDataTable] = useState<DataType[]>([])
-    const [lessonId, setLessonId] = useState<string | undefined>()
-    const [optionCategory, setOptionCategory] = useState<Option[]>()
-    const [categories, setCategories] = useState<CategoryInfo[]>()
+    const [documentId, setDocumentId] = useState<string | undefined>()
+    const [optionFormat, setOptionFormat] = useState<Option[]>()
+    const [optionStore, setOptionStore] = useState<Option[]>()
+    const [formats, setFormats] = useState<FormatInfo[]>()
     const [acceptFile, setAcceptFile] = useState<string | undefined>()
     const [fileList, setFileList] = useState<UploadFile[]>([])
     const [isModalInfo, setIsModalInfo] = useState(false)
-    const [lessonInfo, setLessonInfo] = useState<LessonInfo>()
+    const [documentInfo, setDocumentInfo] = useState<DocumentInfo>()
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 6,
@@ -74,24 +78,26 @@ const ManagerLesson = () => {
     });
 
     useEffect(() => {
-        document.title = title
-        getAllCategory()
-        if (id) {
-            getAllLesson(id, pagination.current, pagination.pageSize)
-        } else navigate(-1)
+        getAllFormat()
+        getAllStore()
+        getAllDocument({
+            page: pagination.current,
+            limit: pagination.pageSize,
+            store: id
+        })
     }, [id, pagination.current, pagination.pageSize])
 
-    const getAllCategory = async () => {
+    const getAllFormat = async () => {
         setIsLoading(true)
         try {
-            const { data, message, status } = await CategoryAPI.getAll()
+            const { data, message, status } = await FormatAPI.getAll()
             if (status === 201 && !Array.isArray(data)) {
-                const result: Option[] = data.categories.map((category) => ({
-                    label: category.category_description,
-                    value: category.category_Id as string
+                const result: Option[] = data.formats.map((format) => ({
+                    label: format.format_description,
+                    value: format.format_Id as string
                 }))
-                setOptionCategory(result)
-                setCategories(data.categories)
+                setOptionFormat(result)
+                setFormats(data.formats)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -109,17 +115,45 @@ const ManagerLesson = () => {
         setIsLoading(false)
     }
 
-    const getOneLesson = async (id: string) => {
+    const getAllStore = async () => {
         setIsLoading(true)
         try {
-            const { status, message, data } = await LessonAPI.getOne(id)
+            const { status, data, message } = await StoreAPI.getAll()
+            if (status === 201 && !Array.isArray(data)) {
+                const result: Option[] = data.stores.map((store) => ({
+                    label: store.store_title,
+                    value: store.store_Id as string
+                }))
+                setOptionStore(result)
+            } else {
+                messageApi.open({
+                    type: 'error',
+                    content: message,
+                    duration: 3,
+                });
+            }
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const getOneDocument = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { status, message, data } = await DocumentAPI.getOne(id)
             if (status === 201 && !Array.isArray(data)) {
                 form.setFieldsValue({
-                    lesson_content: data.lesson_content,
-                    lesson_title: data.lesson_title,
-                    lesson_score: data.lesson_score
+                    document_title: data.document_title,
+                    document_content: data.document_content,
+                    document_score: data.document_score,
+                    store_Id: data.store_Id
                 })
-                setLessonInfo(data)
+                setDocumentInfo(data)
             } else {
                 messageApi.open({
                     type: 'error',
@@ -137,18 +171,19 @@ const ManagerLesson = () => {
         setIsLoading(false)
     }
 
-    const getAllLesson = async (id: string, page?: number, limit?: number) => {
+    const getAllDocument = async (params: DocumentParams) => {
         setIsLoading(true)
         try {
-            const { data, message, status } = await LessonAPI.getAll({ id, page, limit })
+            const { data, message, status } = await DocumentAPI.getAll(params)
             if (status === 201 && !Array.isArray(data)) {
                 setDataTable(
-                    data.lessons?.map((lesson) => {
+                    data.documents?.map((document) => {
                         const result: DataType = {
-                            key: lesson.lesson_Id as string,
-                            content: lesson.lesson_content ?? 'Không',
-                            title: lesson.lesson_title,
-                            score: lesson.lesson_score ?? 0
+                            key: document.document_Id as string,
+                            content: document.document_content || 'Không',
+                            title: document.document_title,
+                            score: document.document_score ?? 0,
+                            store: document.store?.store_title as string
                         }
 
                         return result
@@ -156,8 +191,8 @@ const ManagerLesson = () => {
                 )
 
                 setPagination({
-                    current: page ?? 1,
-                    pageSize: limit ?? 6,
+                    current: params.page ?? 1,
+                    pageSize: params.limit ?? 6,
                     total: data.count
                 })
             } else {
@@ -184,37 +219,39 @@ const ManagerLesson = () => {
             let message: string = ''
 
             const data = new FormData()
-            data.append('lesson_title', values.lesson_title as string)
-            data.append('lesson_content', values.lesson_content as string)
-            data.append('course_Id', id as string)
-            data.append('lesson_score', values.lesson_score?.toString() ?? '0')
-            data.append('category_Id', values.category_Id as string)
+            data.append('document_title', values.document_title as string)
+            if (values.document_content) {
+                data.append('document_content', values.document_content)
+            }
+            data.append('store_Id', (id ? id : values.store_Id) as string)
+            data.append('document_score', values.document_score ? values.document_score.toString() : '0')
+            data.append('format_Id', values.format_Id as string)
             if (fileList.length > 0) {
                 const file = fileList[0].originFileObj as File;
                 data.append("file", file);
             }
 
-            if (lessonId) {
-                data.append('lesson_Id', lessonId as string)
-                const res = await LessonAPI.update(
-                    lessonId,
+            if (documentId) {
+                data.append('document_Id', documentId as string)
+                const res = await DocumentAPI.update(
+                    documentId,
                     data
                 )
                 status = res.status
                 message = res.message as string
             } else {
-                const res = await LessonAPI.create(data)
+                const res = await DocumentAPI.create(data)
                 status = res.status
                 message = res.message as string
                 setFileList([])
                 form.resetFields()
             }
             if (status === 200) {
-                await getAllLesson(
-                    id as string,
-                    pagination.current,
-                    pagination.pageSize
-                )
+                await getAllDocument({
+                    store: id as string,
+                    page: pagination.current,
+                    limit: pagination.pageSize
+                })
             }
             messageApi.open({
                 type: status === 200 ? "success" : "error",
@@ -274,7 +311,7 @@ const ManagerLesson = () => {
     ];
 
     const handleShowInfo = async (id: string) => {
-        await getOneLesson(id)
+        await getOneDocument(id)
         setIsModalInfo(true)
     }
 
@@ -283,17 +320,17 @@ const ManagerLesson = () => {
     };
 
     const handleOk = () => {
-        if (form.getFieldValue('lesson_title'))
+        if (form.getFieldValue('document_title'))
             setIsModalOpen(false);
     };
 
     const showModal = async (id?: string) => {
         if (id) {
-            setLessonId(id)
-            await getOneLesson(id)
+            setDocumentId(id)
+            await getOneDocument(id)
         } else {
             form.resetFields()
-            setLessonId(undefined)
+            setDocumentId(undefined)
         }
         setIsModalOpen(true);
     };
@@ -301,12 +338,12 @@ const ManagerLesson = () => {
     const confirmDelete = async (idTarget: string) => {
         setIsLoading(true)
         try {
-            const { message, status } = await LessonAPI.delete(idTarget)
-            if (status === 200) await getAllLesson(
-                id as string,
-                pagination.current,
-                pagination.pageSize
-            )
+            const { message, status } = await DocumentAPI.delete(idTarget)
+            if (status === 200) await getAllDocument({
+                store: id as string,
+                page: pagination.current,
+                limit: pagination.pageSize
+            })
             messageApi.open({
                 type: status === 200 ? 'success' : 'error',
                 content: message,
@@ -324,10 +361,10 @@ const ManagerLesson = () => {
 
     const showPromiseConfirm = (idTarget: string) => {
         Modal.confirm({
-            title: 'Bạn có chắc muốn xóa bài học này?',
+            title: 'Bạn có chắc muốn xóa tài liệu này?',
             icon: <ExclamationCircleFilled />,
             content: <Tag icon={<ExclamationCircleOutlined />} color="error">
-                Lưu ý: Chỉ xóa được khi bài học này chưa được mua.
+                Lưu ý: Chỉ xóa được khi tài liệu này chưa được mua.
             </Tag>,
             cancelText: 'Hủy',
             async onOk() {
@@ -338,8 +375,8 @@ const ManagerLesson = () => {
     };
 
     const handleChangeOption = (value: string) => {
-        const data = categories?.find((category) => category.category_Id === value)
-        setAcceptFile(data?.category_accept)
+        const data = formats?.find((format) => format.format_Id === value)
+        setAcceptFile(data?.format_accept)
     };
 
     const handleBeforeUpload = (file: RcFile) => {
@@ -384,12 +421,12 @@ const ManagerLesson = () => {
             />
             <Form
                 layout="vertical"
-                name="lesson"
+                name="document"
                 form={form}
                 onFinish={onFinish}
             >
                 <Modal
-                    title={`${lessonId ? 'Cập nhật' : 'Thêm'} bài học`}
+                    title={`${documentId ? 'Cập nhật' : 'Thêm'} tài liệu`}
                     open={isModalOpen}
                     onOk={handleOk}
                     onCancel={handleCancel}
@@ -399,12 +436,12 @@ const ManagerLesson = () => {
                         </Button>,
                         <React.Fragment key="action">
                             {
-                                lessonId ?
+                                documentId ?
                                     <WrapperBtn onClick={handleOk}>
-                                        <ButtonEdit text="Cập nhật" htmlType="submit" form="lesson" />
+                                        <ButtonEdit text="Cập nhật" htmlType="submit" form="document" />
                                     </WrapperBtn>
                                     :
-                                    <Button type="primary" onClick={handleOk} htmlType="submit" form="lesson">
+                                    <Button type="primary" onClick={handleOk} htmlType="submit" form="document">
                                         Thêm
                                     </Button>
                             }
@@ -412,30 +449,41 @@ const ManagerLesson = () => {
                     ]}
                 >
                     <Form.Item<FieldType>
-                        name="lesson_title"
+                        name="document_title"
                         label="Tiêu đề"
                         required
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item<FieldType>
-                        name="lesson_content"
+                        name="document_content"
                         label="Mô tả"
                     >
                         <Input.TextArea rows={4} />
                     </Form.Item>
+                    <Form.Item<FieldType>
+                        name="store_Id"
+                        label="Chọn kho tài liệu"
+                        required
+                    >
+                        <Select
+                            style={{ width: '100%' }}
+                            placeholder="Chọn kho tài liệu"
+                            options={optionStore}
+                        />
+                    </Form.Item>
                     {
-                        !lessonId &&
+                        !documentId &&
                         <>
                             <Form.Item<FieldType>
-                                name="category_Id"
-                                label="Chọn loại file"
+                                name="format_Id"
+                                label="Chọn định dạng file"
                                 required
                             >
                                 <Select
                                     style={{ width: '100%' }}
-                                    placeholder="Chọn loại file"
-                                    options={optionCategory}
+                                    placeholder="Chọn định dạng file"
+                                    options={optionFormat}
                                     onChange={handleChangeOption}
                                 />
                             </Form.Item>
@@ -464,7 +512,7 @@ const ManagerLesson = () => {
                         </>
                     }
                     <Form.Item<FieldType>
-                        name="lesson_score"
+                        name="document_score"
                         label="Số điểm"
                     >
                         <InputNumber min={0} addonAfter={<DollarOutlined />} />
@@ -472,7 +520,7 @@ const ManagerLesson = () => {
                 </Modal>
             </Form>
             <Modal
-                title="Thông tin bài học"
+                title="Thông tin tài liệu"
                 open={isModalInfo}
                 onOk={() => setIsModalInfo(false)}
                 onCancel={() => setIsModalInfo(false)}
@@ -483,22 +531,25 @@ const ManagerLesson = () => {
                 ]}
             >
                 {
-                    lessonInfo &&
+                    documentInfo &&
                     <>
-                        <SubTitle>{lessonInfo.lesson_title}</SubTitle>
+                        <SubTitle>{documentInfo.document_title}</SubTitle>
                         {
                             <ViewURL
-                                category={lessonInfo.category?.category_name as string}
-                                url={convertUrl(lessonInfo.lesson_url)}
+                                format={documentInfo.format.format_name as string}
+                                url={convertUrl(documentInfo.document_url)}
                             />
                         }
                         <Description>
                             <span>Mô tả: </span>
-                            {lessonInfo.lesson_content}
+                            <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
+                                {documentInfo.document_content && <HtmlContent htmlContent={documentInfo.document_content} />}
+                            </Typography.Paragraph>
                         </Description>
+                        <p>Kho: {documentInfo.store?.store_title}</p>
                         <Flex justify="flex-end">
                             <Tag icon={<DollarOutlined />} color="warning">
-                                {lessonInfo.lesson_score === 0 ? 'free' : lessonInfo.lesson_score}
+                                {documentInfo.document_score === 0 ? 'free' : documentInfo.document_score}
                             </Tag>
                         </Flex>
                     </>
@@ -508,4 +559,4 @@ const ManagerLesson = () => {
     )
 }
 
-export default ManagerLesson
+export default ManagerDocument

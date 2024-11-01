@@ -13,7 +13,6 @@ import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/s
 import { Recharge } from "~/services/types/recharge"
 import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import AccountAPI from "~/services/actions/account"
-import HistoryAPI from "~/services/actions/history"
 
 const CardPoint = styled.div`
     border: 1px solid rgba(243, 156, 18, 0.4);

@@ -7,8 +7,8 @@ const url = (path: string = '') => `/buy/${path}`
 export interface BuyProps {
     page?: number
     limit?: number
-    student?: string
-    lesson?: string
+    account?: string
+    document?: string
     title?: string
     score?: number
 }
@@ -19,14 +19,14 @@ class BuyService extends EduAPI {
     }
 
     public async getOne(data: Buy): Promise<APIType<BuyInfo>> {
-        return await this.getAPI(url(`info?lesson=${data.lesson_Id}&student=${data.student_Id}`))
+        return await this.getAPI(url(`info?document=${data.document_Id}&account=${data.account_Id}`))
     }
 
-    public async getAll({ page = 1, lesson, student, limit = 6, title, score }: BuyProps): Promise<APIType<BuyAll>> {
+    public async getAll({ page = 1, document, account, limit = 6, title, score }: BuyProps): Promise<APIType<BuyAll>> {
         let params = url(`all?page=${page}&limit=${limit}`)
 
-        if (lesson) params += `&lesson=${lesson}`
-        if (student) params += `&student=${student}`
+        if (document) params += `&document=${document}`
+        if (account) params += `&account=${account}`
         if (score) params += `&score=${score}`
         if (title) params += `&title=${title}`
 
