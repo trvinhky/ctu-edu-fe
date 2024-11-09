@@ -1,4 +1,4 @@
-import { CheckCircleOutlined, CloseCircleOutlined, DollarOutlined, ExclamationCircleFilled, EyeOutlined, FilterOutlined, FormOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, DollarOutlined, ExclamationCircleFilled, EyeOutlined, FilterOutlined, FormOutlined } from "@ant-design/icons";
 import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps } from "antd";
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
@@ -24,6 +24,7 @@ interface DataType {
     account: string;
     status: string;
     status_index: number;
+    auth: string
 }
 
 const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
@@ -37,6 +38,7 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
     const [score, setScore] = useState<number | null>(null)
     const navigate = useNavigate();
     const location = useLocation();
+    const [authId, setAuthId] = useState<string>()
     const checkAuth = location.pathname.includes(PATH.AUTH);
     const [pagination, setPagination] = useState({
         current: 1,
@@ -129,23 +131,34 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     </ButtonLinkCustom>
                     {
                         !isAdmin && record.status_index === 0 &&
-                        <Button
-                            type="primary"
-                            style={{
-                                backgroundColor: '#fbc531'
-                            }}
-                        >
-                            <Link to={PATH.UPDATE_POST.replace(':id', record.key)}>
-                                <FormOutlined />
-                            </Link>
-                        </Button>
+                        <>
+                            <Button
+                                type="primary"
+                                style={{
+                                    backgroundColor: '#fbc531'
+                                }}
+                            >
+                                <Link to={PATH.UPDATE_POST.replace(':id', record.key)}>
+                                    <FormOutlined />
+                                </Link>
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={() => showPromiseConfirm(record.key)}
+                                style={{
+                                    backgroundColor: '#c0392b'
+                                }}
+                            >
+                                <DeleteOutlined />
+                            </Button>
+                        </>
                     }
                     {
                         isAdmin && record.status_index === 0 &&
                         <>
                             <Button
                                 type="primary"
-                                onClick={() => handleShowModel(record.key)}
+                                onClick={() => handleShowModel(record.key, record.auth)}
                                 style={{
                                     backgroundColor: '#2ecc71'
                                 }}
@@ -168,9 +181,45 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
         },
     ];
 
-    const handleShowModel = async (id: string) => {
+    const showPromiseConfirm = (idTarget: string) => {
+        Modal.confirm({
+            title: 'Bạn có chắc muốn xóa tài đăng này?',
+            icon: <ExclamationCircleFilled />,
+            cancelText: 'Hủy',
+            async onOk() {
+                await confirmDelete(idTarget)
+            },
+            onCancel() { },
+        });
+    };
+
+    const confirmDelete = async (id: string) => {
+        setIsLoading(true)
+        try {
+            const { message, status } = await PostAPI.delete(id)
+            if (status === 200) await getAllPost({
+                page: pagination.current,
+                limit: pagination.pageSize
+            })
+            messageApi.open({
+                type: status === 200 ? 'success' : 'error',
+                content: message,
+                duration: 3,
+            });
+        } catch (e) {
+            messageApi.open({
+                type: 'error',
+                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
+                duration: 3,
+            });
+        }
+        setIsLoading(false)
+    }
+
+    const handleShowModel = async (id: string, auth: string) => {
         setPostId(id)
         setIsOpenModal(true)
+        setAuthId(auth)
     }
 
     const handleCancelPost = async (id: string) => {
@@ -205,7 +254,8 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                             account: post.account.profile.profile_name,
                             name: post.post_title,
                             status: post?.status?.status_name as string,
-                            status_index: post.status.status_index
+                            status_index: post.status.status_index,
+                            auth: post.account_Id as string
                         }
 
                         return result
@@ -240,7 +290,8 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
             const { status, message } = await PostAPI.updateStatus(
                 post_Id,
                 status_index,
-                score as number
+                score as number,
+                authId
             )
             if (status === 200) {
                 await getAllPost({

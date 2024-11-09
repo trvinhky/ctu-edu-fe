@@ -27,14 +27,14 @@ const Name = styled.span`
 `
 
 const ItemPost = ({ data }: { data: PostInfo }) => {
-    const imageSrc = convertUrl(data.auth?.profile?.profile_avatar as string)
+    const imageSrc = convertUrl(data.account?.profile?.profile_avatar as string)
 
     return (
         <Group>
             <Flex gap={10}>
                 <Avatar src={imageSrc?.includes('null') ? avatarImage : imageSrc as string} />
                 <div>
-                    <Name>{data.auth?.profile?.profile_name}</Name>
+                    <Name>{data.account?.profile?.profile_name}</Name>
                     <Title to={`${PATH.DETAIL_POST.replace(':id', data.post_Id as string)}`}>{data.post_title}</Title>
                 </div>
             </Flex>

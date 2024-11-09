@@ -23,8 +23,8 @@ const PATH = {
     SEARCH: '/search',
     FORMAT: '/format/:id',
     BUY: '/pay-document/:id',
-    POST: '/post',
     POINT: '/point',
+    STORE: '/store',
     DETAIL_POST: '/detail-post/:id',
     DETAIL_DOCUMENT: '/detail-document/:id',
     CREATE_POST: 'create-post',
@@ -61,6 +61,11 @@ const NAVBARHEADER = [
         key: PATH.SEARCH,
         icon: <DesktopOutlined />,
         label: <Link to={PATH.SEARCH}>Tài liệu </Link>,
+    },
+    {
+        key: PATH.STORE,
+        icon: <DatabaseOutlined />,
+        label: <Link to={PATH.STORE}>Kho </Link>,
     },
     {
         key: PATH.LIST_POST,
@@ -168,19 +173,6 @@ const NAVBARAUTH: MenuItem[] = [
         ]
     },
     {
-        key: pathAuth(PATH.LIST_HISTORY),
-        icon: <ClockCircleOutlined />,
-        label: <Link to={PATH.LIST_HISTORY}>Lịch sử nạp</Link>
-    }
-]
-
-const NAVBARUSER: MenuItem[] = [
-    {
-        key: PATH.AUTH,
-        icon: <AuditOutlined />,
-        label: <Link to={PATH.AUTH}>Thông tin</Link>
-    },
-    {
         key: pathAuth(PATH.DOCUMENT_BUY),
         icon: <FolderOutlined />,
         label: <Link to={PATH.DOCUMENT_BUY}>Tài liệu đã mua</Link>
@@ -195,7 +187,6 @@ const NAVBARUSER: MenuItem[] = [
 export {
     PATH,
     NAVBARADMIN,
-    NAVBARUSER,
     NAVBARAUTH,
     pathAdmin,
     pathAuth,

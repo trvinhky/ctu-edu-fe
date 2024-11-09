@@ -4,7 +4,7 @@ import styled from "styled-components"
 import NavbarIndividual from "~/components/navbarIndividual"
 import Footer from "~/layouts/Footer"
 import Header from "~/layouts/Header"
-import { NAVBARAUTH, NAVBARUSER, PATH } from "~/services/constants/navbarList"
+import { NAVBARAUTH, PATH } from "~/services/constants/navbarList"
 import AccountAPI from '~/services/actions/account'
 import { useDispatch, useSelector } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
@@ -29,7 +29,6 @@ const AuthTemplate = () => {
     const dispatch = useDispatch();
     const { setIsLoading } = useGlobalDataContext();
     const [userName, setUserName] = useState('')
-    const [items, setItems] = useState(NAVBARUSER)
     const [isShowBtn, setIsShowBtn] = useState(false)
     const account = useSelector(accountInfoSelector)
     const token = useSelector(accountTokenSelector)
@@ -43,7 +42,6 @@ const AuthTemplate = () => {
                 dispatch(actionsAccount.setInfo(data))
                 setUserName(data.profile?.profile_name)
                 if (data.account_admin) {
-                    setItems(NAVBARAUTH)
                     setIsShowBtn(true)
                 }
             } else {
@@ -59,9 +57,6 @@ const AuthTemplate = () => {
             if (account) {
                 setIsShowBtn(account.account_admin as boolean)
                 setUserName(account.profile.profile_name)
-                if (account.account_admin) {
-                    setItems(NAVBARAUTH)
-                }
             } else {
                 getInfo()
             }
@@ -80,7 +75,7 @@ const AuthTemplate = () => {
                     <Flex>
                         <Navbar>
                             <NavbarIndividual
-                                items={items}
+                                items={NAVBARAUTH}
                                 name={userName}
                             />
                         </Navbar>

@@ -22,8 +22,12 @@ class BuyService extends EduAPI {
         return await this.getAPI(url(`info?document=${data.document_Id}&account=${data.account_Id}`))
     }
 
-    public async getAll({ page = 1, document, account, limit = 6, title, score }: BuyProps): Promise<APIType<BuyAll>> {
-        let params = url(`all?page=${page}&limit=${limit}`)
+    public async getAll(data: BuyProps): Promise<APIType<BuyAll>> {
+        const { page, document, account, limit, title, score } = data
+        let params = url(`all?`)
+        if (page && limit) {
+            params += `page=${page}&limit=${limit}`
+        }
 
         if (document) params += `&document=${document}`
         if (account) params += `&account=${account}`

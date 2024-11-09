@@ -12,10 +12,12 @@ const Content = styled.div`
     border-radius: 10px;
     overflow: hidden;
     position: relative;
+    height: 100%;
 `
 
 const Image = styled.img`
     width: 40%;
+    height: auto;
     object-fit: cover;
 `
 

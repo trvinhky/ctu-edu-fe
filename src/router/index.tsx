@@ -30,7 +30,8 @@ import {
     Point,
     BuyDocument,
     ListHistory,
-    ManagerDocument
+    ManagerDocument,
+    ListStore
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
@@ -49,8 +50,9 @@ const AppRouter = () => {
                     <Route path={PATH.DETAIL_DOCUMENT} element={<DetailDocument />} />
                     <Route path={PATH.DETAIL_POST} element={<DetailPost />} />
                     <Route path={PATH.SEARCH} element={<Search />} />
-                    <Route path={PATH.POST} element={<ListPost />} />
+                    <Route path={PATH.LIST_POST} element={<ListPost />} />
                     <Route path={PATH.POINT} element={<Point />} />
+                    <Route path={PATH.STORE} element={<ListStore />} />
                 </Route>
                 <Route path='/' element={<GuardTemplate isUser />}>
                     <Route path={PATH.BUY} element={<BuyDocument />} />

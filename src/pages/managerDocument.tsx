@@ -8,7 +8,6 @@ import ViewURL from "~/components/viewURL"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import DocumentAPI, { DocumentParams } from "~/services/actions/document"
 import { convertUrl } from "~/services/constants"
-import { BoxTitle } from "~/services/constants/styled"
 import { FormatInfo } from "~/services/types/format.ts"
 import { Option } from "~/services/types/dataType"
 import { DocumentInfo } from "~/services/types/document"
@@ -17,7 +16,7 @@ import ButtonDelete from "~/services/utils/buttonDelete"
 import ButtonEdit from "~/services/utils/buttonEdit"
 import FormatAPI from "~/services/actions/format"
 import StoreAPI from "~/services/actions/store"
-import HtmlContent from "~/components/htmlContent"
+import { Title } from "~/services/constants/styled"
 
 type FieldType = {
     document_title?: string
@@ -279,7 +278,12 @@ const ManagerDocument = () => {
             title: 'Mô tả',
             dataIndex: 'content',
             key: 'content',
-            width: '35%'
+            width: '35%',
+            render: (text) => (
+                <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
+                    {text}
+                </Typography.Paragraph>
+            )
         },
         {
             title: 'Số điểm',
@@ -399,9 +403,9 @@ const ManagerDocument = () => {
 
     return (
         <>
-            <BoxTitle>
+            <Title>
                 {title}
-            </BoxTitle>
+            </Title>
             <Flex justify="space-between" style={{ paddingBottom: 15 }}>
                 <ButtonBack />
                 <Button
@@ -543,7 +547,7 @@ const ManagerDocument = () => {
                         <Description>
                             <span>Mô tả: </span>
                             <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
-                                {documentInfo.document_content && <HtmlContent htmlContent={documentInfo.document_content} />}
+                                {documentInfo.document_content}
                             </Typography.Paragraph>
                         </Description>
                         <p>Kho: {documentInfo.store?.store_title}</p>

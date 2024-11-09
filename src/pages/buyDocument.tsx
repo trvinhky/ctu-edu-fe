@@ -99,7 +99,7 @@ const BuyLesson = () => {
 
   const showPromiseConfirm = () => {
     Modal.confirm({
-      title: 'Bạn có chắc muốn mua bài học này?',
+      title: 'Bạn có chắc muốn mua tài liệu này?',
       icon: <ExclamationCircleFilled />,
       cancelText: 'Hủy',
       async onOk() {

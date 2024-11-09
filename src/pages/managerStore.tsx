@@ -83,7 +83,7 @@ const ManagerStore = () => {
                 setDataTable(
                     data.stores.map((store) => {
                         const result: DataType = {
-                            name: store.store_Id as string,
+                            name: store.store_title as string,
                             image: convertUrl(store.store_image as string),
                             documents: store.documents.length,
                             key: store.store_Id as string

@@ -9,6 +9,7 @@ export { default as DetailDocument } from './detailDocument'
 export { default as DetailPost } from './detailPost'
 export { default as DetailStore } from './detailStore'
 export { default as Search } from './search'
+export { default as ListStore } from './listStore'
 /* login */
 export { default as ListHistory } from './listHistory'
 export { default as BuyDocument } from './buyDocument'

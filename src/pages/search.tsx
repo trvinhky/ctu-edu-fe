@@ -21,7 +21,7 @@ const Search = () => {
     const searchTitle = searchParams.get('title');
     const [listDocument, setListDocument] = useState<DocumentInfo[]>([])
     const [formatOptions, setFormatOptions] = useState<Option[]>([])
-    const [title, setTitle] = useState('Tất cả khóa học')
+    const [title, setTitle] = useState('Tất cả tài liệu')
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 8,

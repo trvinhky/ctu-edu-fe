@@ -23,8 +23,8 @@ class PostService extends EduAPI {
         return await this.putAPI(url(`auth/${data.post_Id}`), data)
     }
 
-    public async updateStatus(id: string, status_index: 1 | 0 | -1, score?: number): Promise<APIType<undefined>> {
-        return await this.putAPI(url(`status/${id}`), { status_index, score })
+    public async updateStatus(id: string, status_index: 1 | 0 | -1, score?: number, account_Id?: string): Promise<APIType<undefined>> {
+        return await this.putAPI(url(`status/${id}`), { status_index, score, account_Id })
     }
 
     public async getOne(id: string): Promise<APIType<PostInfo>> {
