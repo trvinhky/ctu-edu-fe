@@ -11,6 +11,10 @@ export interface DocumentParams {
     score?: number
     page?: number
     limit?: number
+    auth?: string
+    year?: number
+    id?: string
+    order?: string // 'desc' | 'asc'
 }
 
 class DocumentService extends EduAPI {
@@ -26,13 +30,17 @@ class DocumentService extends EduAPI {
         return await this.putAPI(url(`${id}`), data, true)
     }
 
-    public async getAll({ title, store, format, page = 1, limit = 6, score }: DocumentParams): Promise<APIType<DocumentAll>> {
+    public async getAll({ title, store, format, page = 1, limit = 6, score, auth, year, id, order }: DocumentParams): Promise<APIType<DocumentAll>> {
         let params = url(`all?page=${page}&limit=${limit}`)
 
         if (score) params += `&score=${score}`
         if (store) params += `&store=${store}`
         if (format) params += `&format=${format}`
         if (title) params += `&title=${title}`
+        if (auth) params += `&auth=${auth}`
+        if (year) params += `&year=${year}`
+        if (id) params += `&id=${id}`
+        if (order) params += `&order=${order}`
 
         return await this.getAPI(params)
     }

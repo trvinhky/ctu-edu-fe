@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
+import { toast } from "react-toastify";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import AccountAPI from "~/services/actions/account";
 import { ENV } from "~/services/constants";
 
 const useCaptcha = () => {
     const [captchaUrl, setCaptchaUrl] = useState<string | undefined>(undefined)
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
 
     useEffect(() => {
         fetchCaptcha()
@@ -20,11 +21,7 @@ const useCaptcha = () => {
                 setCaptchaUrl(`${ENV.BE_HOST}${data.url}`);
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     };

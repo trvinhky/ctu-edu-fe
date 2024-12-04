@@ -1,4 +1,4 @@
-import { AccountInfo } from "~/services/types/account"
+import { Account } from "~/services/types/account"
 import { Recharge } from "~/services/types/recharge"
 
 export interface History {
@@ -10,7 +10,7 @@ export interface History {
 
 export interface HistoryInfo extends History {
     recharge: Recharge
-    account: AccountInfo
+    account: Account
 }
 
 export interface HistoryAll {

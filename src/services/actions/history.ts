@@ -34,6 +34,10 @@ class HistoryService extends EduAPI {
 
         return await this.getAPI(params)
     }
+
+    public async checkStatus(order: string): Promise<APIType<{ code: number }>> {
+        return await this.getAPI(url(`check/${order}`))
+    }
 }
 
 const HistoryAPI = new HistoryService()

@@ -1,90 +1,58 @@
-import { DollarOutlined, UploadOutlined } from "@ant-design/icons";
-import { Button, Col, DatePicker, Flex, Form, Image, Input, Row, Tag } from "antd"
+import { DollarOutlined, EditOutlined } from "@ant-design/icons";
+import { Button, Col, Flex, Form, Input, Row, Tag } from "antd"
 import { useEffect, useState } from "react"
 import styled from "styled-components"
 import { BoxTitle } from "~/services/constants/styled";
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
-import { isValidPhone } from "~/services/constants/validation";
+import { isValidPassword } from "~/services/constants/validation";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "~/services/constants/navbarList";
 import AccountAPI from '~/services/actions/account'
-import ProfileAPI from '~/services/actions/profile'
-import { AccountInfo } from "~/services/types/account";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import type { FormProps } from 'antd';
-import dayjs, { Dayjs } from "dayjs";
-import { convertUrl } from "~/services/constants";
-import avatarImage from '~/assets/images/avatar.jpg'
+import { setInfo } from "~/services/reducers/accountSlice";
+import { Account } from "~/services/types/account";
+import { toast } from "react-toastify";
 
 type FieldType = {
-    profile_name: string;
-    profile_address?: string;
-    profile_phone?: string;
-    profile_birthday?: Dayjs;
-    profile_info?: string;
+    password?: string;
+    confirm?: string;
+    code?: string;
 };
 
-const Wrapper = styled.div`
-    position: relative;
-    width: fit-content;
-`
-
-const BoxAvatar = styled.div`
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    overflow: hidden;
-`
-
-const Avatar = styled(Image)`
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-`
-
-const LabelAvatar = styled.label`
-    display: block;
-    position: absolute;
-    left: 0;
-    bottom: 10%;
-    padding: 2px 8px;
-    background-color: #f1c40f;
-    color: #fff;
-    border-radius: 4px;
+const TitleSub = styled.div`
+    font-weight: 600;
+    border-left: 2px solid #f1c40f;
+    padding-left: 10px;
     font-size: 20px;
-    cursor: pointer;
+    color: #000;
+    display: inline-block;
+    margin: 30px 0 20px;
+`
+
+const TextTitle = styled.span`
+    font-weight: 600;
+    white-space: nowrap;
 `
 
 const Info = () => {
     const title = 'Thông tin cá nhân'
-    const dispatch = useDispatch();
-    const { setIsLoading, messageApi } = useGlobalDataContext();
-    const [account, setAccount] = useState<AccountInfo>()
+    const { setIsLoading } = useGlobalDataContext();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [form] = Form.useForm<FieldType>();
-    const [imageSrc, setImageSrc] = useState<string | null>(null);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [accountName, setAccountName] = useState<string>()
+    const [account, setAccount] = useState<Account>()
 
     const getInfoAccount = async () => {
         setIsLoading(true)
         try {
             const { data, status } = await AccountAPI.getOne()
             setIsLoading(false)
-            if (status === 201 && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
+            if (status === 201) {
+                dispatch(setInfo(data))
+                setAccountName(data.account_name)
                 setAccount(data)
-
-                const birthday = data.profile.profile_birthday ?
-                    dayjs(data.profile.profile_birthday) : undefined
-                form.setFieldsValue({
-                    profile_name: data.profile.profile_name,
-                    profile_address: data.profile.profile_address,
-                    profile_phone: data.profile.profile_phone,
-                    profile_birthday: birthday,
-                    profile_info: data.profile.profile_info
-                })
-                setImageSrc(convertUrl(data?.profile.profile_avatar as string))
             } else {
                 navigate(PATH.LOGIN)
             }
@@ -97,43 +65,18 @@ const Info = () => {
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         setIsLoading(true)
         try {
-            const profile_birthday = values.profile_birthday?.toDate().toISOString().split('T')[0]
-            const data = new FormData()
-            data.append('profile_birthday', profile_birthday as string)
-            data.append('profile_name', values.profile_name as string)
-            data.append('profile_address', values.profile_address as string)
-            data.append('profile_info', values.profile_info as string)
-            data.append('profile_phone', values.profile_phone as string)
-            if (selectedFile) {
-                data.append('file', selectedFile)
-            }
-
-            const res = await ProfileAPI.update(
-                account?.profile.profile_Id as string,
-                data
+            const { status, message } = await AccountAPI.changePassword(
+                values.password as string,
+                values.code as string
             )
 
-            if (res.status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: res.message,
-                    duration: 3,
-                });
+            if (status === 200) {
+                toast.success(message)
                 setIsLoading(false)
                 await getInfoAccount()
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: res.message,
-                    duration: 3,
-                });
-            }
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
 
         setIsLoading(false)
@@ -144,146 +87,146 @@ const Info = () => {
         getInfoAccount()
     }, [])
 
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files && event.target.files[0];
-        if (file) {
-            setSelectedFile(file)
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImageSrc(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+    const getCode = async () => {
+        setIsLoading(true)
+        try {
+            if (account?.account_email) {
+                const { status } = await AccountAPI.getCode(account.account_email)
+                setIsLoading(false)
+
+                if (status === 200) toast.success('Vui lòng kiểm tra gmail của bạn!')
+                else toast.error('Vui lòng kiểm tra gmail của bạn!')
+            }
+        } catch (e) {
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
-    };
+        setIsLoading(false)
+    }
+
+    const handleUpdateName = async () => {
+        if (accountName) {
+            setIsLoading(true)
+            try {
+                const { message, status } = await AccountAPI.changeName(accountName)
+                setIsLoading(false)
+
+                if (status === 200) toast.success(message)
+                else toast.error(message)
+            } catch (e) {
+                setIsLoading(false)
+                toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
+            }
+        }
+    }
 
     return (
         <>
             <BoxTitle>{title}</BoxTitle>
+            <TitleSub>
+                Thông tin cơ bản
+            </TitleSub>
+            <div>
+                <Flex gap={5} align="center">
+                    <TextTitle>Tên tài khoản: </TextTitle>
+                    <Input
+                        addonAfter={
+                            <EditOutlined
+                                onClick={handleUpdateName}
+                                style={{ cursor: 'pointer' }}
+                            />
+                        }
+                        value={accountName}
+                        onChange={(e) => setAccountName(e.target.value)}
+                    />
+                </Flex>
+                <Flex gap={5} align="center" style={{ paddingTop: 15 }}>
+                    <TextTitle>Điểm tích lũy:</TextTitle>
+                    <Tag icon={<DollarOutlined />} color="gold" >
+                        {account?.account_score}
+                    </Tag>
+                </Flex>
+            </div>
+            <TitleSub>
+                Thay đổi mật khẩu
+            </TitleSub>
             <Form
                 form={form}
                 style={{ padding: '0 20px' }}
                 layout="vertical"
-                initialValues={{
-                    profile_name: ''
-                }}
+                initialValues={[]}
                 onFinish={onFinish}
                 autoComplete="off"
             >
                 <Row gutter={[16, 16]}>
-                    <Col span={7}>
-                        <Wrapper>
-                            <BoxAvatar>
-                                <Avatar
-                                    src={imageSrc?.includes('null') ? avatarImage : imageSrc as string}
-                                />
-                            </BoxAvatar>
-                            <Form.Item
-                                name="profile_avatar"
-                                style={{ display: 'none' }}
-                            >
-                                <Input
-                                    type="file"
-                                    hidden
-                                    id="avatar"
-                                    accept="image/jpeg,image/png,image/gif"
-                                    onChange={handleImageUpload}
-                                />
-                            </Form.Item>
-                            <LabelAvatar htmlFor="avatar">
-                                <UploadOutlined />
-                            </LabelAvatar>
-                            <Flex
-                                align="center"
-                                justify="center"
-                                style={{
-                                    marginTop: 20
-                                }}
-                            >
-                                <Tag icon={<DollarOutlined />} color="gold" >
-                                    {account?.profile.profile_score}
-                                </Tag>
-                            </Flex>
-                        </Wrapper>
-                    </Col>
-                    <Col span={17}>
+                    <Col span={24}>
                         <Row gutter={[8, 8]}>
                             <Col span={24}>
                                 <Form.Item<FieldType>
-                                    label="Tên tài khoản"
-                                    name="profile_name"
-                                    hasFeedback
+                                    label="Mật khẩu"
+                                    name="password"
                                     rules={[
                                         {
                                             required: true,
-                                            message: 'Tên tài khoản không được trống'
+                                            message: 'Vui lòng nhập mật khẩu!'
                                         },
-                                        {
-                                            min: 6,
-                                            message: 'Tên tài khoản cần ít nhất 6 ký tự'
-                                        }
-                                    ]}
-                                    style={{ width: '100%' }}
-                                >
-                                    <Input
-                                        placeholder="Tên tài khoản"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item<FieldType>
-                                    name="profile_phone"
-                                    label="SĐT"
-                                    hasFeedback
-                                    rules={[
                                         () => ({
                                             validator(_, value) {
-                                                if (value && !isValidPhone(value)) {
-                                                    return Promise.reject(
-                                                        new Error('Số điện thoại không hợp lệ!')
-                                                    );
+                                                if (value && isValidPassword(value)) {
+                                                    return Promise.resolve();
                                                 }
-                                                return Promise.resolve();
+                                                return Promise.reject(
+                                                    new Error('Mật khẩu phải ít nhất 8 ký tự, có chữ in, chữ thường và số!')
+                                                );
                                             },
                                         }),
                                     ]}
                                 >
-                                    <Input
-                                        placeholder="Số điện thoại"
-                                    />
+                                    <Input.Password />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item<FieldType>
-                                    name="profile_birthday"
-                                    label="Ngày sinh"
+                                <Form.Item
+                                    name="confirm"
+                                    label="Nhập lại mật khẩu"
+                                    dependencies={['password']}
+                                    hasFeedback
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: 'Vui lòng nhập lại mật khẩu!',
+                                        },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value || getFieldValue('password') === value) {
+                                                    return Promise.resolve();
+                                                }
+                                                return Promise.reject(new Error('Mật khẩu không khớp!'));
+                                            },
+                                        }),
+                                    ]}
                                 >
-                                    <DatePicker
-                                        style={{ width: '100%' }}
-                                        placeholder="Chọn ngày"
-                                    />
+                                    <Input.Password />
                                 </Form.Item>
                             </Col>
-                            <Col span={24}>
-                                <Form.Item<FieldType>
-                                    name="profile_address"
-                                    label="Địa chỉ"
-                                >
-                                    <Input
-                                        placeholder="Địa chỉ"
-                                    />
+                            <Col span={12}>
+                                <Form.Item label="Mã xác thực">
+                                    <Row gutter={8}>
+                                        <Col span={12}>
+                                            <Form.Item<FieldType>
+                                                name="code"
+                                                noStyle
+                                                rules={[{ required: true, message: 'Vui lòng nhập mã xác thực!' }]}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Button onClick={getCode}>Lấy mã</Button>
+                                        </Col>
+                                    </Row>
                                 </Form.Item>
                             </Col>
-                            <Col span={24}>
-                                <Form.Item<FieldType>
-                                    name="profile_info"
-                                    label="Giới thiệu"
-                                >
-                                    <Input.TextArea
-                                        rows={4}
-                                        placeholder="Giới thiệu bản thân"
-                                    />
-                                </Form.Item>
-                            </Col>
+
                             <Col span={24}>
                                 <Flex justify="flex-end">
                                     <Button

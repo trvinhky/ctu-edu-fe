@@ -12,12 +12,12 @@ export { default as Search } from './search'
 export { default as ListStore } from './listStore'
 /* login */
 export { default as ListHistory } from './listHistory'
-export { default as BuyDocument } from './buyDocument'
 export { default as Point } from './point'
 export { default as Info } from './info'
 export { default as FormPost } from './formPost'
 export { default as ListPost } from './listPost'
 export { default as ListBuy } from './listBuy'
+export { default as CheckOrder } from './checkOrder'
 /* admin */
 export { default as Admin } from './admin'
 export { default as ManagerPoint } from './managerPoint'

@@ -7,10 +7,11 @@ import styled from "styled-components";
 import { UserOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors";
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { NAVBARHEADER, PATH } from '~/services/constants/navbarList'
 import AccountAPI from '~/services/actions/account'
 import { useGlobalDataContext } from '~/hooks/globalData'
+import { logOut, setInfo } from "~/services/reducers/accountSlice";
+import { toast } from "react-toastify";
 
 const { Search } = Input;
 
@@ -48,7 +49,7 @@ const NavBarHeader = styled.nav`
 
     a {
         display: inline-block;
-        padding: 4px 16px;
+        padding: 4px 13px;
         color: #000;
         font-weight: 700;
     }
@@ -63,35 +64,23 @@ const NavBarItem = styled.span<{ $isActive?: boolean }>`
 const ListOptions = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
 
     const confirm: PopconfirmProps['onConfirm'] = async () => {
         setIsLoading(true)
         try {
-            const res = await AccountAPI.logOut()
+            const { status, message } = await AccountAPI.logOut()
 
-            if (res.status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: res.message,
-                    duration: 3,
-                });
+            if (status === 200) {
+                toast.success(message)
                 setIsLoading(false)
-                dispatch(actionsAccount.LogOut())
+                dispatch(logOut())
                 navigate(PATH.LOGIN)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: res.message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     };
@@ -115,14 +104,13 @@ const ListOptions = () => {
                     Đăng xuất
                 </Item>
             </Popconfirm>
-
         </ul>
     )
 }
 
 const Header = () => {
     const navigate = useNavigate()
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [accountName, setAccountName] = useState<string>()
     const info = useSelector(accountInfoSelector)
     const token = useSelector(accountTokenSelector)
@@ -135,20 +123,16 @@ const Header = () => {
     const getAccountName = async () => {
         setIsLoading(true)
         if (info) {
-            setAccountName(info.profile.profile_name)
+            setAccountName(info.account_name)
         } else {
             try {
                 const { data, status } = await AccountAPI.getOne()
-                if (status === 201 && !Array.isArray(data)) {
-                    dispatch(actionsAccount.setInfo(data))
-                    setAccountName(data.profile.profile_name)
+                if (status === 201) {
+                    dispatch(setInfo(data))
+                    setAccountName(data.account_name)
                 }
             } catch (e) {
-                messageApi.open({
-                    type: 'error',
-                    content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                    duration: 3,
-                });
+                toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
             }
         }
 

@@ -6,8 +6,8 @@ import { useGlobalDataContext } from "~/hooks/globalData"
 import HeaderShort from "~/layouts/HeaderShort"
 import AccountAPI from "~/services/actions/account"
 import { PATH } from "~/services/constants/navbarList"
+import { setInfo } from "~/services/reducers/accountSlice"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 
 const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
     const token = useSelector(accountTokenSelector)
@@ -27,12 +27,12 @@ const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
     }, [token, account, isUser])
 
     const getInfo = async () => {
+        setIsLoading(true)
         try {
-            setIsLoading(true)
-            const { data } = await AccountAPI.getOne()
+            const { data, status } = await AccountAPI.getOne()
             setIsLoading(false)
-            if (data && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
+            if (status === 201) {
+                dispatch(setInfo(data))
                 if (!isUser && !data.account_admin) {
                     navigate(PATH.LOGIN)
                 }
@@ -42,6 +42,7 @@ const GuardTemplate = ({ isUser }: { isUser?: boolean }) => {
         } catch (e) {
             navigate(PATH.LOGIN)
         }
+        setIsLoading(false)
     }
 
     return (

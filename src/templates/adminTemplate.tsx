@@ -7,9 +7,9 @@ import styled from "styled-components"
 import AccountAPI from '~/services/actions/account'
 import { useDispatch, useSelector } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { useEffect, useState } from "react"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
+import { setInfo } from "~/services/reducers/accountSlice"
 
 const Navbar = styled.div`
     width: 25%;
@@ -24,14 +24,14 @@ const AdminTemplate = () => {
     const token = useSelector(accountTokenSelector)
 
     const getInfoAdmin = async () => {
+        setIsLoading(true)
         try {
-            setIsLoading(true)
-            const { data } = await AccountAPI.getOne()
+            const { data, status } = await AccountAPI.getOne()
             setIsLoading(false)
-            if (data && !Array.isArray(data)) {
+            if (status === 201) {
                 if (data.account_admin) {
-                    dispatch(actionsAccount.setInfo(data))
-                    setUserName(data.profile?.profile_name)
+                    dispatch(setInfo(data))
+                    setUserName(data.account_name)
                     return
                 }
             }
@@ -39,12 +39,13 @@ const AdminTemplate = () => {
         } catch (e) {
             navigate(PATH.LOGIN)
         }
+        setIsLoading(false)
     }
 
     useEffect(() => {
         if (token) {
             if (account) {
-                setUserName(account.profile.profile_name)
+                setUserName(account.account_name)
             } else {
                 getInfoAdmin()
             }

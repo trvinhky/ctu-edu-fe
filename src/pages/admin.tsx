@@ -8,9 +8,10 @@ import { PATH, pathAdmin } from '~/services/constants/navbarList'
 import DocumentAPI from '~/services/actions/document'
 import PostAPI from '~/services/actions/post'
 import StoreAPI from '~/services/actions/store'
+import { toast } from 'react-toastify'
 
 const Admin = () => {
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [accountTotal, setAccountTotal] = useState(0)
     const [documentTotal, setDocumentTotal] = useState(0)
     const [postTotal, setPostTotal] = useState(0)
@@ -24,31 +25,27 @@ const Admin = () => {
     const getAllTotal = async () => {
         setIsLoading(true)
         try {
-            const accCount = await AccountAPI.getAll()
-            if (accCount.status === 201 && !Array.isArray(accCount.data)) {
+            const accCount = await AccountAPI.getAll({})
+            if (accCount.status === 201) {
                 setAccountTotal(accCount.data.count)
             }
 
             const docCount = await DocumentAPI.getAll({ page: 1 })
-            if (docCount.status === 201 && !Array.isArray(docCount.data)) {
+            if (docCount.status === 201) {
                 setDocumentTotal(docCount.data.count)
             }
 
             const postCount = await PostAPI.getAll({ page: 1 })
-            if (postCount.status === 201 && !Array.isArray(postCount.data)) {
+            if (postCount.status === 201) {
                 setPostTotal(postCount.data.count)
             }
 
             const storeCount = await StoreAPI.getAll(1)
-            if (storeCount.status === 201 && !Array.isArray(storeCount.data)) {
+            if (storeCount.status === 201) {
                 setStoreTotal(storeCount.data.count)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

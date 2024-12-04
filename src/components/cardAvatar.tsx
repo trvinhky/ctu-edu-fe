@@ -5,8 +5,9 @@ import { useDispatch } from 'react-redux'
 import AccountAPI from '~/services/actions/account'
 import { useGlobalDataContext } from '~/hooks/globalData'
 import { useNavigate } from 'react-router-dom'
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { PATH } from '~/services/constants/navbarList'
+import { logOut } from '~/services/reducers/accountSlice'
+import { toast } from 'react-toastify'
 
 const Wrapper = styled.div`
     display: flex;
@@ -35,35 +36,21 @@ const LogoutBtn = styled.button`
 const CardAvatar = ({ name }: { name: string }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
 
     const confirm: PopconfirmProps['onConfirm'] = async () => {
         setIsLoading(true)
         try {
-            const res = await AccountAPI.logOut()
+            const { status, message } = await AccountAPI.logOut()
 
-            if (res.status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: res.message,
-                    duration: 3,
-                });
+            if (status === 200) {
+                toast.success(message)
                 setIsLoading(false)
-                dispatch(actionsAccount.LogOut())
+                dispatch(logOut())
                 navigate(PATH.LOGIN)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: res.message,
-                    duration: 3,
-                });
-            }
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     };

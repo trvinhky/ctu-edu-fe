@@ -11,8 +11,9 @@ import { PATH } from "~/services/constants/navbarList"
 import { Title } from "~/services/constants/styled"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
 import { Recharge } from "~/services/types/recharge"
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import AccountAPI from "~/services/actions/account"
+import { setInfo } from "~/services/reducers/accountSlice"
+import { toast } from "react-toastify"
 
 const CardPoint = styled.div`
     border: 1px solid rgba(243, 156, 18, 0.4);
@@ -40,7 +41,7 @@ const CardPoint = styled.div`
 
 const Point = () => {
     const [recharges, setRecharges] = useState<Recharge[]>()
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const navigate = useNavigate();
     const account = useSelector(accountInfoSelector)
     const dispatch = useDispatch();
@@ -50,7 +51,6 @@ const Point = () => {
         pageSize: 6,
         total: 0,
     });
-    const [accountId, setAccountId] = useState<string>()
     const title = "Nạp điểm"
 
     useEffect(() => {
@@ -70,9 +70,8 @@ const Point = () => {
             setIsLoading(true)
             const { data, status } = await AccountAPI.getOne()
             setIsLoading(false)
-            if (status === 201 && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
-                setAccountId(data.account_Id)
+            if (status === 201) {
+                dispatch(setInfo(data))
             } else {
                 navigate(PATH.LOGIN)
             }
@@ -85,7 +84,7 @@ const Point = () => {
         setIsLoading(true)
         try {
             const { data, message, status } = await RechargeAPI.getAll(page, limit)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setRecharges(data.recharges)
 
                 setPagination({
@@ -94,49 +93,27 @@ const Point = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
 
-    const handlePayment = async (id: string, amount: number) => {
-        const account_Id = account ? account.account_Id : accountId
+    const handlePayment = async (amount: number) => {
         setIsLoading(true)
         try {
             const { message, status, data } = await RechargeAPI.payment(amount)
-            if (status === 201 && !Array.isArray(data)) {
-                console.log(data)
+            if (status === 201) {
                 if (data.resultCode !== 0) {
-                    messageApi.open({
-                        type: 'error',
-                        content: data.message,
-                        duration: 3,
-                    });
+                    toast.success(message)
                 } else location.href = data.shortLink
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -150,7 +127,6 @@ const Point = () => {
                         <Col span={6} key={item.recharge_Id}>
                             <CardPoint
                                 onClick={() => handlePayment(
-                                    item.recharge_Id as string,
                                     item.recharge_money
                                 )}
                             >

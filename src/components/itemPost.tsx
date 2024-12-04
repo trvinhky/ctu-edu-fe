@@ -5,13 +5,16 @@ import HtmlContent from '~/components/htmlContent'
 import { PATH } from '~/services/constants/navbarList'
 import { PostInfo } from '~/services/types/post'
 import avatarImage from '~/assets/images/avatar.jpg'
-import { convertUrl } from '~/services/constants'
 
 const Group = styled.div`
     padding: 10px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 `
 
 const Title = styled(Link)`
@@ -19,6 +22,14 @@ const Title = styled(Link)`
     font-size: 18px;
     letter-spacing: 2px;
     color: #000;
+    display: -webkit-box;
+    max-width: 100%;
+    margin: 0 auto;
+    line-height: 1;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `
 
 const Name = styled.span`
@@ -27,14 +38,13 @@ const Name = styled.span`
 `
 
 const ItemPost = ({ data }: { data: PostInfo }) => {
-    const imageSrc = convertUrl(data.account?.profile?.profile_avatar as string)
 
     return (
         <Group>
             <Flex gap={10}>
-                <Avatar src={imageSrc?.includes('null') ? avatarImage : imageSrc as string} />
-                <div>
-                    <Name>{data.account?.profile?.profile_name}</Name>
+                <Avatar src={avatarImage} />
+                <div style={{ flex: 1 }}>
+                    <Name>{data.account?.account_name}</Name>
                     <Title to={`${PATH.DETAIL_POST.replace(':id', data.post_Id as string)}`}>{data.post_title}</Title>
                 </div>
             </Flex>

@@ -1,5 +1,5 @@
 import { DollarOutlined, ExclamationCircleFilled, ExclamationCircleOutlined, EyeOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons"
-import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table, TableProps, Tag, Typography, Upload, UploadFile } from "antd"
+import { Button, Col, Flex, Form, FormProps, Input, InputNumber, List, Modal, Row, Select, Table, TableProps, Tag, Typography, Upload, UploadFile } from "antd"
 import { RcFile, UploadProps } from "antd/es/upload"
 import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
@@ -7,7 +7,7 @@ import styled from "styled-components"
 import ViewURL from "~/components/viewURL"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import DocumentAPI, { DocumentParams } from "~/services/actions/document"
-import { convertUrl } from "~/services/constants"
+import { convertDate, convertUrl, DATEFORMAT_FULL } from "~/services/constants"
 import { FormatInfo } from "~/services/types/format.ts"
 import { Option } from "~/services/types/dataType"
 import { DocumentInfo } from "~/services/types/document"
@@ -17,6 +17,7 @@ import ButtonEdit from "~/services/utils/buttonEdit"
 import FormatAPI from "~/services/actions/format"
 import StoreAPI from "~/services/actions/store"
 import { Title } from "~/services/constants/styled"
+import { toast } from "react-toastify"
 
 type FieldType = {
     document_title?: string
@@ -24,6 +25,8 @@ type FieldType = {
     document_score?: number
     format_Id?: string
     store_Id?: string
+    document_author?: string
+    document_year?: number
 };
 
 interface DataType {
@@ -55,10 +58,21 @@ const Description = styled.p`
     }
 `
 
+const TitleContent = styled.span`
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 600 !important;
+`
+
+interface ListText {
+    title: string
+    text: string
+}
+
 const ManagerDocument = () => {
     const title = 'Quản lý tài liệu'
     const { id } = useParams();
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm<FieldType>();
     const [dataTable, setDataTable] = useState<DataType[]>([])
@@ -70,6 +84,7 @@ const ManagerDocument = () => {
     const [fileList, setFileList] = useState<UploadFile[]>([])
     const [isModalInfo, setIsModalInfo] = useState(false)
     const [documentInfo, setDocumentInfo] = useState<DocumentInfo>()
+    const [listText, setListText] = useState<ListText[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 6,
@@ -90,7 +105,7 @@ const ManagerDocument = () => {
         setIsLoading(true)
         try {
             const { data, message, status } = await FormatAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 const result: Option[] = data.formats.map((format) => ({
                     label: format.format_description,
                     value: format.format_Id as string
@@ -98,18 +113,10 @@ const ManagerDocument = () => {
                 setOptionFormat(result)
                 setFormats(data.formats)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -118,25 +125,17 @@ const ManagerDocument = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await StoreAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 const result: Option[] = data.stores.map((store) => ({
                     label: store.store_title,
                     value: store.store_Id as string
                 }))
                 setOptionStore(result)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -145,27 +144,55 @@ const ManagerDocument = () => {
         setIsLoading(true)
         try {
             const { status, message, data } = await DocumentAPI.getOne(id)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 form.setFieldsValue({
                     document_title: data.document_title,
                     document_content: data.document_content,
                     document_score: data.document_score,
-                    store_Id: data.store_Id
+                    store_Id: data.store_Id,
+                    document_author: data.document_author,
+                    document_year: data.document_year
                 })
                 setDocumentInfo(data)
+                setListText([
+                    {
+                        title: 'Số trang',
+                        text: data.document_page.toString()
+                    },
+                    {
+                        title: 'Dung lượng',
+                        text: data.document_capacity.toString()
+                    },
+                    {
+                        title: 'Kho tài liệu',
+                        text: data.store?.store_title as string
+                    },
+                    {
+                        title: 'Năm xuất bản',
+                        text: data.document_year.toString()
+                    },
+                    {
+                        title: 'Điểm tích lũy',
+                        text: data.document_score.toString()
+                    },
+                    {
+                        title: 'Tác giả',
+                        text: data.document_author
+                    },
+                    {
+                        title: 'Ngày tạo',
+                        text: convertDate((data.createdAt as Date).toString(), DATEFORMAT_FULL)
+                    },
+                    {
+                        title: 'Ngày cập nhật',
+                        text: convertDate((data.updatedAt as Date).toString(), DATEFORMAT_FULL)
+                    },
+                ])
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -174,7 +201,7 @@ const ManagerDocument = () => {
         setIsLoading(true)
         try {
             const { data, message, status } = await DocumentAPI.getAll(params)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.documents?.map((document) => {
                         const result: DataType = {
@@ -195,18 +222,10 @@ const ManagerDocument = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -219,6 +238,8 @@ const ManagerDocument = () => {
 
             const data = new FormData()
             data.append('document_title', values.document_title as string)
+            data.append('document_author', values.document_author as string)
+            data.append('document_year', (values.document_year as number).toString())
             if (values.document_content) {
                 data.append('document_content', values.document_content)
             }
@@ -251,18 +272,10 @@ const ManagerDocument = () => {
                     page: pagination.current,
                     limit: pagination.pageSize
                 })
-            }
-            messageApi.open({
-                type: status === 200 ? "success" : "error",
-                content: message,
-                duration: 3,
-            });
+                toast.success(message)
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -348,17 +361,11 @@ const ManagerDocument = () => {
                 page: pagination.current,
                 limit: pagination.pageSize
             })
-            messageApi.open({
-                type: status === 200 ? 'success' : 'error',
-                content: message,
-                duration: 3,
-            });
+
+            if (status === 200) toast.success(message)
+            else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -459,6 +466,26 @@ const ManagerDocument = () => {
                     >
                         <Input />
                     </Form.Item>
+                    <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                            <Form.Item<FieldType>
+                                name="document_author"
+                                label="Tác giả"
+                                required
+                            >
+                                <Input />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item<FieldType>
+                                name="document_year"
+                                label="Năm xuất bản"
+                                required
+                            >
+                                <InputNumber style={{ width: "100%" }} />
+                            </Form.Item>
+                        </Col>
+                    </Row>
                     <Form.Item<FieldType>
                         name="document_content"
                         label="Mô tả"
@@ -545,17 +572,25 @@ const ManagerDocument = () => {
                             />
                         }
                         <Description>
-                            <span>Mô tả: </span>
+                            <TitleContent>Mô tả: </TitleContent>
                             <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
                                 {documentInfo.document_content}
                             </Typography.Paragraph>
                         </Description>
-                        <p>Kho: {documentInfo.store?.store_title}</p>
-                        <Flex justify="flex-end">
-                            <Tag icon={<DollarOutlined />} color="warning">
-                                {documentInfo.document_score === 0 ? 'free' : documentInfo.document_score}
-                            </Tag>
-                        </Flex>
+                        <TitleContent>
+                            Thông tin cơ bản:
+                        </TitleContent>
+                        <List
+                            header={null}
+                            footer={null}
+                            bordered
+                            dataSource={listText}
+                            renderItem={(item) => (
+                                <List.Item key={item.title} style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography.Text code>[{item.title}]</Typography.Text> {item.text}
+                                </List.Item>
+                            )}
+                        />
                     </>
                 }
             </Modal>

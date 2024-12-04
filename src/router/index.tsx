@@ -28,18 +28,48 @@ import {
     ListPost,
     ListBuy,
     Point,
-    BuyDocument,
     ListHistory,
     ManagerDocument,
-    ListStore
+    ListStore,
+    CheckOrder
 } from '~/pages';
 import { useGlobalDataContext } from "~/hooks/globalData"
 import Loading from "~/components/loading"
 import AdminTemplate from "~/templates/adminTemplate"
 import GuardTemplate from "~/templates/guardTemplate"
+import { useEffect } from "react"
 
 const AppRouter = () => {
     const { isLoading } = useGlobalDataContext();
+    useEffect(() => {
+        const handleCopy = (e: ClipboardEvent) => {
+            e.preventDefault();
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C"))
+            ) {
+                e.preventDefault();
+            }
+        };
+
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+        };
+
+        //document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("copy", handleCopy);
+        //document.addEventListener("contextmenu", handleContextMenu);
+
+
+        return () => {
+            document.removeEventListener("copy", handleCopy);
+            //document.removeEventListener("keydown", handleKeyDown);
+            //document.removeEventListener("contextmenu", handleContextMenu);
+        };
+    }, []);
 
     return (
         <>
@@ -55,8 +85,8 @@ const AppRouter = () => {
                     <Route path={PATH.STORE} element={<ListStore />} />
                 </Route>
                 <Route path='/' element={<GuardTemplate isUser />}>
-                    <Route path={PATH.BUY} element={<BuyDocument />} />
                     <Route path={PATH.UPDATE_POST} element={<FormPost />} />
+                    <Route path={PATH.CHECK} element={<CheckOrder />} />
                 </Route>
                 <Route path='/' element={<FormTemplate />}>
                     <Route path={PATH.LOGIN} element={<Login />} />

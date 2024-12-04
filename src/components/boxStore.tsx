@@ -3,6 +3,7 @@ import styled from "styled-components"
 import { convertUrl } from "~/services/constants"
 import { PATH } from "~/services/constants/navbarList"
 import { StoreInfo } from "~/services/types/store"
+import WorkImage from "~/assets/images/work.jpeg"
 
 const Content = styled.div`
     display: flex;
@@ -48,7 +49,7 @@ const LinkDetail = styled(Link)`
 const BoxStore = ({ data }: { data: StoreInfo }) => {
     return (
         <Content>
-            <Image src={convertUrl(data.store_image as string)} />
+            <Image src={data.store_image ? convertUrl(data.store_image) : WorkImage} />
             <ContentText>
                 <h4>{data.store_title}</h4>
                 <p>

@@ -13,6 +13,8 @@ import { BoxTitle } from "~/services/constants/styled";
 import { Option } from "~/services/types/dataType";
 import { DocumentInfo } from "~/services/types/document";
 import { StoreInfo } from "~/services/types/store";
+import WorkImage from "~/assets/images/work.jpeg"
+import { toast } from "react-toastify";
 
 type FieldType = {
     format?: string;
@@ -28,13 +30,15 @@ const CardStore = styled.div`
 
     h4 {
         font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 6px;
     }
 `
 
 const DetailStore = () => {
     const [title, setTitle] = useState<string>()
     const { id } = useParams();
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 8,
@@ -61,7 +65,7 @@ const DetailStore = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await FormatAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setFormatOptions(
                     data.formats.map((format) => {
                         const result: Option = {
@@ -73,18 +77,10 @@ const DetailStore = () => {
                     })
                 )
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -93,23 +89,15 @@ const DetailStore = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await StoreAPI.getOne(id)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setStoreInfo(data)
                 setTitle(data.store_title)
                 document.title = data.store_title
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -118,7 +106,7 @@ const DetailStore = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await DocumentAPI.getAll(params)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setListDocument(data.documents)
                 setPagination({
                     current: params.page ?? 1,
@@ -126,18 +114,10 @@ const DetailStore = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -196,10 +176,7 @@ const DetailStore = () => {
                     {
                         storeInfo &&
                         <CardStore>
-                            {
-                                storeInfo.store_image &&
-                                <img src={convertUrl(storeInfo.store_image)} alt={storeInfo.store_title} />
-                            }
+                            <img src={storeInfo.store_image ? convertUrl(storeInfo.store_image) : WorkImage} alt={storeInfo.store_title} />
                             <h4>
                                 {storeInfo.store_title}
                             </h4>

@@ -1,6 +1,7 @@
 import { DollarOutlined } from "@ant-design/icons";
 import { Flex, Table, TableProps, Tag } from "antd";
 import { useEffect, useState } from "react"
+import { toast } from "react-toastify";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import HistoryAPI, { HistoryParams } from "~/services/actions/history";
 import { convertDate, formatCurrency } from "~/services/constants";
@@ -17,7 +18,7 @@ interface DataType {
 const Revenue = () => {
     const title = 'Doanh thu'
     const [dataTable, setDataTable] = useState<DataType[]>([])
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 6,
@@ -38,7 +39,7 @@ const Revenue = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await HistoryAPI.getAll(params)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.histories.map((history) => {
                         const result: DataType = {
@@ -46,7 +47,7 @@ const Revenue = () => {
                             createAt: convertDate((history.history_createdAt as Date).toString()),
                             money: history.recharge.recharge_money,
                             score: history.recharge.recharge_score,
-                            name: history.account.profile.profile_name
+                            name: history.account.account_name
                         }
 
                         return result
@@ -58,18 +59,10 @@ const Revenue = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -78,21 +71,13 @@ const Revenue = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await HistoryAPI.getTotal()
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setTotal(data)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

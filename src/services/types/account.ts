@@ -1,5 +1,3 @@
-import { Profile } from "~/services/types/profile"
-
 export interface AccountLogin {
     token: string
 }
@@ -18,15 +16,14 @@ export interface Account {
     account_password?: string
     account_token?: string
     account_admin?: boolean
-    createdAt: string
-    updatedAt: string
-}
-
-export interface AccountInfo extends Account {
-    profile: Profile
+    account_band?: boolean
+    account_name: string
+    account_score?: number
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 export interface AccountAll {
     count: number
-    accounts: AccountInfo[]
+    accounts: Account[]
 }

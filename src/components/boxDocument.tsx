@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import styled from "styled-components"
 import ViewIcon from "~/components/viewIcon"
-import { useGlobalDataContext } from "~/hooks/globalData"
 import BuyAPI from "~/services/actions/buy"
 import { PATH } from "~/services/constants/navbarList"
 import { DocumentInfo } from "~/services/types/document"
@@ -17,6 +16,15 @@ const CardTop = styled.div`
 const Title = styled.h4`
     font-size: 20px;
     font-weight: 600;
+    display: block;
+    display: -webkit-box;
+    max-width: 100%;
+    margin: 0 auto;
+    line-height: 1;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `
 
 const Group = styled.span`
@@ -24,7 +32,6 @@ const Group = styled.span`
 `
 
 const BoxDocument = ({ data }: { data: DocumentInfo }) => {
-    const { setIsLoading, messageApi } = useGlobalDataContext();
     const [count, setCount] = useState<number>(0)
 
     useEffect(() => {
@@ -34,32 +41,21 @@ const BoxDocument = ({ data }: { data: DocumentInfo }) => {
     }, [data.document_Id])
 
     const getCount = async (id: string) => {
-        setIsLoading(true)
         try {
-            const { status, message, data } = await BuyAPI.getAll({
+            const { status, data } = await BuyAPI.getAll({
                 document: id
             })
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setCount(data.count)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            console.log(e)
         }
-        setIsLoading(false)
     }
+
     return (
         <Card
-            style={{ width: '100%' }}
+            style={{ width: '100%', height: '100%' }}
             cover={
                 <CardTop>
                     <ViewIcon

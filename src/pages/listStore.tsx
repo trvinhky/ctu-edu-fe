@@ -1,6 +1,7 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { Button, Col, Flex, Form, FormProps, Input, Pagination, Row } from "antd";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import BoxStore from "~/components/boxStore";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import StoreAPI from "~/services/actions/store";
@@ -13,7 +14,7 @@ type FieldType = {
 
 const ListStore = () => {
     const title = 'Tất cả kho tài liệu'
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [listStore, setListStore] = useState<StoreInfo[]>([])
     const [pagination, setPagination] = useState({
         current: 1,
@@ -33,7 +34,7 @@ const ListStore = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await StoreAPI.getAll(page, limit, title)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setListStore(data.stores)
                 setPagination({
                     current: page ?? 1,
@@ -41,18 +42,10 @@ const ListStore = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

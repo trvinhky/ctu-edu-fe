@@ -1,14 +1,16 @@
+import { RedoOutlined } from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { Button, Flex, Form, Input } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useGlobalDataContext } from '~/hooks/globalData';
-import useCaptcha from '~/hooks/useCaptcha';
 import AccountAPI from '~/services/actions/account'
+import { ENV } from '~/services/constants';
 import { PATH } from '~/services/constants/navbarList';
 import { FormLink, FormTitle, ImgCaptCha } from '~/services/constants/styled';
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
+import { loginAccount } from '~/services/reducers/accountSlice';
 
 type FieldType = {
     email?: string;
@@ -17,59 +19,59 @@ type FieldType = {
 };
 
 const Login = () => {
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [captchaUrl] = useCaptcha()
+    const [captchaUrl, setCaptchaUrl] = useState<string | undefined>(undefined)
     const title = 'Đăng nhập'
 
     useEffect(() => {
         document.title = title
+        fetchCaptcha()
     }, [])
+
+    const fetchCaptcha = async () => {
+        setIsLoading(true)
+        try {
+            const { data } = await AccountAPI.getCaptCha()
+
+            if (!Array.isArray(data)) {
+                setCaptchaUrl(`${ENV.BE_HOST}${data.url}`);
+            }
+        } catch (e) {
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
+        }
+        setIsLoading(false)
+    };
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         setIsLoading(true)
         try {
-            const { data, message } = await AccountAPI.login({
+            const { data, message, status } = await AccountAPI.login({
                 email: values.email as string,
                 password: values.password as string,
                 captcha: values.captcha as string
             })
 
-            if (data && !Array.isArray(data)) {
-                messageApi.open({
-                    type: 'success',
-                    content: message,
-                    duration: 3,
-                });
+            if (status === 201) {
+                toast.success(message)
                 setIsLoading(false)
-                dispatch(actionsAccount.LoginAccount(data.token))
+                dispatch(loginAccount(data.token))
                 navigate(PATH.HOME)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
-
         setIsLoading(false)
     };
 
     const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = () => {
-        messageApi.open({
-            type: 'warning',
-            content: 'Vui lòng nhập đầy đủ dữ liệu!',
-            duration: 3,
-        });
+        toast.warning('Vui lòng nhập đầy đủ dữ liệu!')
     };
+
+    const handleReloadCaptcha = async () => {
+        await fetchCaptcha()
+    }
 
     return (
         <Form
@@ -106,7 +108,7 @@ const Login = () => {
             </Form.Item>
             <Flex
                 justify='flex-start'
-                gap={20}
+                gap={15}
                 style={{
                     paddingBottom: 30,
                     paddingTop: 10
@@ -119,7 +121,18 @@ const Login = () => {
                 >
                     <Input />
                 </Form.Item>
-                {captchaUrl && <ImgCaptCha src={captchaUrl} alt="CAPTCHA" />}
+                {captchaUrl &&
+                    <Flex gap={10}>
+                        <ImgCaptCha src={captchaUrl} alt="CAPTCHA" style={{ borderRadius: 5 }} />
+                        <Button
+                            type='primary'
+                            style={{ height: '40px', backgroundColor: '#2c3e50' }}
+                            onClick={handleReloadCaptcha}
+                        >
+                            <RedoOutlined />
+                        </Button>
+                    </Flex>
+                }
             </Flex>
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                 <Button type="primary" htmlType="submit">

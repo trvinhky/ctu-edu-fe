@@ -31,6 +31,7 @@ const PATH = {
     UPDATE_POST: '/update-post/:id',
     LOGIN: '/login',
     AUTH: '/auth',
+    CHECK: '/check/:order',
     FORGOT: '/forgot',
     NEW_PASSWORD: '/new-password',
     REGISTER: '/register',

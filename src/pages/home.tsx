@@ -1,5 +1,6 @@
 import { Col, Row } from 'antd'
 import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
 import BoxDocument from '~/components/boxDocument'
 import BoxStore from '~/components/boxStore'
 import ItemPost from '~/components/itemPost'
@@ -14,7 +15,7 @@ import { PostInfo } from '~/services/types/post'
 import { StoreInfo } from '~/services/types/store'
 
 const Home = () => {
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [listPosts, setListPosts] = useState<PostInfo[]>([])
     const [listDocument, setListDocument] = useState<DocumentInfo[]>([])
     const [listStore, setListStore] = useState<StoreInfo[]>([])
@@ -30,21 +31,13 @@ const Home = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await PostAPI.getAll({ page: 1, index: 1 })
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setListPosts(data.posts)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -52,22 +45,14 @@ const Home = () => {
     const getAllDocument = async () => {
         setIsLoading(true)
         try {
-            const { data, message, status } = await DocumentAPI.getAll({ page: 1 })
-            if (status === 201 && !Array.isArray(data)) {
+            const { data, message, status } = await DocumentAPI.getAll({ page: 1, limit: 8 })
+            if (status === 201) {
                 setListDocument(data.documents)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -76,21 +61,13 @@ const Home = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await StoreAPI.getAll(1)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setListStore(data.stores)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

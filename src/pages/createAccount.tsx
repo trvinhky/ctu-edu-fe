@@ -6,6 +6,7 @@ import { Title } from '~/services/constants/styled';
 import { isValidPassword } from '~/services/constants/validation';
 import AccountAPI from '~/services/actions/account'
 import { ROLE_OPTIONS } from '~/services/constants';
+import { toast } from 'react-toastify';
 
 interface SubmitButtonProps {
     form: FormInstance;
@@ -41,32 +42,18 @@ const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({ fo
 
 const CreateAccount = () => {
     const title = 'Tạo tài khoản'
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [emailSend, setEmailSend] = useState('')
 
     const getCode = async () => {
         setIsLoading(true)
         try {
-            const { status } = await AccountAPI.getCode(emailSend)
-            if (status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: 'Vui lòng kiểm tra gmail của bạn!',
-                    duration: 3,
-                });
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: 'Gửi email thất bại!',
-                    duration: 3,
-                });
-            }
+            const { status, message } = await AccountAPI.getCode(emailSend)
+
+            if (status === 200) toast.success(message)
+            else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -77,33 +64,20 @@ const CreateAccount = () => {
         setIsLoading(true)
 
         try {
-            const check = await AccountAPI.register({
+            const { status, message } = await AccountAPI.register({
                 email: values.email as string,
                 name: values.username as string,
                 password: values.password as string,
                 code: values.code as string,
                 isAdmin: values.role
             })
-            if (check.status === 200) {
+
+            if (status === 200) {
+                toast.success(message)
                 form.resetFields()
-                messageApi.open({
-                    type: 'success',
-                    content: check.message,
-                    duration: 3,
-                });
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: check.message,
-                    duration: 3,
-                });
-            }
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
 
         setIsLoading(false)

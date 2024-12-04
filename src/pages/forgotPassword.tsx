@@ -3,10 +3,10 @@ import { FormTitle } from "~/services/constants/styled"
 import { Input } from 'antd';
 import type { GetProps } from 'antd';
 import { useGlobalDataContext } from "~/hooks/globalData";
-import { isValidEmail } from "~/services/constants/validation";
 import AccountAPI from '~/services/actions/account'
 import { useNavigate } from "react-router-dom";
 import { PATH } from "~/services/constants/navbarList";
+import { toast } from "react-toastify";
 
 type SearchProps = GetProps<typeof Input.Search>;
 
@@ -14,7 +14,7 @@ const { Search } = Input;
 
 const ForgotPassword = () => {
     const title = 'Quên mật khẩu'
-    const { setEmailSend, setIsLoading, messageApi } = useGlobalDataContext();
+    const { setEmailSend, setIsLoading } = useGlobalDataContext();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,39 +22,18 @@ const ForgotPassword = () => {
     }, [])
 
     const onSearch: SearchProps['onSearch'] = async (value) => {
-        if (isValidEmail(value)) {
-            messageApi.open({
-                type: 'warning',
-                content: 'Vui lòng nhập email của bạn!',
-                duration: 3,
-            });
-        }
-
         setIsLoading(true)
         try {
-            const { status } = await AccountAPI.getCode(value)
+            const { status, message } = await AccountAPI.getCode(value, true)
+
             if (status === 200) {
+                toast.success(message)
                 setEmailSend(value)
-                messageApi.open({
-                    type: 'success',
-                    content: 'Vui lòng kiểm tra gmail của bạn!',
-                    duration: 3,
-                });
                 setIsLoading(false)
                 navigate(PATH.NEW_PASSWORD)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: 'Gửi email thất bại!',
-                    duration: 3,
-                });
-            }
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

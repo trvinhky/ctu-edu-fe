@@ -1,6 +1,7 @@
 import { Table, TableProps } from "antd";
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import HistoryAPI, { HistoryParams } from "~/services/actions/history";
 import { convertDate, formatCurrency } from "~/services/constants";
@@ -17,7 +18,7 @@ interface DataType {
 const ListHistory = () => {
     const title = 'Lịch sử nạp'
     const [dataTable, setDataTable] = useState<DataType[]>([])
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 6,
@@ -38,7 +39,7 @@ const ListHistory = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await HistoryAPI.getAll(params)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.histories.map((history) => {
                         const result: DataType = {
@@ -57,18 +58,10 @@ const ListHistory = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

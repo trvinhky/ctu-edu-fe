@@ -1,6 +1,7 @@
 import { DollarOutlined, ExclamationCircleFilled, PlusOutlined } from "@ant-design/icons";
 import { Button, Flex, Form, FormProps, InputNumber, Modal, Table, TableProps } from "antd";
 import React, { useEffect, useState } from "react"
+import { toast } from "react-toastify";
 import styled from "styled-components";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import RechargeAPI from "~/services/actions/recharge";
@@ -29,7 +30,7 @@ const WrapperBtn = styled.span`
 
 const ManagerPoint = () => {
     const title = 'Danh sách gói nạp'
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [idRecharge, setIdRecharge] = useState<string>()
@@ -86,7 +87,7 @@ const ManagerPoint = () => {
         setIsLoading(true)
         try {
             const { data, message, status } = await RechargeAPI.getAll(page, limit)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.recharges?.map((recharge) => {
                         const result: DataType = {
@@ -105,18 +106,10 @@ const ManagerPoint = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -125,24 +118,16 @@ const ManagerPoint = () => {
         setIsLoading(true)
         try {
             const { data, message, status } = await RechargeAPI.getOne(id)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 form.setFieldsValue({
                     recharge_money: data.recharge_money,
                     recharge_score: data.recharge_score
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -184,18 +169,10 @@ const ManagerPoint = () => {
             }
             if (status === 200) {
                 await getAllRecharge(pagination.current)
-            }
-            messageApi.open({
-                type: status === 200 ? "success" : "error",
-                content: message,
-                duration: 3,
-            });
+                toast.success(message)
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -212,18 +189,12 @@ const ManagerPoint = () => {
         setIsLoading(true)
         try {
             const { message, status } = await RechargeAPI.delete(id)
-            if (status === 200) await getAllRecharge(1)
-            messageApi.open({
-                type: status === 200 ? 'success' : 'error',
-                content: message,
-                duration: 3,
-            });
+            if (status === 200) {
+                await getAllRecharge(1)
+                toast.success(message)
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

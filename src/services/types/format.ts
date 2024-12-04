@@ -1,4 +1,4 @@
-import { AccountInfo } from "~/services/types/account"
+import { Account } from "~/services/types/account"
 import { Document } from "~/services/types/document"
 import { Post } from "~/services/types/post"
 
@@ -12,7 +12,7 @@ export interface Format {
 export interface FormatInfo extends Format {
     documents: Document[]
     posts: Post[]
-    account: AccountInfo
+    account: Account
 }
 
 export interface FormatAll {

@@ -8,6 +8,8 @@ import { useGlobalDataContext } from '~/hooks/globalData';
 import ButtonEdit from '~/services/utils/buttonEdit';
 import StoreAPI from '~/services/actions/store';
 import { convertUrl } from '~/services/constants';
+import WorkImage from "~/assets/images/work.jpeg"
+import { toast } from 'react-toastify';
 
 interface DataType {
     name: string;
@@ -55,7 +57,7 @@ const Content = styled.section`
 const ManagerStore = () => {
     const title = 'Danh sách kho tài liệu'
     const [open, setOpen] = useState(false);
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [storeId, setStoreId] = useState<string>()
     const [storeTitle, setStoreTitle] = useState<string>()
     const [dataTable, setDataTable] = useState<DataType[]>([])
@@ -79,12 +81,12 @@ const ManagerStore = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await StoreAPI.getAll(page, limit, title)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.stores.map((store) => {
                         const result: DataType = {
                             name: store.store_title as string,
-                            image: convertUrl(store.store_image as string),
+                            image: store.store_image ? convertUrl(store.store_image) : WorkImage,
                             documents: store.documents.length,
                             key: store.store_Id as string
                         }
@@ -98,18 +100,10 @@ const ManagerStore = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -118,22 +112,14 @@ const ManagerStore = () => {
         setIsLoading(true)
         try {
             const { status, message, data } = await StoreAPI.getOne(id)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setImageSrc(convertUrl(data?.store_image as string))
                 setStoreTitle(data.store_title)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -143,28 +129,16 @@ const ManagerStore = () => {
         try {
             const { status, message } = await StoreAPI.create(data)
             if (status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: message,
-                    duration: 3,
-                });
+                toast.success(message)
                 await getAllStore(
                     pagination.current,
                     pagination.pageSize
                 )
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -174,28 +148,16 @@ const ManagerStore = () => {
         try {
             const { status, message } = await StoreAPI.update(id, data)
             if (status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: message,
-                    duration: 3,
-                });
+                toast.success(message)
                 await getAllStore(
                     pagination.current,
                     pagination.pageSize
                 )
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

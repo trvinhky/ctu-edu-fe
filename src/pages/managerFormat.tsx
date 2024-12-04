@@ -1,10 +1,10 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Flex, Form, FormProps, Input, Modal, Table, TableProps } from "antd";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import styled from "styled-components";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import FormatAPI from "~/services/actions/format";
-import CategoryAPI from "~/services/actions/format";
 import { Title } from "~/services/constants/styled";
 import ButtonEdit from "~/services/utils/buttonEdit";
 
@@ -29,9 +29,9 @@ const WrapperBtn = styled.span`
 `
 
 const ManagerFormat = () => {
-    const title = 'Danh sách loại file'
+    const title = 'Danh định dạng file'
     const [form] = Form.useForm<FieldType>();
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [formatId, setFormatId] = useState<string>()
@@ -50,7 +50,8 @@ const ManagerFormat = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await FormatAPI.getAll(page, limit)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
+                console.log(data)
                 setDataTable(
                     data.formats.map((format, i) => {
                         const result: DataType = {
@@ -70,18 +71,10 @@ const ManagerFormat = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -123,7 +116,7 @@ const ManagerFormat = () => {
         setIsLoading(true)
         try {
             const { status, message, data } = await FormatAPI.getOne(id)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setFormatId(data.format_Id)
                 form.setFieldsValue({
                     format_name: data.format_name,
@@ -131,18 +124,10 @@ const ManagerFormat = () => {
                     format_description: data.format_description
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -192,19 +177,11 @@ const ManagerFormat = () => {
                 form.resetFields()
             }
             if (status === 200) {
-                await getAllFormat(1)
-            }
-            messageApi.open({
-                type: status === 200 ? "success" : "error",
-                content: message,
-                duration: 3,
-            });
+                toast.success(message)
+                await getAllFormat(pagination.current, pagination.pageSize)
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

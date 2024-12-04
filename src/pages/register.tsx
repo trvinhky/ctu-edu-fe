@@ -7,6 +7,7 @@ import { isValidPassword } from '~/services/constants/validation';
 import AccountAPI from '~/services/actions/account'
 import { useGlobalDataContext } from '~/hooks/globalData';
 import { PATH } from '~/services/constants/navbarList';
+import { toast } from 'react-toastify';
 
 type FieldType = {
     email?: string;
@@ -18,7 +19,7 @@ type FieldType = {
 };
 
 const Register = () => {
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [emailSend, setEmailSend] = useState('')
     const navigate = useNavigate();
 
@@ -29,70 +30,38 @@ const Register = () => {
     const getCode = async () => {
         setIsLoading(true)
         try {
-            const { status } = await AccountAPI.getCode(emailSend)
-            if (status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: 'Vui lòng kiểm tra gmail của bạn!',
-                    duration: 3,
-                });
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: 'Gửi email thất bại!',
-                    duration: 3,
-                });
-            }
+            const { status, message } = await AccountAPI.getCode(emailSend)
+
+            if (status === 200) toast.success(message)
+            else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         setIsLoading(true)
-
         try {
-            const check = await AccountAPI.register({
+            const { status, message } = await AccountAPI.register({
                 email: values.email as string,
                 name: values.username as string,
                 password: values.password as string,
                 code: values.code as string
             })
-            if (check.status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: check.message,
-                    duration: 3,
-                });
+
+            if (status === 200) {
                 navigate(PATH.LOGIN)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: check.message,
-                    duration: 3,
-                });
-            }
+                toast.success(message)
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     };
 
     const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = () => {
-        messageApi.open({
-            type: 'warning',
-            content: 'Vui lòng nhập đầy đủ dữ liệu!',
-            duration: 3,
-        });
+        toast.warning('Vui lòng nhập đầy đủ dữ liệu!')
     };
 
     return (

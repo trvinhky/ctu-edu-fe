@@ -11,7 +11,11 @@ export interface ParamsPost {
     account?: string;
     title?: string;
     limit?: number;
-    index?: 1 | -1 | 0
+    index?: 1 | -1 | 0;
+    auth?: string
+    year?: number
+    id?: string
+    month?: number
 }
 
 class PostService extends EduAPI {
@@ -32,7 +36,7 @@ class PostService extends EduAPI {
     }
 
     public async getAll(data: ParamsPost): Promise<APIType<PostAll>> {
-        const { page = 1, limit, status, account, title, format, index } = data
+        const { page = 1, limit, status, account, title, format, index, auth, year, id, month } = data
         let params = url('all')
         if (page && !isNaN(+page)) {
             params += `?page=${page}&limit=${limit ?? 6}`
@@ -43,6 +47,10 @@ class PostService extends EduAPI {
         if (title) params += `&title=${title}`
         if (format) params += `&format=${format}`
         if (index) params += `&index=${index}`
+        if (auth) params += `&auth=${auth}`
+        if (year) params += `&year=${year}`
+        if (id) params += `&id=${id}`
+        if (month) params += `&month=${month}`
 
         return await this.getAPI(params)
     }

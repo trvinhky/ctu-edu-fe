@@ -7,6 +7,7 @@ import { isValidPassword } from "~/services/constants/validation";
 import AccountAPI from '~/services/actions/account'
 import { useNavigate } from "react-router-dom";
 import { PATH } from "~/services/constants/navbarList";
+import { toast } from "react-toastify";
 
 type FieldType = {
     password?: string;
@@ -16,7 +17,7 @@ type FieldType = {
 
 const NewPassword = () => {
     const title = 'Đổi mật khẩu'
-    const { setIsLoading, messageApi, emailSend } = useGlobalDataContext();
+    const { setIsLoading, emailSend } = useGlobalDataContext();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,31 +28,18 @@ const NewPassword = () => {
         setIsLoading(true)
         try {
             if (emailSend) {
-                const { status } = await AccountAPI.getCode(emailSend)
-                if (status === 200) {
-                    messageApi.open({
-                        type: 'success',
-                        content: 'Vui lòng kiểm tra gmail của bạn!',
-                        duration: 3,
-                    });
-                    setIsLoading(false)
-                    return
-                }
+                const { status, message } = await AccountAPI.getCode(emailSend)
+
+                if (status === 200) toast.success(message)
+                else toast.error(message)
+
+                return
             }
-            messageApi.open({
-                type: 'error',
-                content: 'Gửi email thất bại!',
-                duration: 3,
-            });
             setIsLoading(false)
             navigate(PATH.LOGIN)
             return
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
             setIsLoading(false)
         }
     }
@@ -67,36 +55,18 @@ const NewPassword = () => {
             })
 
             if (status === 200) {
-                messageApi.open({
-                    type: 'success',
-                    content: message,
-                    duration: 3,
-                });
-                setIsLoading(false)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                navigate(PATH.LOGIN)
+                toast.success(message)
             }
-
+            else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     };
 
     const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = () => {
-        messageApi.open({
-            type: 'warning',
-            content: 'Vui lòng nhập đầy đủ dữ liệu!',
-            duration: 3,
-        });
+        toast.warning('Vui lòng nhập đầy đủ dữ liệu!')
     };
 
     return (
@@ -134,7 +104,6 @@ const NewPassword = () => {
                 >
                     <Input.Password />
                 </Form.Item>
-
                 <Form.Item
                     name="confirm"
                     label="Nhập lại mật khẩu"

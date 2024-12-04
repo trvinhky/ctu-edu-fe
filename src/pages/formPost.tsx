@@ -1,4 +1,4 @@
-import { Button, Col, Flex, Form, FormProps, Input, Row, Select, Upload, UploadFile, UploadProps } from "antd";
+import { Button, Col, Flex, Form, FormProps, Input, InputNumber, Row, Select, Upload, UploadFile, UploadProps } from "antd";
 import { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
 import { useSelector } from "react-redux";
@@ -13,10 +13,13 @@ import FormatAPI from "~/services/actions/format";
 import { RcFile } from "antd/es/upload";
 import { UploadOutlined } from "@ant-design/icons";
 import { FormatInfo } from "~/services/types/format";
+import { toast } from "react-toastify";
 
 type FieldType = {
     post_title?: string;
     format_Id?: string;
+    post_year?: number;
+    post_author?: string;
 };
 
 const FormPost = () => {
@@ -25,7 +28,7 @@ const FormPost = () => {
     const [form] = Form.useForm<FieldType>();
     const [contentPost, setContentPost] = useState('');
     const [formatOption, setFormatOption] = useState<Option[]>([])
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [accountId, setAccountId] = useState<string>()
     const account = useSelector(accountInfoSelector)
     const [statusId, setStatusId] = useState<string>()
@@ -50,26 +53,20 @@ const FormPost = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await PostAPI.getOne(postId)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 form.setFieldsValue({
                     post_title: data.post_title,
-                    format_Id: data.format_Id
+                    format_Id: data.format_Id,
+                    post_author: data.post_author,
+                    post_year: data.post_year
                 })
                 setContentPost(data.post_content)
                 setStatusId(data.status_Id)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -78,7 +75,7 @@ const FormPost = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await FormatAPI.getAll(page, limit)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setFormatOption(
                     data.formats.map((format) => {
                         const result: Option = {
@@ -91,18 +88,10 @@ const FormPost = () => {
                 )
                 setFormats(data.formats)
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -138,6 +127,8 @@ const FormPost = () => {
                 data.append('post_content', contentPost as string)
                 data.append('account_Id', accountId as string)
                 data.append('format_Id', values.format_Id as string)
+                data.append('post_author', values.post_author as string)
+                data.append('post_year', (values.post_year as number).toString())
                 if (fileList.length > 0) {
                     const file = fileList[0].originFileObj as File;
                     data.append("file", file);
@@ -152,22 +143,17 @@ const FormPost = () => {
                     post_content: contentPost as string,
                     post_title: values.post_title as string,
                     status_Id: statusId as string,
+                    post_author: values.post_author as string,
+                    post_year: values.post_year as number
                 })
                 status = res.status
                 message = res.message as string
             }
 
-            messageApi.open({
-                type: status === 200 ? 'success' : 'error',
-                content: message,
-                duration: 3,
-            });
+            if (status === 200) toast.success(message)
+            else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -216,6 +202,36 @@ const FormPost = () => {
                 >
                     <Input />
                 </Form.Item>
+                <Row gutter={[16, 16]}>
+                    <Col span={12}>
+                        <Form.Item<FieldType>
+                            name="post_author"
+                            label="Tác giả"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Vui lòng nhập tác giả!'
+                                }
+                            ]}
+                        >
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item<FieldType>
+                            name="post_year"
+                            label="Năm xuất bản"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Vui lòng nhập năm xuất bản!'
+                                }
+                            ]}
+                        >
+                            <InputNumber style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                </Row>
                 <Form.Item
                     label="Nội dung"
                     rules={[

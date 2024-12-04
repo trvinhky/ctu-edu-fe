@@ -2,7 +2,7 @@ import { MenuProps } from "antd";
 
 export interface APIType<T> {
     message: String
-    data: T | Array<T>
+    data: T
     status: number
 }
 

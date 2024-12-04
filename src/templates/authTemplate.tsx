@@ -8,10 +8,10 @@ import { NAVBARAUTH, PATH } from "~/services/constants/navbarList"
 import AccountAPI from '~/services/actions/account'
 import { useDispatch, useSelector } from "react-redux"
 import { useGlobalDataContext } from "~/hooks/globalData"
-import { actions as actionsAccount } from '~/services/reducers/accountSlice';
 import { useEffect, useState } from "react"
 import { SettingOutlined } from "@ant-design/icons"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
+import { setInfo } from "~/services/reducers/accountSlice"
 
 const Navbar = styled.div`
     width: 25%;
@@ -34,13 +34,13 @@ const AuthTemplate = () => {
     const token = useSelector(accountTokenSelector)
 
     const getInfo = async () => {
+        setIsLoading(true)
         try {
-            setIsLoading(true)
-            const { data } = await AccountAPI.getOne()
+            const { data, status } = await AccountAPI.getOne()
             setIsLoading(false)
-            if (data && !Array.isArray(data)) {
-                dispatch(actionsAccount.setInfo(data))
-                setUserName(data.profile?.profile_name)
+            if (status === 201) {
+                dispatch(setInfo(data))
+                setUserName(data.account_name)
                 if (data.account_admin) {
                     setIsShowBtn(true)
                 }
@@ -50,13 +50,14 @@ const AuthTemplate = () => {
         } catch (e) {
             navigate(PATH.LOGIN)
         }
+        setIsLoading(false)
     }
 
     useEffect(() => {
         if (token) {
             if (account) {
                 setIsShowBtn(account.account_admin as boolean)
-                setUserName(account.profile.profile_name)
+                setUserName(account.account_name)
             } else {
                 getInfo()
             }

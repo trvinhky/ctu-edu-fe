@@ -1,15 +1,15 @@
 import { DollarOutlined, EyeOutlined, FilterOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons"
-import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Table, TableProps, Typography } from "antd"
+import { Button, Flex, Form, FormProps, Input, InputNumber, Table, TableProps } from "antd"
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import styled from "styled-components"
-import ViewIcon from "~/components/viewIcon"
+import { toast } from "react-toastify"
 import { useGlobalDataContext } from "~/hooks/globalData"
 import BuyAPI, { BuyProps } from "~/services/actions/buy"
-import { convertDate, ENV } from "~/services/constants"
+import { ENV } from "~/services/constants"
+import { PATH } from "~/services/constants/navbarList"
 import { BoxTitle } from "~/services/constants/styled"
 import { accountInfoSelector, accountTokenSelector } from "~/services/reducers/selectors"
-import { Buy, BuyInfo } from "~/services/types/buy"
+import ButtonLinkCustom from "~/services/utils/buttonLinkCustom"
 
 interface DataType {
     key: string;
@@ -26,23 +26,11 @@ type FieldType = {
     title?: string;
 };
 
-const WrapperIcon = styled.div`
-    font-size: 60px;
-`
-
-const BoxText = styled.div`
-    &>span:first-child {
-        font-weight: 600;
-    }
-`
-
 const ListBuy = () => {
-    const title = 'Bài học đã mua'
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const title = 'Tài liệu đã mua'
+    const { setIsLoading } = useGlobalDataContext();
     const account = useSelector(accountInfoSelector)
     const [dataTable, setDataTable] = useState<DataType[]>([])
-    const [open, setOpen] = useState(false);
-    const [buyDetail, setBuyDetail] = useState<BuyInfo>()
     const token = useSelector(accountTokenSelector)
     const [pagination, setPagination] = useState({
         current: 1,
@@ -65,7 +53,7 @@ const ListBuy = () => {
         setIsLoading(true)
         try {
             const { status, data, message } = await BuyAPI.getAll(params)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.buy.map((item) => {
                         const document = item.document
@@ -88,18 +76,10 @@ const ListBuy = () => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -130,15 +110,12 @@ const ListBuy = () => {
                     gap={10}
                     wrap='wrap'
                 >
-                    <Button
-                        type="primary"
-                        onClick={() => handleShowDetail({
-                            document_Id: record.document,
-                            account_Id: record.account
-                        })}
+                    <ButtonLinkCustom
+                        shape="default"
+                        href={PATH.DETAIL_DOCUMENT.replace(':id', record.document)}
                     >
                         <EyeOutlined />
-                    </Button>
+                    </ButtonLinkCustom>
                     <Button
                         type='primary'
                         style={{ backgroundColor: '#27ae60' }}
@@ -163,30 +140,6 @@ const ListBuy = () => {
         }
     }
 
-    const getDetailDocumentBuy = async (params: Buy) => {
-        setIsLoading(true)
-        try {
-            const { status, data, message } = await BuyAPI.getOne(params)
-            if (status === 201 && !Array.isArray(data)) {
-                setBuyDetail(data)
-            } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
-            }
-        } catch (e) {
-            console.log(e)
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
-        }
-        setIsLoading(false)
-    }
-
     const downloadFile = async (fileName: string) => {
         try {
             const response = await fetch(`${ENV.BE_HOST}/file/download`, {
@@ -199,11 +152,7 @@ const ListBuy = () => {
             })
 
             if (!response.ok) {
-                messageApi.open({
-                    type: 'error',
-                    content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                    duration: 3,
-                });
+                toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
                 return
             }
 
@@ -218,17 +167,8 @@ const ListBuy = () => {
             link.click(); // Tự động click vào thẻ <a> để tải file
             link.remove(); // Xóa thẻ sau khi tải xong
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
-    }
-
-    const handleShowDetail = async (data: Buy) => {
-        await getDetailDocumentBuy(data)
-        setOpen(true)
     }
 
     const handleTableChange = (newPagination: any) => {
@@ -283,50 +223,6 @@ const ListBuy = () => {
                 onChange={handleTableChange}
                 rowKey="key"
             />
-            <Modal
-                title="Thông tin bài học"
-                open={open}
-                onCancel={() => setOpen(false)}
-                footer={
-                    <Button type="primary" onClick={() => setOpen(false)}>
-                        OK
-                    </Button>
-                }
-            >
-                {
-                    buyDetail &&
-                    <Flex
-                        gap={10}
-                    >
-                        <WrapperIcon>
-                            <ViewIcon
-                                url={buyDetail.document.document_url}
-                                format={buyDetail.document.format.format_name}
-                            />
-                        </WrapperIcon>
-                        <div>
-                            <Typography.Title
-                                level={4}
-                                style={{ textAlign: 'center', marginBottom: '10px' }}
-                            >
-                                {buyDetail.document.document_title}
-                            </Typography.Title>
-                            <BoxText>
-                                <span>Số điểm: </span> {buyDetail.document.document_score} <DollarOutlined />
-                            </BoxText>
-                            <BoxText>
-                                <span>Ngày mua: </span> {buyDetail.buy_date && convertDate(buyDetail.buy_date.toString())}
-                            </BoxText>
-                            <BoxText>
-                                <span>Nội dung: </span>
-                                <Typography.Paragraph ellipsis={{ rows: 4, expandable: true, symbol: 'xem thêm' }}>
-                                    {buyDetail.document.document_content}
-                                </Typography.Paragraph>
-                            </BoxText>
-                        </div>
-                    </Flex>
-                }
-            </Modal>
         </section>
     )
 }

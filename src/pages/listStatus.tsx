@@ -1,5 +1,6 @@
 import { Table, TableProps } from "antd"
 import { useEffect, useState } from "react"
+import { toast } from "react-toastify";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import StatusAPI from "~/services/actions/status";
 import { Title } from "~/services/constants/styled"
@@ -14,7 +15,7 @@ interface DataType {
 const ListStatus = () => {
     const title = 'Danh sách trạng thái'
     const [dataTable, setDataTable] = useState<DataType[]>([])
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
 
     useEffect(() => {
         document.title = title
@@ -44,7 +45,7 @@ const ListStatus = () => {
         setIsLoading(true)
         try {
             const { data, status, message } = await StatusAPI.getAll(1)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.status.map((item, i) => {
                         const total = item.posts.length ?? 0
@@ -59,18 +60,10 @@ const ListStatus = () => {
                     })
                 )
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }

@@ -3,6 +3,7 @@ import { Button, Flex, Form, FormProps, Input, InputNumber, Modal, Select, Table
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useGlobalDataContext } from "~/hooks/globalData";
 import PostAPI, { ParamsPost } from "~/services/actions/post";
 import StatusAPI from "~/services/actions/status";
@@ -29,7 +30,7 @@ interface DataType {
 
 const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
     const title = 'Danh sách bài đăng'
-    const { setIsLoading, messageApi } = useGlobalDataContext();
+    const { setIsLoading } = useGlobalDataContext();
     const [statusOptions, setStatusOptions] = useState<Option[]>([])
     const [dataTable, setDataTable] = useState<DataType[]>([])
     const [isOpenModal, setIsOpenModal] = useState(false)
@@ -59,7 +60,7 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
         setIsLoading(true)
         try {
             const { status, data, message } = await StatusAPI.getAll()
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setStatusOptions(
                     data.status.map((item) => {
                         const result: Option = {
@@ -71,18 +72,10 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     })
                 )
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -104,7 +97,7 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
             width: '35%'
         },
         {
-            title: 'Tác giả',
+            title: 'Tài khoản',
             dataIndex: 'account',
             key: 'account',
         },
@@ -124,7 +117,7 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     wrap='wrap'
                 >
                     <ButtonLinkCustom
-                        href=""
+                        href={PATH.DETAIL_POST.replace(':id', record.key as string)}
                         shape="default"
                     >
                         <EyeOutlined />
@@ -201,17 +194,11 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                 page: pagination.current,
                 limit: pagination.pageSize
             })
-            messageApi.open({
-                type: status === 200 ? 'success' : 'error',
-                content: message,
-                duration: 3,
-            });
+
+            if (status === 200) toast.success(message)
+            else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
@@ -246,12 +233,12 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                 }
             }
             const { data, status, message } = await PostAPI.getAll(allParams)
-            if (status === 201 && !Array.isArray(data)) {
+            if (status === 201) {
                 setDataTable(
                     data.posts.map((post) => {
                         const result: DataType = {
                             key: post.post_Id as string,
-                            account: post.account.profile.profile_name,
+                            account: post.account.account_name,
                             name: post.post_title,
                             status: post?.status?.status_name as string,
                             status_index: post.status.status_index,
@@ -267,24 +254,16 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     total: data.count
                 })
             } else {
-                messageApi.open({
-                    type: 'error',
-                    content: message,
-                    duration: 3,
-                });
+                toast.error(message)
             }
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
 
     const handleChangeStatus = async (post_Id: string, status_index: 1 | 0 | -1) => {
-        if (score === null && status_index === 1) return
+        if (score === null && status_index === 1 && authId) return
         setIsLoading(true)
         try {
             const { status, message } = await PostAPI.updateStatus(
@@ -299,18 +278,11 @@ const ManagerPost = ({ isAdmin }: { isAdmin?: boolean }) => {
                     limit: pagination.pageSize
                 })
                 setScore(null)
-            }
-            messageApi.open({
-                type: status === 200 ? 'success' : 'error',
-                content: message,
-                duration: 3,
-            });
+                setAuthId(undefined)
+                toast.success(message)
+            } else toast.error(message)
         } catch (e) {
-            messageApi.open({
-                type: 'error',
-                content: 'Có lỗi xảy ra! Vui lòng thử lại sau!',
-                duration: 3,
-            });
+            toast.error('Có lỗi xảy ra! Vui lòng thử lại sau!')
         }
         setIsLoading(false)
     }
