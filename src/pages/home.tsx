@@ -80,7 +80,7 @@ const Home = () => {
             <Row gutter={[16, 16]}>
                 {
                     listStore?.map((store) => (
-                        <Col span={6} key={store.store_Id}>
+                        <Col md={6} sm={12} xs={12} key={store.store_Id}>
                             <BoxStore data={store} />
                         </Col>
                     ))
@@ -92,7 +92,7 @@ const Home = () => {
             <Row gutter={[16, 16]}>
                 {
                     listDocument?.map((doc) => (
-                        <Col span={6} key={doc.document_Id}>
+                        <Col md={6} sm={12} xs={12} key={doc.document_Id}>
                             <BoxDocument data={doc} />
                         </Col>
                     ))
@@ -104,7 +104,7 @@ const Home = () => {
             <Row gutter={[16, 16]}>
                 {
                     listPosts?.map((post) => (
-                        <Col span={12} key={post.post_Id}>
+                        <Col md={12} sm={24} xs={24} key={post.post_Id}>
                             <ItemPost data={post} />
                         </Col>
                     ))

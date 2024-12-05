@@ -53,11 +53,26 @@ const NavBarHeader = styled.nav`
         color: #000;
         font-weight: 700;
     }
+
+    @media screen and (max-width: 768px) {
+        display: none;
+    }
 `
 
 const NavBarItem = styled.span<{ $isActive?: boolean }>`
     a {
         color: ${props => props.$isActive ? '#1677ff' : '#000'};
+    }
+`
+
+const Box = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+
+    @media screen and (max-width: 768px) {
+        display: none;
     }
 `
 
@@ -173,11 +188,7 @@ const Header = () => {
                             ))
                         }
                     </NavBarHeader>
-                    <Flex
-                        align="center"
-                        justify="flex-end"
-                        gap='10px'
-                    >
+                    <Box>
                         <Search
                             placeholder="Tìm kiếm"
                             onSearch={onSearch}
@@ -202,7 +213,7 @@ const Header = () => {
                                     </Button>
                                 </>
                         }
-                    </Flex>
+                    </Box>
                 </Flex>
             </div>
         </Wrapper>

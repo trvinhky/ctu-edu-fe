@@ -461,7 +461,7 @@ const DetailDocument = () => {
             {
                 documentInfo &&
                 <Row gutter={[16, 16]}>
-                    <Col span={16}>
+                    <Col md={16} sm={24} xs={24}>
                         <Flex justify="flex-start">
                             <ButtonBack />
                         </Flex>
@@ -571,7 +571,7 @@ const DetailDocument = () => {
                             </Col>
                         </Row>
                     </Col>
-                    <Col span={8}>
+                    <Col md={8} sm={24} xs={24}>
                         <div>
                             <TitleOther>Liên quan</TitleOther>
                             {

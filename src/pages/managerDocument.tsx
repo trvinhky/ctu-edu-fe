@@ -391,6 +391,11 @@ const ManagerDocument = () => {
     };
 
     const handleBeforeUpload = (file: RcFile) => {
+        if (!form.getFieldValue('format_Id')) {
+            toast.warning("Vui lòng chọn định dạng file!")
+            return false
+        }
+
         // Nếu fileList đã có file, không cho phép chọn thêm
         if (fileList.length >= 1) {
             return Upload.LIST_IGNORE;

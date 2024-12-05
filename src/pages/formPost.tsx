@@ -160,6 +160,7 @@ const FormPost = () => {
 
     const handleBeforeUpload = (file: RcFile) => {
         if (!form.getFieldValue('format_Id')) {
+            toast.warning("Vui lòng chọn định dạng file!")
             return false
         }
 

@@ -59,15 +59,15 @@ const AppRouter = () => {
             e.preventDefault();
         };
 
-        //document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keydown", handleKeyDown);
         document.addEventListener("copy", handleCopy);
-        //document.addEventListener("contextmenu", handleContextMenu);
+        document.addEventListener("contextmenu", handleContextMenu);
 
 
         return () => {
             document.removeEventListener("copy", handleCopy);
-            //document.removeEventListener("keydown", handleKeyDown);
-            //document.removeEventListener("contextmenu", handleContextMenu);
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("contextmenu", handleContextMenu);
         };
     }, []);
 

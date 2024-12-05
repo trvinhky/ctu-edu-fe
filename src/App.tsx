@@ -23,7 +23,7 @@ function App() {
             rtl={false}
             pauseOnFocusLoss
             draggable
-            pauseOnHover
+            pauseOnHover={false}
             theme="light"
           />
         </GlobalStyles>
